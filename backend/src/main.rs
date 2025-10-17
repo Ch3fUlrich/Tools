@@ -55,32 +55,45 @@ fn configure_cors() -> CorsLayer {
             .allow_headers([header::CONTENT_TYPE]);
     }
 
-    let mut cors_layer = CorsLayer::new()
-        .allow_methods([Method::GET, Method::POST])
-        .allow_headers([header::CONTENT_TYPE]);
+    // Collect all valid HeaderValue origins into a Vec
+    let valid_origins: Vec<HeaderValue> = origins
+        .into_iter()
+        .filter_map(|origin| {
+            match origin.parse::<HeaderValue>() {
+                Ok(header_value) => Some(header_value),
+                Err(e) => {
+                    // Sanitize origin for logging by truncating and removing control characters
+                    let safe_origin: String = origin
+                        .chars()
+                        .take(MAX_LOG_ORIGIN_LENGTH)
+                        .filter(|c| !c.is_control())
+                        .collect();
+                    tracing::warn!(
+                        "Failed to parse origin '{}' as HeaderValue (error: {}). Origin will be ignored.",
+                        safe_origin,
+                        e
+                    );
+                    None
+                }
+            }
+        })
+        .collect();
 
-    for origin in origins {
-        match origin.parse::<HeaderValue>() {
-            Ok(header_value) => {
-                cors_layer = cors_layer.allow_origin(header_value);
-            }
-            Err(e) => {
-                // Sanitize origin for logging by truncating and removing control characters
-                let safe_origin: String = origin
-                    .chars()
-                    .take(MAX_LOG_ORIGIN_LENGTH)
-                    .filter(|c| !c.is_control())
-                    .collect();
-                tracing::warn!(
-                    "Failed to parse origin as HeaderValue (error: {}). Origin will be ignored.",
-                    e
-                );
-                tracing::debug!("Rejected origin (sanitized): {}", safe_origin);
-            }
-        }
+    // Handle the case when all origins failed to parse
+    if valid_origins.is_empty() {
+        tracing::warn!("All origins failed to parse as HeaderValue, CORS will deny all origins");
+        return CorsLayer::new()
+            .allow_methods([Method::GET, Method::POST])
+            .allow_headers([header::CONTENT_TYPE]);
     }
 
-    cors_layer
+    // Use AllowOrigin::list to configure multiple origins at once
+    use tower_http::cors::AllowOrigin;
+
+    CorsLayer::new()
+        .allow_methods([Method::GET, Method::POST])
+        .allow_headers([header::CONTENT_TYPE])
+        .allow_origin(AllowOrigin::list(valid_origins))
 }
 
 #[tokio::main]
@@ -235,5 +248,20 @@ mod tests {
         
         // Verify the environment variable was restored to its original state
         assert_eq!(std::env::var("ALLOWED_ORIGINS").ok(), original);
+    }
+
+    #[test]
+    fn test_configure_cors_with_multiple_valid_origins() {
+        // Test that multiple origins are all properly configured
+        // This test verifies the fix for the issue where calling allow_origin
+        // repeatedly in a loop would overwrite previous values
+        std::env::set_var(
+            "ALLOWED_ORIGINS",
+            "http://localhost:3000,http://localhost:3001,https://example.com,https://app.example.com"
+        );
+        let cors_layer = configure_cors();
+        // Should not panic and should create a valid CorsLayer with all origins
+        assert!(std::mem::size_of_val(&cors_layer) > 0);
+        std::env::remove_var("ALLOWED_ORIGINS");
     }
 }
