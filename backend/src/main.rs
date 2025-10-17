@@ -14,10 +14,10 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 const MAX_LOG_ORIGIN_LENGTH: usize = 100;
 
 /// Configure CORS based on environment variables
-/// 
+///
 /// Reads ALLOWED_ORIGINS environment variable which should contain comma-separated origins.
 /// Defaults to localhost origins for development if not set.
-/// 
+///
 /// Example: ALLOWED_ORIGINS="http://localhost:3000,https://example.com"
 fn configure_cors() -> CorsLayer {
     use axum::http::{HeaderValue, Uri};
@@ -30,7 +30,10 @@ fn configure_cors() -> CorsLayer {
         .take(MAX_LOG_ORIGIN_LENGTH)
         .filter(|c| !c.is_control())
         .collect();
-    tracing::info!("Configuring CORS with allowed origins: {}", safe_allowed_origins);
+    tracing::info!(
+        "Configuring CORS with allowed origins: {}",
+        safe_allowed_origins
+    );
 
     let origins: Vec<_> = allowed_origins
         .split(',')
@@ -147,6 +150,7 @@ async fn health_check() -> (StatusCode, Json<serde_json::Value>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     #[tokio::test]
     async fn test_health_check() {
@@ -156,6 +160,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_configure_cors_with_default_origins() {
         // Test that CORS is configured with default localhost origins when env var is not set
         std::env::remove_var("ALLOWED_ORIGINS");
@@ -165,15 +170,20 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_configure_cors_with_custom_origins() {
         // Test that CORS accepts custom origins from environment variable
-        std::env::set_var("ALLOWED_ORIGINS", "http://example.com,https://app.example.com");
+        std::env::set_var(
+            "ALLOWED_ORIGINS",
+            "http://example.com,https://app.example.com",
+        );
         let cors_layer = configure_cors();
         assert!(std::mem::size_of_val(&cors_layer) > 0);
         std::env::remove_var("ALLOWED_ORIGINS");
     }
 
     #[test]
+    #[serial]
     fn test_configure_cors_with_empty_origins() {
         // Test that CORS handles empty origin string
         std::env::set_var("ALLOWED_ORIGINS", "");
@@ -183,6 +193,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_configure_cors_with_invalid_origins() {
         // Test that CORS handles invalid origin strings gracefully
         std::env::set_var("ALLOWED_ORIGINS", "not-a-valid-url,another-invalid");

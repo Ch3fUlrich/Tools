@@ -16,3 +16,4 @@ chrono = { version = "0.4", features = ["serde"] }
 
 [dev-dependencies]
 axum-test = "14.0"
+serial_test = "3.2"
