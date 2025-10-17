@@ -23,7 +23,8 @@ export async function calculateFatLoss(
   });
 
   if (!response.ok) {
-    throw new Error('Failed to calculate fat loss');
+    const text = await response.text();
+    throw new Error(`Failed to calculate fat loss (${response.status}): ${text}`);
   }
 
   return response.json();
@@ -52,15 +53,8 @@ export async function analyzeN26Data(data: Record<string, unknown>): Promise<Ana
   });
 
   if (!response.ok) {
-    let errorBody: string | undefined;
-    try {
-      errorBody = await response.text();
-    } catch (e) {
-      errorBody = undefined;
-    }
-    throw new Error(
-      `Failed to analyze N26 data (status: ${response.status})${errorBody ? ` - Response: ${errorBody}` : ''}`
-    );
+    const text = await response.text();
+    throw new Error(`Failed to analyze N26 data (${response.status}): ${text}`);
   }
 
   return response.json();
