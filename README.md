@@ -225,6 +225,15 @@ Content-Type: application/json
 }
 ```
 
+## 📚 Documentation
+
+- [Contributing Guide](docs/CONTRIBUTING.md) - Development workflow and guidelines
+- [Coding Rules](docs/CODING_RULES.md) - **Required reading** for all contributors
+- [Security Policy](docs/SECURITY.md) - Security best practices and reporting
+- [Design Guidelines](docs/DESIGN.md) - UI/UX design principles
+- [GitHub Pages Deployment](docs/GITHUB_PAGES.md) - Deploy frontend to GitHub Pages
+- [Release Management](docs/RELEASES.md) - Creating and managing releases
+
 ## 🔧 Configuration
 
 ### Environment Variables
