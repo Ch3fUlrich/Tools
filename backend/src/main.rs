@@ -10,6 +10,9 @@ use serde_json::json;
 use tower_http::cors::CorsLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+/// Maximum length for logged origin strings to prevent log injection
+const MAX_LOG_ORIGIN_LENGTH: usize = 100;
+
 /// Configure CORS based on environment variables
 /// 
 /// Reads ALLOWED_ORIGINS environment variable which should contain comma-separated origins.
@@ -54,13 +57,17 @@ fn configure_cors() -> CorsLayer {
                 cors_layer = cors_layer.allow_origin(header_value);
             }
             Err(e) => {
-                // Sanitize origin for logging by truncating and escaping
-                let safe_origin = origin.chars().take(100).collect::<String>();
+                // Sanitize origin for logging by truncating and removing control characters
+                let safe_origin: String = origin
+                    .chars()
+                    .take(MAX_LOG_ORIGIN_LENGTH)
+                    .filter(|c| !c.is_control())
+                    .collect();
                 tracing::warn!(
                     "Failed to parse origin as HeaderValue (error: {}). Origin will be ignored.",
                     e
                 );
-                tracing::debug!("Rejected origin (truncated): {}", safe_origin);
+                tracing::debug!("Rejected origin (sanitized): {}", safe_origin);
             }
         }
     }
