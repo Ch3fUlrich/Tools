@@ -1,7 +1,7 @@
 # Tools
 
 1. Fat_loss.ipynb (% kcal defizit calc and others)
-  1. 1kg of fat has 7000kcal
+  1. 1. 1kg of fat has 7000kcal
   2. 1kg of muscles have about 1200kcal 
     - [note: this calculation done a while ago, and is in children who were recovering from significant illness](http://www.ajcn.org/cgi/reprint/30/9/1514)
   3. based on the formula:
