@@ -25,7 +25,12 @@ fn configure_cors() -> CorsLayer {
     let allowed_origins = std::env::var("ALLOWED_ORIGINS")
         .unwrap_or_else(|_| "http://localhost:3000,http://localhost:3001".to_string());
 
-    tracing::info!("Configuring CORS with allowed origins: {}", allowed_origins);
+    let safe_allowed_origins: String = allowed_origins
+        .chars()
+        .take(MAX_LOG_ORIGIN_LENGTH)
+        .filter(|c| !c.is_control())
+        .collect();
+    tracing::info!("Configuring CORS with allowed origins: {}", safe_allowed_origins);
 
     let origins: Vec<_> = allowed_origins
         .split(',')
