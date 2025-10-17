@@ -33,7 +33,7 @@ fn process_category(
     amount_multiplier: f64,
 ) -> Vec<Transaction> {
     let mut transactions = Vec::new();
-    
+
     for entry in data {
         if let (Some(amount), Some(date), Some(comment)) = (
             entry.get(amount_field).and_then(|v| v.as_f64()),
@@ -48,7 +48,7 @@ fn process_category(
             });
         }
     }
-    
+
     transactions
 }
 
