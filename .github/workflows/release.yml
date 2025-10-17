@@ -33,7 +33,7 @@ jobs:
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
           VERSION="${TAG#v}"
-          
+
           # Extract changelog section for this version
           if grep -q "\[$VERSION\]" CHANGELOG.md; then
             # Extract content between version headers
@@ -43,9 +43,9 @@ jobs:
             echo "Warning: No changelog entry found for version $VERSION"
             CHANGELOG="Release $VERSION
 
-No detailed changelog available. See commit history for changes."
+          No detailed changelog available. See commit history for changes."
           fi
-          
+
           # Save to file for multi-line output
           echo "$CHANGELOG" > /tmp/changelog.txt
           echo "Changelog extracted successfully"
@@ -64,11 +64,11 @@ No detailed changelog available. See commit history for changes."
         working-directory: ./backend
         run: |
           cargo build --release --verbose
-          
+
           # Create checksums
           cd target/release
           sha256sum tools-backend > tools-backend.sha256
-          
+
           echo "Backend build completed"
           ls -lh tools-backend
 
@@ -77,63 +77,63 @@ No detailed changelog available. See commit history for changes."
         run: |
           npm ci
           npm run build
-          
+
           # Create a tarball of the build
           tar -czf frontend-build.tar.gz .next/
           sha256sum frontend-build.tar.gz > frontend-build.tar.gz.sha256
-          
+
           echo "Frontend build completed"
           ls -lh frontend-build.tar.gz
 
       - name: Prepare release artifacts
         run: |
           mkdir -p release-artifacts
-          
+
           # Copy backend artifacts
           cp backend/target/release/tools-backend release-artifacts/
           cp backend/target/release/tools-backend.sha256 release-artifacts/
-          
+
           # Copy frontend artifacts
           cp frontend/frontend-build.tar.gz release-artifacts/
           cp frontend/frontend-build.tar.gz.sha256 release-artifacts/
-          
+
           # Copy docker-compose for easy deployment
           cp docker-compose.yml release-artifacts/
-          
+
           # Create a quick setup script
           cat > release-artifacts/README.txt << 'EOF'
           Tools Release Artifacts
           =======================
-          
+
           Backend Binary:
           - tools-backend: Rust backend server binary
           - tools-backend.sha256: SHA256 checksum
-          
+
           Frontend Build:
           - frontend-build.tar.gz: Production Next.js build
           - frontend-build.tar.gz.sha256: SHA256 checksum
-          
+
           Docker Deployment:
           - docker-compose.yml: Docker Compose configuration
-          
+
           Quick Start:
-          
+
           Option 1: Docker Deployment (Recommended)
             docker-compose up -d
-          
+
           Option 2: Manual Deployment
             1. Backend:
                chmod +x tools-backend
                ./tools-backend
-               
+
             2. Frontend:
                tar -xzf frontend-build.tar.gz
                cd frontend && npm start
-          
+
           For detailed instructions, see:
           https://github.com/Ch3fUlrich/Tools#readme
           EOF
-          
+
           # List all artifacts
           echo "Release artifacts prepared:"
           ls -lh release-artifacts/
@@ -150,12 +150,14 @@ No detailed changelog available. See commit history for changes."
             release-artifacts/docker-compose.yml
             release-artifacts/README.txt
           draft: false
-          prerelease: ${{ contains(env.TAG, '-') }}  # Mark as prerelease if tag contains hyphen (e.g., v1.0.0-beta)
-          generate_release_notes: true  # Auto-generate release notes from commits
+          # Mark as prerelease if tag contains hyphen (e.g., v1.0.0-beta)
+          prerelease: ${{ contains(env.TAG, '-') }}
+          # Auto-generate release notes from commits
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update version badge
         run: |
           echo "Release ${{ env.TAG }} created successfully! 🎉"
-          echo "Download artifacts from: https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }}"
+          echo "Artifacts: https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }}"
