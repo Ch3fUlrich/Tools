@@ -49,8 +49,17 @@ fn configure_cors() -> CorsLayer {
         .allow_headers([header::CONTENT_TYPE]);
 
     for origin in origins {
-        if let Ok(header_value) = origin.parse::<HeaderValue>() {
-            cors_layer = cors_layer.allow_origin(header_value);
+        match origin.parse::<HeaderValue>() {
+            Ok(header_value) => {
+                cors_layer = cors_layer.allow_origin(header_value);
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "Failed to parse origin '{}' as HeaderValue: {}. This origin will be ignored.",
+                    origin,
+                    e
+                );
+            }
         }
     }
 
