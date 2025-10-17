@@ -8,8 +8,6 @@
       muscles = m, fat = f, mcal defizit = b, weight loss = w:
       (b - 1.2*w) / 5.8 = f
       w - f = m
-
-2. Interactive Plots Example
    
-3. N26_json_viizualizer.ipynb
+2. N26_json_viizualizer.ipynb
    - This json file is provided by the Bank N26, if you ask for it.
