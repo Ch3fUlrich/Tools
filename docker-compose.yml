@@ -19,7 +19,7 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://backend:3001
+        - NEXT_PUBLIC_API_URL=http://backend:3001
     container_name: tools-frontend
     ports:
       - "3000:3000"
