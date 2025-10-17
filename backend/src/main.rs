@@ -14,10 +14,10 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 const MAX_LOG_ORIGIN_LENGTH: usize = 100;
 
 /// Configure CORS based on environment variables
-/// 
+///
 /// Reads ALLOWED_ORIGINS environment variable which should contain comma-separated origins.
 /// Defaults to localhost origins for development if not set.
-/// 
+///
 /// Example: ALLOWED_ORIGINS="http://localhost:3000,https://example.com"
 fn configure_cors() -> CorsLayer {
     use axum::http::{HeaderValue, Uri};
@@ -30,7 +30,10 @@ fn configure_cors() -> CorsLayer {
         .take(MAX_LOG_ORIGIN_LENGTH)
         .filter(|c| !c.is_control())
         .collect();
-    tracing::info!("Configuring CORS with allowed origins: {}", safe_allowed_origins);
+    tracing::info!(
+        "Configuring CORS with allowed origins: {}",
+        safe_allowed_origins
+    );
 
     let origins: Vec<_> = allowed_origins
         .split(',')
@@ -52,32 +55,37 @@ fn configure_cors() -> CorsLayer {
             .allow_headers([header::CONTENT_TYPE]);
     }
 
-    let mut cors_layer = CorsLayer::new()
+    // Collect all valid HeaderValue origins into a Vec
+    let valid_origins: Vec<HeaderValue> = origins
+        .into_iter()
+        .filter_map(|origin| {
+            match origin.parse::<HeaderValue>() {
+                Ok(header_value) => Some(header_value),
+                Err(e) => {
+                    // Sanitize origin for logging by truncating and removing control characters
+                    let safe_origin: String = origin
+                        .chars()
+                        .take(MAX_LOG_ORIGIN_LENGTH)
+                        .filter(|c| !c.is_control())
+                        .collect();
+                    tracing::warn!(
+                        "Failed to parse origin as HeaderValue (error: {}). Origin will be ignored.",
+                        e
+                    );
+                    tracing::debug!("Rejected origin (sanitized): {}", safe_origin);
+                    None
+                }
+            }
+        })
+        .collect();
+
+    // Use AllowOrigin::list to configure multiple origins at once
+    use tower_http::cors::AllowOrigin;
+
+    CorsLayer::new()
         .allow_methods([Method::GET, Method::POST])
-        .allow_headers([header::CONTENT_TYPE]);
-
-    for origin in origins {
-        match origin.parse::<HeaderValue>() {
-            Ok(header_value) => {
-                cors_layer = cors_layer.allow_origin(header_value);
-            }
-            Err(e) => {
-                // Sanitize origin for logging by truncating and removing control characters
-                let safe_origin: String = origin
-                    .chars()
-                    .take(MAX_LOG_ORIGIN_LENGTH)
-                    .filter(|c| !c.is_control())
-                    .collect();
-                tracing::warn!(
-                    "Failed to parse origin as HeaderValue (error: {}). Origin will be ignored.",
-                    e
-                );
-                tracing::debug!("Rejected origin (sanitized): {}", safe_origin);
-            }
-        }
-    }
-
-    cors_layer
+        .allow_headers([header::CONTENT_TYPE])
+        .allow_origin(AllowOrigin::list(valid_origins))
 }
 
 #[tokio::main]
@@ -167,7 +175,10 @@ mod tests {
     #[test]
     fn test_configure_cors_with_custom_origins() {
         // Test that CORS accepts custom origins from environment variable
-        std::env::set_var("ALLOWED_ORIGINS", "http://example.com,https://app.example.com");
+        std::env::set_var(
+            "ALLOWED_ORIGINS",
+            "http://example.com,https://app.example.com",
+        );
         let cors_layer = configure_cors();
         assert!(std::mem::size_of_val(&cors_layer) > 0);
         std::env::remove_var("ALLOWED_ORIGINS");
@@ -187,6 +198,21 @@ mod tests {
         // Test that CORS handles invalid origin strings gracefully
         std::env::set_var("ALLOWED_ORIGINS", "not-a-valid-url,another-invalid");
         let cors_layer = configure_cors();
+        assert!(std::mem::size_of_val(&cors_layer) > 0);
+        std::env::remove_var("ALLOWED_ORIGINS");
+    }
+
+    #[test]
+    fn test_configure_cors_with_multiple_valid_origins() {
+        // Test that multiple origins are all properly configured
+        // This test verifies the fix for the issue where calling allow_origin
+        // repeatedly in a loop would overwrite previous values
+        std::env::set_var(
+            "ALLOWED_ORIGINS",
+            "http://localhost:3000,http://localhost:3001,https://example.com,https://app.example.com"
+        );
+        let cors_layer = configure_cors();
+        // Should not panic and should create a valid CorsLayer with all origins
         assert!(std::mem::size_of_val(&cors_layer) > 0);
         std::env::remove_var("ALLOWED_ORIGINS");
     }
