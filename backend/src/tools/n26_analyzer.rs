@@ -23,47 +23,64 @@ pub struct AnalysisResult {
     pub overall_total: f64,
 }
 
+/// Helper function to process a category of transactions from N26 data
+fn process_category(
+    data: &[serde_json::Value],
+    category: &str,
+    amount_field: &str,
+    date_field: &str,
+    comment_field: &str,
+    amount_multiplier: f64,
+) -> Vec<Transaction> {
+    let mut transactions = Vec::new();
+
+    for entry in data {
+        if let (Some(amount), Some(date), Some(comment)) = (
+            entry.get(amount_field).and_then(|v| v.as_f64()),
+            entry.get(date_field).and_then(|v| v.as_str()),
+            entry.get(comment_field).and_then(|v| v.as_str()),
+        ) {
+            transactions.push(Transaction {
+                amount: amount * amount_multiplier,
+                date: date.to_string(),
+                category: category.to_string(),
+                comment: comment.to_string(),
+            });
+        }
+    }
+
+    transactions
+}
+
 /// Parse N26 JSON data and extract transactions
 pub fn parse_n26_json(n26_data: N26Data) -> Result<Vec<Transaction>, String> {
     let mut transactions = Vec::new();
 
     // Process cash26Data
     if let Some(Some(cash_data)) = n26_data.data.get("cash26Data") {
-        for entry in cash_data {
-            if let (Some(amount), Some(date), Some(tx_type)) = (
-                entry.get("amount").and_then(|v| v.as_f64()),
-                entry.get("transaction_date").and_then(|v| v.as_str()),
-                entry.get("transaction_type").and_then(|v| v.as_str()),
-            ) {
-                transactions.push(Transaction {
-                    amount,
-                    date: date.to_string(),
-                    category: "cash26Data".to_string(),
-                    comment: tx_type.to_string(),
-                });
-            }
-        }
+        transactions.extend(process_category(
+            cash_data,
+            "cash26Data",
+            "amount",
+            "transaction_date",
+            "transaction_type",
+            1.0,
+        ));
     }
 
     // Process bankTransfers
     if let Some(Some(bank_data)) = n26_data.data.get("bankTransfers") {
-        for entry in bank_data {
-            if let (Some(amount), Some(date), Some(reference)) = (
-                entry.get("amount").and_then(|v| v.as_f64()),
-                entry.get("ts").and_then(|v| v.as_str()),
-                entry.get("reference_text").and_then(|v| v.as_str()),
-            ) {
-                transactions.push(Transaction {
-                    amount,
-                    date: date.to_string(),
-                    category: "bankTransfers".to_string(),
-                    comment: reference.to_string(),
-                });
-            }
-        }
+        transactions.extend(process_category(
+            bank_data,
+            "bankTransfers",
+            "amount",
+            "ts",
+            "reference_text",
+            1.0,
+        ));
     }
 
-    // Process cardTransactions
+    // Process cardTransactions (special case: negative amounts)
     if let Some(Some(card_data)) = n26_data.data.get("cardTransactions") {
         for entry in card_data {
             if let (Some(end_amount), Some(date), Some(merchant)) = (
