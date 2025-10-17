@@ -10,6 +10,10 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Accept build argument for NEXT_PUBLIC_API_URL with default for local development
+ARG NEXT_PUBLIC_API_URL=http://localhost:3001
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY frontend/ ./
 
