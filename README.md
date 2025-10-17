@@ -95,6 +95,30 @@ Tools/
 4. **Open your browser:**
    Navigate to `http://localhost:3000`
 
+### Quick Start (Alternative)
+
+Use the provided script:
+```bash
+./start.sh          # Setup and run both servers
+./start.sh setup    # Only setup without running
+./start.sh backend  # Run only backend
+./start.sh frontend # Run only frontend
+```
+
+### Docker Deployment
+
+Run with Docker Compose:
+```bash
+docker-compose up -d
+```
+
+The frontend will be available at `http://localhost:3000` and the backend at `http://localhost:3001`.
+
+To stop:
+```bash
+docker-compose down
+```
+
 ## 🧪 Testing
 
 ### Backend Tests
