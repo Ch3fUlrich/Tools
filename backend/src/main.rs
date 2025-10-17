@@ -69,15 +69,23 @@ fn configure_cors() -> CorsLayer {
                         .filter(|c| !c.is_control())
                         .collect();
                     tracing::warn!(
-                        "Failed to parse origin as HeaderValue (error: {}). Origin will be ignored.",
+                        "Failed to parse origin '{}' as HeaderValue (error: {}). Origin will be ignored.",
+                        safe_origin,
                         e
                     );
-                    tracing::debug!("Rejected origin (sanitized): {}", safe_origin);
                     None
                 }
             }
         })
         .collect();
+
+    // Handle the case when all origins failed to parse
+    if valid_origins.is_empty() {
+        tracing::warn!("All origins failed to parse as HeaderValue, CORS will deny all origins");
+        return CorsLayer::new()
+            .allow_methods([Method::GET, Method::POST])
+            .allow_headers([header::CONTENT_TYPE]);
+    }
 
     // Use AllowOrigin::list to configure multiple origins at once
     use tower_http::cors::AllowOrigin;
