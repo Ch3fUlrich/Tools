@@ -226,10 +226,10 @@ mod tests {
     fn test_env_cleanup_on_panic() {
         // Test that environment variables are properly restored even if a panic occurs
         // This test demonstrates the safety improvement of using temp_env
-        
+
         // Store the original value (or lack thereof)
         let original = std::env::var("ALLOWED_ORIGINS").ok();
-        
+
         // This should panic but still clean up the environment variable
         let result = std::panic::catch_unwind(|| {
             temp_env::with_var("ALLOWED_ORIGINS", Some("test-value"), || {
@@ -239,10 +239,10 @@ mod tests {
                 panic!("Intentional panic for testing");
             });
         });
-        
+
         // Verify the panic occurred
         assert!(result.is_err());
-        
+
         // Verify the environment variable was restored to its original state
         assert_eq!(std::env::var("ALLOWED_ORIGINS").ok(), original);
     }
