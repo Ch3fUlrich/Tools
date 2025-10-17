@@ -7,11 +7,11 @@ services:
       dockerfile: backend/Dockerfile
     container_name: tools-backend
     ports:
-      - "3001:3001"
+      - "${BACKEND_PORT:-3001}:3001"
     environment:
-      - RUST_LOG=info
-      - ALLOWED_ORIGINS=http://localhost:3000,http://frontend:3000
-    restart: unless-stopped
+      - RUST_LOG=${RUST_LOG:-info}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://frontend:3000}
+    restart: ${RESTART_POLICY:-unless-stopped}
     networks:
       - tools-network
 
@@ -20,13 +20,17 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=http://backend:3001
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://backend:3001}
+        - NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH:-}
+        - BUILD_STATIC=${BUILD_STATIC:-false}
     container_name: tools-frontend
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
     depends_on:
       - backend
-    restart: unless-stopped
+    restart: ${RESTART_POLICY:-unless-stopped}
     networks:
       - tools-network
 

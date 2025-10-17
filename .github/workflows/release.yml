@@ -1,0 +1,161 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags like v1.0.0, v0.2.1, etc.
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for changelog generation
+
+      - name: Verify tag format
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          if [[ ! $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Tag must follow semantic versioning (e.g., v1.0.0)"
+            exit 1
+          fi
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
+      - name: Extract changelog for version
+        id: changelog
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          
+          # Extract changelog section for this version
+          if grep -q "\[$VERSION\]" CHANGELOG.md; then
+            # Extract content between version headers
+            CHANGELOG=$(awk "/\[$VERSION\]/,/^## \[/" CHANGELOG.md | sed '1d;$d')
+            echo "Found changelog for version $VERSION"
+          else
+            echo "Warning: No changelog entry found for version $VERSION"
+            CHANGELOG="Release $VERSION
+
+No detailed changelog available. See commit history for changes."
+          fi
+          
+          # Save to file for multi-line output
+          echo "$CHANGELOG" > /tmp/changelog.txt
+          echo "Changelog extracted successfully"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build backend
+        working-directory: ./backend
+        run: |
+          cargo build --release --verbose
+          
+          # Create checksums
+          cd target/release
+          sha256sum tools-backend > tools-backend.sha256
+          
+          echo "Backend build completed"
+          ls -lh tools-backend
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run build
+          
+          # Create a tarball of the build
+          tar -czf frontend-build.tar.gz .next/
+          sha256sum frontend-build.tar.gz > frontend-build.tar.gz.sha256
+          
+          echo "Frontend build completed"
+          ls -lh frontend-build.tar.gz
+
+      - name: Prepare release artifacts
+        run: |
+          mkdir -p release-artifacts
+          
+          # Copy backend artifacts
+          cp backend/target/release/tools-backend release-artifacts/
+          cp backend/target/release/tools-backend.sha256 release-artifacts/
+          
+          # Copy frontend artifacts
+          cp frontend/frontend-build.tar.gz release-artifacts/
+          cp frontend/frontend-build.tar.gz.sha256 release-artifacts/
+          
+          # Copy docker-compose for easy deployment
+          cp docker-compose.yml release-artifacts/
+          
+          # Create a quick setup script
+          cat > release-artifacts/README.txt << 'EOF'
+          Tools Release Artifacts
+          =======================
+          
+          Backend Binary:
+          - tools-backend: Rust backend server binary
+          - tools-backend.sha256: SHA256 checksum
+          
+          Frontend Build:
+          - frontend-build.tar.gz: Production Next.js build
+          - frontend-build.tar.gz.sha256: SHA256 checksum
+          
+          Docker Deployment:
+          - docker-compose.yml: Docker Compose configuration
+          
+          Quick Start:
+          
+          Option 1: Docker Deployment (Recommended)
+            docker-compose up -d
+          
+          Option 2: Manual Deployment
+            1. Backend:
+               chmod +x tools-backend
+               ./tools-backend
+               
+            2. Frontend:
+               tar -xzf frontend-build.tar.gz
+               cd frontend && npm start
+          
+          For detailed instructions, see:
+          https://github.com/Ch3fUlrich/Tools#readme
+          EOF
+          
+          # List all artifacts
+          echo "Release artifacts prepared:"
+          ls -lh release-artifacts/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: /tmp/changelog.txt
+          files: |
+            release-artifacts/tools-backend
+            release-artifacts/tools-backend.sha256
+            release-artifacts/frontend-build.tar.gz
+            release-artifacts/frontend-build.tar.gz.sha256
+            release-artifacts/docker-compose.yml
+            release-artifacts/README.txt
+          draft: false
+          prerelease: ${{ contains(env.TAG, '-') }}  # Mark as prerelease if tag contains hyphen (e.g., v1.0.0-beta)
+          generate_release_notes: true  # Auto-generate release notes from commits
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update version badge
+        run: |
+          echo "Release ${{ env.TAG }} created successfully! 🎉"
+          echo "Download artifacts from: https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }}"
