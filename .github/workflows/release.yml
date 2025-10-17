@@ -110,7 +110,7 @@ jobs:
           - tools-backend.sha256: SHA256 checksum
 
           Frontend Build:
-          - frontend-build.tar.gz: Production Next.js build
+          - frontend-build.tar.gz: Production Next.js build (.next/ directory)
           - frontend-build.tar.gz.sha256: SHA256 checksum
 
           Docker Deployment:
@@ -121,14 +121,12 @@ jobs:
           Option 1: Docker Deployment (Recommended)
             docker-compose up -d
 
-          Option 2: Manual Deployment
-            1. Backend:
-               chmod +x tools-backend
-               ./tools-backend
+          Option 2: Backend Only
+            chmod +x tools-backend
+            ./tools-backend
 
-            2. Frontend:
-               tar -xzf frontend-build.tar.gz
-               cd frontend && npm start
+          Note: The frontend build requires the full source code to run.
+          For easy deployment, use Docker Compose (Option 1).
 
           For detailed instructions, see:
           https://github.com/Ch3fUlrich/Tools#readme

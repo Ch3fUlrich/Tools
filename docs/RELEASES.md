@@ -170,10 +170,15 @@ chmod +x tools-backend
 
 **Usage:**
 ```bash
+# Extract the build
 tar -xzf frontend-build.tar.gz
-cd frontend
+
+# The .next directory is extracted to current location
+# To run, you need Next.js installed
 npm install next
-npm start
+
+# Start the server
+npx next start
 ```
 
 #### 3. Checksums
@@ -188,6 +193,8 @@ Ready-to-use `docker-compose.yml` for easy deployment.
 
 #### 5. README.txt
 Quick start instructions for using release artifacts.
+
+**Important Note**: The frontend build tarball contains only the `.next/` directory. To deploy it, you need to have the frontend source code or use Docker deployment for easier setup.
 
 ## Using Releases
 
