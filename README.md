@@ -4,6 +4,12 @@ A modern, high-performance web application providing a collection of useful tool
 
 ## 🚀 Features
 
+### Live Demo
+
+🌐 **[Try it online](https://ch3fulrich.github.io/Tools/)** - Frontend deployed on GitHub Pages
+
+> **Note**: The live demo uses a mock API for demonstration. For full functionality, deploy both frontend and backend.
+
 ### Current Tools
 
 1. **Fat Loss Calculator**
@@ -161,14 +167,31 @@ We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
 - Pull request process
 - How to add new tools
 
+### Coding Standards
+
+All contributions must follow our coding rules. See [CODING_RULES.md](docs/CODING_RULES.md) for:
+- **Linting rules**: No trailing whitespace, clippy annotations, ESLint configuration
+- **Code quality principles**: DRY, readability, usability, reproducibility
+- **Language-specific guidelines**: Rust and TypeScript best practices
+- **Testing requirements**: Coverage and quality standards
+- **Pre-commit checklist**: What to verify before submitting code
+
+**Key Requirements:**
+- ✅ All clippy warnings must be fixed (no `clippy::` exceptions without justification)
+- ✅ No trailing whitespace or extra blank lines
+- ✅ Code must be formatted with `cargo fmt` and `npm run lint`
+- ✅ Follow DRY principle - don't repeat yourself
+- ✅ Write readable, maintainable, and reproducible code
+
 ### Quick Start for Contributors
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Make your changes and test thoroughly
-4. Commit with clear messages: `git commit -m "feat: Add new feature"`
-5. Push to your fork: `git push origin feature/my-feature`
-6. Create a Pull Request
+3. Make your changes following [CODING_RULES.md](docs/CODING_RULES.md)
+4. Test thoroughly (run linters and tests)
+5. Commit with clear messages: `git commit -m "feat: Add new feature"`
+6. Push to your fork: `git push origin feature/my-feature`
+7. Create a Pull Request
 
 ## 📝 API Documentation
 
@@ -202,11 +225,52 @@ Content-Type: application/json
 }
 ```
 
+## 📚 Documentation
+
+- [Contributing Guide](docs/CONTRIBUTING.md) - Development workflow and guidelines
+- [Coding Rules](docs/CODING_RULES.md) - **Required reading** for all contributors
+- [Security Policy](docs/SECURITY.md) - Security best practices and reporting
+- [Design Guidelines](docs/DESIGN.md) - UI/UX design principles
+- [GitHub Pages Deployment](docs/GITHUB_PAGES.md) - Deploy frontend to GitHub Pages
+- [Release Management](docs/RELEASES.md) - Creating and managing releases
+
 ## 🔧 Configuration
 
-### Backend
+### Environment Variables
 
-Default port: `3001`
+The application uses environment variables for configuration. Copy `.env.example` to `.env` and customize:
+
+```bash
+cp .env.example .env
+```
+
+#### Port Configuration
+
+By default:
+- **Backend**: Port `3001`
+- **Frontend**: Port `3000`
+
+To change ports, set environment variables:
+```bash
+export BACKEND_PORT=8080
+export FRONTEND_PORT=8000
+```
+
+Or update your `.env` file:
+```bash
+BACKEND_PORT=8080
+FRONTEND_PORT=8000
+```
+
+### Backend Configuration
+
+#### Logging
+
+Set the log level with `RUST_LOG` environment variable:
+```bash
+export RUST_LOG=debug  # Options: trace, debug, info, warn, error
+cargo run
+```
 
 #### CORS Configuration
 
@@ -223,26 +287,115 @@ export ALLOWED_ORIGINS="http://localhost:3000,https://example.com"
 cargo run
 ```
 
-For Docker deployments, set the environment variable in `docker-compose.yml` or pass it via command line:
+For Docker deployments, set in `.env` file or `docker-compose.yml`.
+
+### Frontend Configuration
+
+#### API URL
+
+Set the backend API URL with `NEXT_PUBLIC_API_URL`:
 ```bash
-docker run -e ALLOWED_ORIGINS="https://yourdomain.com" tools-backend
+# Development (local)
+export NEXT_PUBLIC_API_URL=http://localhost:3001
+
+# Production
+export NEXT_PUBLIC_API_URL=https://api.yourdomain.com
 ```
 
-To change the port, set the port in `backend/src/main.rs`:
-```rust
-let listener = tokio::net::TcpListener::bind("0.0.0.0:YOUR_PORT").await.unwrap();
-```
+### Docker Configuration
 
-### Frontend
+The `docker-compose.yml` uses environment variables from `.env` file:
 
-Default port: `3000`
-
-To change the API URL, set environment variable:
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:YOUR_PORT
+# Start with default ports
+docker-compose up -d
+
+# Or with custom ports
+BACKEND_PORT=8080 FRONTEND_PORT=8000 docker-compose up -d
 ```
+
+All configuration options in `.env.example` are supported.
 
 ## 🚀 Deployment
+
+### Production Deployment Options
+
+#### Option 1: Docker Deployment (Recommended)
+
+1. **Configure environment variables:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your production settings
+   ```
+
+2. **Start services:**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Verify deployment:**
+   ```bash
+   docker-compose ps
+   curl http://localhost:3001/api/health
+   ```
+
+#### Option 2: GitHub Pages (Frontend Only)
+
+The frontend can be deployed to GitHub Pages automatically:
+
+1. **Enable GitHub Pages:**
+   - Go to repository Settings > Pages
+   - Source: GitHub Actions
+
+2. **Push to main branch:**
+   The GitHub Actions workflow will automatically build and deploy
+
+3. **Access your site:**
+   - Your site will be available at: `https://ch3fulrich.github.io/Tools/`
+   - Update `NEXT_PUBLIC_API_URL` to point to your backend
+
+**Note**: GitHub Pages only hosts the frontend. You'll need to deploy the backend separately.
+
+#### Option 3: Manual Backend Deployment
+
+1. **Build release binary:**
+   ```bash
+   cd backend
+   cargo build --release
+   ```
+
+2. **Copy binary to server:**
+   ```bash
+   scp target/release/tools-backend user@server:/opt/tools/
+   ```
+
+3. **Run on server:**
+   ```bash
+   ssh user@server
+   cd /opt/tools
+   export ALLOWED_ORIGINS="https://yourdomain.com"
+   export RUST_LOG=info
+   ./tools-backend
+   ```
+
+#### Option 4: Manual Frontend Deployment
+
+1. **Build for production:**
+   ```bash
+   cd frontend
+   npm ci
+   npm run build
+   ```
+
+2. **Start production server:**
+   ```bash
+   npm start
+   ```
+
+3. **Or deploy to Vercel/Netlify:**
+   - Connect your repository
+   - Set `NEXT_PUBLIC_API_URL` environment variable
+   - Deploy automatically on push
 
 ### Backend Deployment
 
@@ -300,6 +453,42 @@ Future enhancements:
 - [ ] API rate limiting
 - [ ] Authentication system
 - [ ] Mobile app versions
+
+## 🔄 Releases
+
+### Automated Releases
+
+This project uses automated releases via GitHub Actions:
+
+1. **Create a release:**
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+
+2. **Automatic build process:**
+   - Backend binary is compiled for Linux
+   - Frontend is built for production
+   - Release artifacts are created with checksums
+   - GitHub Release is created with changelog
+
+3. **Download releases:**
+   - Visit the [Releases page](https://github.com/Ch3fUlrich/Tools/releases)
+   - Download pre-built binaries and builds
+   - Each release includes SHA256 checksums for verification
+
+### Creating a Release
+
+For maintainers:
+
+1. Update version in `CHANGELOG.md`
+2. Commit the changes
+3. Create and push a version tag:
+   ```bash
+   git tag -a v1.0.0 -m "Release version 1.0.0"
+   git push origin v1.0.0
+   ```
+4. GitHub Actions will automatically build and create the release
 
 ---
 

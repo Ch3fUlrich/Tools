@@ -85,6 +85,21 @@ Welcome to the Tools project! This document outlines how to contribute effective
 
 ## Coding Standards
 
+**IMPORTANT**: All code must follow the rules in [CODING_RULES.md](CODING_RULES.md).
+
+### Quick Reference
+
+**Before committing, ensure:**
+- [ ] Code passes linting: `cargo clippy -- -D warnings` (backend) or `npm run lint` (frontend)
+- [ ] Code is formatted: `cargo fmt` (backend) or `npm run lint -- --fix` (frontend)
+- [ ] No trailing whitespace or extra blank lines
+- [ ] All tests pass: `cargo test` (backend)
+- [ ] Code follows DRY principle (Don't Repeat Yourself)
+- [ ] Functions are small and focused (max 50 lines)
+- [ ] Error handling is proper (no `.unwrap()` without justification)
+
+For detailed guidelines, see [CODING_RULES.md](CODING_RULES.md).
+
 ### Rust Backend
 
 #### Code Style
@@ -355,6 +370,40 @@ Follow [Semantic Versioning](https://semver.org/):
 - MAJOR: Breaking changes
 - MINOR: New features (backward compatible)
 - PATCH: Bug fixes
+
+### Creating a Release (Maintainers)
+
+1. **Update version numbers:**
+   - Update `CHANGELOG.md` with the new version and changes
+   - Update version in `backend/Cargo.toml` if needed
+   - Update version in `frontend/package.json` if needed
+
+2. **Commit and push changes:**
+   ```bash
+   git add CHANGELOG.md backend/Cargo.toml frontend/package.json
+   git commit -m "chore: Bump version to X.Y.Z"
+   git push origin main
+   ```
+
+3. **Create and push version tag:**
+   ```bash
+   git tag -a vX.Y.Z -m "Release version X.Y.Z"
+   git push origin vX.Y.Z
+   ```
+
+4. **Automated process:**
+   - GitHub Actions automatically builds backend and frontend
+   - Creates GitHub Release with:
+     - Pre-built backend binary (Linux)
+     - Frontend production build
+     - SHA256 checksums
+     - docker-compose.yml
+     - Release notes from CHANGELOG.md
+
+5. **Verify release:**
+   - Check [Releases page](https://github.com/Ch3fUlrich/Tools/releases)
+   - Test download and deployment of artifacts
+   - Update deployment documentation if needed
 
 ### Release Checklist
 
