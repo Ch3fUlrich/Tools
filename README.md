@@ -208,7 +208,27 @@ Content-Type: application/json
 
 Default port: `3001`
 
-To change, set the port in `backend/src/main.rs`:
+#### CORS Configuration
+
+The backend uses environment-based CORS configuration for security:
+
+**Environment Variable: `ALLOWED_ORIGINS`**
+- Comma-separated list of allowed origins
+- Default: `http://localhost:3000,http://localhost:3001` (for development)
+- Production example: `ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com`
+
+Example:
+```bash
+export ALLOWED_ORIGINS="http://localhost:3000,https://example.com"
+cargo run
+```
+
+For Docker deployments, set the environment variable in `docker-compose.yml` or pass it via command line:
+```bash
+docker run -e ALLOWED_ORIGINS="https://yourdomain.com" tools-backend
+```
+
+To change the port, set the port in `backend/src/main.rs`:
 ```rust
 let listener = tokio::net::TcpListener::bind("0.0.0.0:YOUR_PORT").await.unwrap();
 ```

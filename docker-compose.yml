@@ -10,6 +10,7 @@ services:
       - "3001:3001"
     environment:
       - RUST_LOG=info
+      - ALLOWED_ORIGINS=http://localhost:3000,http://frontend:3000
     restart: unless-stopped
     networks:
       - tools-network
