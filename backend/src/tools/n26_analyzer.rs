@@ -80,7 +80,7 @@ pub fn parse_n26_json(n26_data: N26Data) -> Result<Vec<Transaction>, String> {
         ));
     }
 
-    // Process cardTransactions (special case with negative amounts and merchant formatting)
+    // Process cardTransactions (special case: negative amounts)
     if let Some(Some(card_data)) = n26_data.data.get("cardTransactions") {
         for entry in card_data {
             if let (Some(end_amount), Some(date), Some(merchant)) = (
