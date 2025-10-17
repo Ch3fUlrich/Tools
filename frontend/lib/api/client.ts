@@ -52,7 +52,15 @@ export async function analyzeN26Data(data: Record<string, unknown>): Promise<Ana
   });
 
   if (!response.ok) {
-    throw new Error('Failed to analyze N26 data');
+    let errorBody: string | undefined;
+    try {
+      errorBody = await response.text();
+    } catch (e) {
+      errorBody = undefined;
+    }
+    throw new Error(
+      `Failed to analyze N26 data (status: ${response.status})${errorBody ? ` - Response: ${errorBody}` : ''}`
+    );
   }
 
   return response.json();
