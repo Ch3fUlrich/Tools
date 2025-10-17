@@ -34,7 +34,7 @@ mod tests {
             data: HashMap::new(),
         };
 
-        let response = analyze_n26_data(Json(data)).await;
+        let _response = analyze_n26_data(Json(data)).await;
         // Response should be OK with empty data
     }
 }

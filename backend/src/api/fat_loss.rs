@@ -23,7 +23,7 @@ mod tests {
             weight_loss_kg: 0.5,
         };
 
-        let response = calculate_fat_loss(Json(request)).await;
+        let _response = calculate_fat_loss(Json(request)).await;
         // Response should be OK
     }
 }
