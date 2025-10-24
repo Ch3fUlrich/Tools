@@ -1,0 +1,71 @@
+// @vitest-environment jsdom
+import React from 'react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
+
+// Mock rollDice API
+const mockRollDice = vi.fn();
+vi.mock('@/lib/api/client', () => ({ rollDice: (...args: any[]) => mockRollDice(...args) }));
+
+// Mock Boxplot and Histogram as default exports so the component can import them
+vi.mock('@/components/charts/Boxplot', () => ({ default: () => <div data-testid="boxplot" /> }));
+vi.mock('@/components/charts/Histogram', () => ({ default: () => <div data-testid="histogram" /> }));
+
+// Render component
+import DiceRoller from '@/components/tools/DiceRoller';
+
+beforeEach(() => {
+  mockRollDice.mockReset();
+});
+
+describe('DiceRoller extra branches', () => {
+  test('allows selecting custom die and updates sides, advantage toggles, and shows charts when API returns history', async () => {
+    // prepare mock return with correct DiceResponse shape (rolls array)
+    mockRollDice.mockResolvedValue({
+      summary: { sum: 7 },
+      rolls: [
+        {
+          sum: 7,
+          average: 7,
+          perDie: [ { original: [3, 4], final: 7 } ],
+          used: [7],
+        },
+      ],
+      history: [7],
+    });
+
+    render(<DiceRoller />);
+
+  // select custom die type from the select (no label association) — use combobox role
+  const select = screen.getAllByRole('combobox')[0];
+  fireEvent.change(select, { target: { value: 'custom' } });
+
+  // sides input: use spinbutton role (number inputs). First spinbutton is Sides in the DOM
+  const spinbuttons = screen.getAllByRole('spinbutton');
+  const sidesInput = spinbuttons[0];
+  fireEvent.change(sidesInput, { target: { value: '6' } });
+  expect((sidesInput as HTMLInputElement).value).toBe('6');
+
+  // toggle advantage: scope to the Advantage control to avoid matching the label
+  const advantageLabel = screen.getByText(/Advantage/i);
+  const advantageContainer = advantageLabel.parentElement as HTMLElement;
+  const buttons = within(advantageContainer).getAllByRole('button');
+  // buttons: [None, Adv, Dis] -> pick index 1
+  const advButton = buttons[1];
+  fireEvent.click(advButton);
+  // clicking again toggles off
+  fireEvent.click(advButton);
+
+    // click roll
+    const rollButton = screen.getByLabelText(/Roll dice/);
+    fireEvent.click(rollButton);
+
+    // wait for mock to have been called and charts to be visible
+  expect(mockRollDice).toHaveBeenCalled();
+  expect(await screen.findByTestId('boxplot')).toBeInTheDocument();
+  expect(await screen.findByTestId('histogram')).toBeInTheDocument();
+
+    // per-die table row should exist
+    expect(screen.getByText(/d6/)).toBeInTheDocument();
+  });
+});

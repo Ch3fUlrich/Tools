@@ -1,14 +1,19 @@
 mod api;
 mod tools;
+mod middleware;
+mod app;
 
-use axum::{
-    http::{header, Method, StatusCode},
-    routing::{get, post},
-    Json, Router,
-};
+use axum::http::{Method, header};
+use axum::Json;
 use serde_json::json;
 use tower_http::cors::CorsLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use sqlx::postgres::PgPoolOptions;
+use sqlx::PgPool;
+use std::sync::Arc;
+// Test-only imports
+#[cfg(test)]
+use serial_test::serial;
 
 /// Maximum length for logged origin strings to prevent log injection
 const MAX_LOG_ORIGIN_LENGTH: usize = 100;
@@ -108,35 +113,43 @@ async fn main() {
         .init();
 
     // Configure CORS with environment-based origin restrictions
-    let cors = configure_cors();
+    let _cors = configure_cors();
 
     tracing::info!(
         "CORS configured with allowed origins from ALLOWED_ORIGINS environment variable"
     );
 
     // Build our application with routes
-    let app = Router::new()
-        .route("/", get(root))
-        .route("/api/health", get(health_check))
-        .route(
-            "/api/tools/fat-loss",
-            post(api::fat_loss::calculate_fat_loss),
-        )
-        .route(
-            "/api/tools/n26-analyzer",
-            post(api::n26_analyzer::analyze_n26_data),
-        )
-        .layer(cors);
+    // Initialize Postgres pool
+    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://localhost/tools".into());
+    let pool: PgPool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&database_url)
+        .await
+        .expect("Failed to connect to database");
+
+    // Initialize optional Redis client and session store
+    let redis_url_opt = std::env::var("REDIS_URL").ok();
+    let mut session_store_opt = None;
+    if let Some(redis_url) = &redis_url_opt {
+        match crate::tools::session::SessionStore::new(redis_url, "tools").await {
+            Ok(s) => session_store_opt = Some(Arc::new(tokio::sync::Mutex::new(s))),
+            Err(e) => tracing::error!("Failed to initialize session store: {}", e),
+        }
+    }
+
+    let shared_pool = Arc::new(pool);
+
+    let app = app::build_app(shared_pool.clone(), session_store_opt);
 
     // Run the server
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
-
     tracing::info!("Server running on http://0.0.0.0:3001");
-
     axum::serve(listener, app).await.unwrap();
 }
 
 /// Root endpoint
+#[allow(dead_code)]
 async fn root() -> Json<serde_json::Value> {
     Json(json!({
         "name": "Tools Backend API",
@@ -148,29 +161,6 @@ async fn root() -> Json<serde_json::Value> {
         ]
     }))
 }
-
-/// Health check endpoint
-async fn health_check() -> (StatusCode, Json<serde_json::Value>) {
-    (
-        StatusCode::OK,
-        Json(json!({
-            "status": "healthy",
-            "timestamp": chrono::Utc::now().to_rfc3339()
-        })),
-    )
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use serial_test::serial;
-
-    #[tokio::test]
-    async fn test_health_check() {
-        let (status, response) = health_check().await;
-        assert_eq!(status, StatusCode::OK);
-        assert_eq!(response.0["status"], "healthy");
-    }
 
     #[test]
     #[serial(env)]
@@ -261,4 +251,3 @@ mod tests {
         assert!(std::mem::size_of_val(&cors_layer) > 0);
         std::env::remove_var("ALLOWED_ORIGINS");
     }
-}

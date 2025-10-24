@@ -48,6 +48,52 @@ jobs:
     - name: Run tests
       working-directory: ./backend
       run: cargo test --verbose
+
+    - name: Security audit
+      working-directory: ./backend
+      run: cargo audit
+    - name: Install LLVM tools and grcov
+      working-directory: ./backend
+      run: |
+        # install llvm-tools-preview for the selected toolchain
+        rustup component add llvm-tools-preview
+        # install grcov (pin a known-good version)
+        cargo install grcov --version 0.10.5 || true
+
+    - name: Prepare pinned nightly for coverage
+      working-directory: ./backend
+      run: |
+        # Use a pinned nightly snapshot for reproducible coverage instrumentation
+        PINNED_NIGHTLY="nightly-2025-10-23"
+        rustup toolchain install "$PINNED_NIGHTLY"
+        rustup component add llvm-tools-preview --toolchain "$PINNED_NIGHTLY"
+
+    - name: Run grcov-based coverage collection (pinned nightly)
+      working-directory: ./backend
+      run: |
+        chmod +x ./ci/grcov_coverage.sh
+        # Run the script; it will use the pinned nightly internally
+        ./ci/grcov_coverage.sh
+
+    - name: Upload backend coverage artifacts (grcov)
+      working-directory: ./backend
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-coverage-grcov
+        path: |
+          backend/target/coverage/lcov.info
+          backend/target/coverage/coverage.xml
+
+    - name: Upload backend coverage to Codecov (grcov)
+      uses: codecov/codecov-action@v4
+      with:
+        files: |
+          backend/target/coverage/lcov.info
+          backend/target/coverage/coverage.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
+
+  # NOTE: tarpaulin steps removed - using grcov + llvm-based coverage instead
     
     - name: Run clippy
       working-directory: ./backend
@@ -75,3 +121,13 @@ jobs:
     - name: Build release
       working-directory: ./backend
       run: cargo build --release --verbose
+
+    - name: Build and push frontend Docker image to GHCR
+      if: github.event_name != 'pull_request'
+      env:
+        DOCKER_IMAGE: ghcr.io/${{ github.repository_owner }}/tools-frontend:${{ github.sha }}
+        GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+        GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+      run: |
+        chmod +x docker/build-and-push.sh
+        ./docker/build-and-push.sh

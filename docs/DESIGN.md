@@ -202,6 +202,13 @@ Use Tailwind's spacing scale consistently:
 - Keep icon sizes consistent (w-5 h-5 for inline, w-6 h-6 for standalone)
 - Ensure proper stroke width (strokeWidth={2})
 
+## Emphasis: Beautiful & Fast
+
+- The Tools project prioritizes a beautiful, modern aesthetic while maintaining fast, responsive interactions.
+- Visual polish (typography, spacing, subtle shadows, and high-quality icons) is required across components.
+- Performance budgets should be respected: lazy-load heavy visuals, minimize JavaScript payloads, and prefer SVGs or canvas-based charts over heavyweight libraries when possible.
+
+
 ## Responsive Design Breakpoints
 
 ```

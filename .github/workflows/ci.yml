@@ -1,0 +1,185 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  backend:
+    name: Backend tests & audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.90.0
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          cargo test --locked --all-features --workspace
+
+      - name: Run cargo-audit (best-effort)
+        run: |
+          cd backend
+          cargo install cargo-audit --version 0.17.0 || true
+          cargo audit || true
+
+  frontend:
+    name: Frontend tests
+    runs-on: ubuntu-latest
+    needs: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend deps
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm test
+
+  build-artifacts:
+    name: Build artifacts
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend (release)
+        run: |
+          cd backend
+          cargo build --release --locked
+
+      - name: Build frontend (production)
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Package build artifacts (zip)
+        run: |
+          mkdir -p artifacts
+          cp backend/target/release/tools-backend artifacts/ || true
+          cp -r frontend/out artifacts/frontend-out || true
+          cd artifacts
+          zip -r ../build-artifacts.zip . || true
+
+      - name: Upload zipped artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-zip
+          path: build-artifacts.zip
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run backend tests (Postgres + Redis)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: tools
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: tools
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tools -d tools" --health-interval 5s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Set environment
+        run: |
+          echo "TEST_DATABASE_URL=postgres://tools:pass@localhost:5432/tools" >> $GITHUB_ENV
+          echo "REDIS_URL=redis://localhost:6379" >> $GITHUB_ENV
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          cargo test --workspace --all-features --no-fail-fast
+
+  build:
+    name: Build backend & frontend
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          profile: minimal
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build backend (release)
+        working-directory: backend
+        run: cargo build --release
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install and build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build --if-present
+
+      - name: Run frontend linter
+        if: always()
+        working-directory: frontend
+        run: npm run lint --if-present || true

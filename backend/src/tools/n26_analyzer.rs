@@ -159,4 +159,26 @@ mod tests {
         assert_eq!(result.category_totals.get("income"), Some(&100.0));
         assert_eq!(result.category_totals.get("expense"), Some(&-50.0));
     }
+
+    #[test]
+    fn test_parse_n26_json_basic() {
+        use serde_json::json;
+
+        let mut data_map = std::collections::HashMap::new();
+        data_map.insert(
+            "cash26Data".to_string(),
+            Some(vec![json!({"amount": 10.5, "transaction_date": "2024-01-01", "transaction_type": "cash"})]),
+        );
+
+        let n26 = N26Data {
+            id: "1".to_string(),
+            created: "2024-01-01".to_string(),
+            data: data_map,
+        };
+
+        let res = parse_n26_json(n26).expect("parse failed");
+        assert_eq!(res.len(), 1);
+        assert_eq!(res[0].category, "cash26Data");
+        assert_eq!(res[0].amount, 10.5);
+    }
 }

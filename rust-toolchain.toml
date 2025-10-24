@@ -1,0 +1,6 @@
+[toolchain]
+channel = "1.90.0"
+components = ["rustfmt", "clippy"]
+
+# Pinning to Rust 1.90.0 ensures reproducible builds locally and in CI.
+# Update this value intentionally when you want a new stable Rust runtime.

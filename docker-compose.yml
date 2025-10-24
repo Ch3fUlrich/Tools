@@ -1,35 +1,135 @@
-version: '3.8'
+version: '3.9'
 
 services:
   backend:
+    # Use local build context for development, or image for production
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: docker/backend.Dockerfile
+    # image: ghcr.io/ch3fulrich/tools-backend:${DOCKER_VERSION:-latest}  # uncomment for prod
     container_name: tools-backend
+    restart: unless-stopped
     ports:
       - "3001:3001"
     environment:
       - RUST_LOG=info
       - ALLOWED_ORIGINS=http://localhost:3000,http://frontend:3000
-    restart: unless-stopped
+      - DATABASE_URL=postgres://tools:pass@postgres:5432/tools
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:noexec,nosuid,nodev,size=20m
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     networks:
       - tools-network
 
   frontend:
     build:
       context: .
-      dockerfile: frontend/Dockerfile
+      dockerfile: docker/frontend.Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=http://backend:3001
+    # image: ghcr.io/ch3fulrich/tools-frontend:${DOCKER_VERSION:-latest}  # uncomment for prod
     container_name: tools-frontend
+    restart: unless-stopped
     ports:
       - "3000:3000"
     depends_on:
-      - backend
-    restart: unless-stopped
+      backend:
+        condition: service_started
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://backend:3001
+      - PORT=3000
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -f http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:noexec,nosuid,nodev,size=10m
+      - /var/run:noexec,nosuid,nodev,size=10m
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
     networks:
       - tools-network
 
+  postgres:
+    image: postgres:15-alpine
+    container_name: tools-postgres
+    environment:
+      POSTGRES_USER: tools
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: tools
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tools -d tools"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /var/run/postgresql:noexec,nosuid,nodev,size=10m
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    networks:
+      - tools-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: tools-redis
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:noexec,nosuid,nodev,size=10m
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    networks:
+      - tools-network
+
+# ---------------------------
+# Networks & Volumes
+# ---------------------------
 networks:
   tools-network:
     driver: bridge
+
+volumes:
+  postgres-data:
+    name: tools_postgres_data

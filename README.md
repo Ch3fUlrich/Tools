@@ -66,7 +66,7 @@ Tools/
 ### Prerequisites
 
 - **Backend**: Rust 1.75+ ([Install Rust](https://rustup.rs/))
-- **Frontend**: Node.js 18+ and npm
+- **Frontend**: Node.js 18+ and npm 11.6.2+
 - Git
 
 ### Installation
@@ -119,6 +119,8 @@ To stop:
 docker-compose down
 ```
 
+More detailed Docker deployment and testing instructions are available in `docker/DOCKER.md` and `docker/DOCKER_TESTING.md`.
+
 ## 🧪 Testing
 
 ### Backend Tests
@@ -169,6 +171,34 @@ We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
 4. Commit with clear messages: `git commit -m "feat: Add new feature"`
 5. Push to your fork: `git push origin feature/my-feature`
 6. Create a Pull Request
+
+## Dice Roller Tool
+
+The Dice Roller is a server-authoritative tool for generating dice rolls securely and reproducibly. It supports:
+
+- Standard dice types (d2, d3, d4, d6, d8, d10, d12, d20) and custom-sided dice.
+- Per-die and per-set advantage/disadvantage semantics.
+- Targeted rerolls (e.g., reroll any die <= threshold) with configurable max retries.
+- Multi-rolls: issue multiple independent rolls in one request; the server returns one result table per roll.
+- Session-local history stored client-side and cleared on page reload.
+
+Security & Performance:
+
+- All roll calculations are performed server-side to prevent client tampering.
+- The server enforces limits (default max dice = 1000, max sides = 10000, max rerolls per die = 1000, max independent rolls = 100) and rejects requests that exceed estimated cost budgets.
+- For production, replace the in-memory rate limiter with a distributed rate-limiter (Redis or external service).
+
+API (server):
+
+- POST /api/tools/dice/roll
+- Request/response shapes are defined in the frontend TypeScript types and mirrored in the backend Rust structs (camelCase JSON keys).
+
+UI/UX:
+
+- The frontend uses Tailwind CSS and local SVG icons for a clean and responsive design.
+- Visualizations include boxplots and histograms; lightweight SVGs are used by default to keep dependencies minimal.
+
+For more details, see `frontend/components/tools/DiceRoller.tsx` and `backend/src/tools/dice.rs`.
 
 ## 📝 API Documentation
 

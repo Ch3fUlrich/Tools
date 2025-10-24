@@ -1,0 +1,8 @@
+# Basic Codecov configuration for the repo
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+comment:
+  layout: 'reach, diff'

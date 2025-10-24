@@ -1,0 +1,19 @@
+name: PR Commit Message Lint
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  commitlint:
+    name: Validate commit messages (Conventional Commits)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run commitlint on PR commits
+        uses: wagoid/commitlint-github-action@v4
+        with:
+          # will use commitlint.config.js at repo root
+          configFile: commitlint.config.js

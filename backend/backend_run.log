@@ -1,0 +1,92 @@
+   Compiling futures-util v0.3.31
+   Compiling rand v0.8.5
+   Compiling hyper v1.7.0
+   Compiling tower v0.4.13
+   Compiling hyper-util v0.1.17
+   Compiling h2 v0.3.27
+   Compiling sqlx-core v0.7.4
+   Compiling tower v0.5.2
+   Compiling axum-core v0.4.5
+   Compiling tower-http v0.5.2
+   Compiling redis v0.23.3
+   Compiling axum v0.7.9
+   Compiling sqlx-postgres v0.7.4
+   Compiling hyper v0.14.32
+   Compiling sqlx-macros-core v0.7.4
+   Compiling hyper-rustls v0.24.2
+   Compiling reqwest v0.11.27
+   Compiling sqlx-macros v0.7.4
+   Compiling oauth2 v4.4.2
+   Compiling openidconnect v2.5.1
+   Compiling sqlx v0.7.4
+   Compiling tools-backend v0.1.0 (/mnt/c/Users/mauls/Documents/Code/Tools/backend)
+warning: unused import: `uuid::Uuid`
+ --> src/api/auth.rs:7:5
+  |
+7 | use uuid::Uuid;
+  |     ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `std::time::Duration`
+ --> src/tools/session.rs:5:5
+  |
+5 | use std::time::Duration;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `headers`
+  --> src/api/oidc.rs:74:5
+   |
+74 |     headers: HeaderMap,
+   |     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_headers`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused import: `redis::AsyncCommands`
+ --> src/api/dice.rs:8:5
+  |
+8 | use redis::AsyncCommands;
+  |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: `tools-backend` (lib) generated 4 warnings (run `cargo fix --lib -p tools-backend` to apply 2 suggestions)
+warning: field `redirect_to` is never read
+  --> src/api/oidc.rs:25:9
+   |
+24 | pub struct OidcStartQuery {
+   |            -------------- field in this struct
+25 |     pub redirect_to: Option<String>,
+   |         ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: fields `email` and `display_name` are never read
+  --> src/tools/auth.rs:12:9
+   |
+10 | pub struct AuthUser {
+   |            -------- fields in this struct
+11 |     pub id: Uuid,
+12 |     pub email: String,
+   |         ^^^^^
+13 |     pub display_name: Option<String>,
+   |         ^^^^^^^^^^^^
+   |
+   = note: `AuthUser` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: method `history_key` is never used
+  --> src/tools/session.rs:68:12
+   |
+18 | impl SessionStore {
+   | ----------------- method in this implementation
+...
+68 |     pub fn history_key(&self, sid: &str) -> String {
+   |            ^^^^^^^^^^^
+
+warning: `tools-backend` (bin "tools-backend") generated 7 warnings (4 duplicates)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 24.46s
+warning: the following packages contain code that will be rejected by a future version of Rust: redis v0.23.3, sqlx-postgres v0.7.4
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running `target/debug/tools-backend`
+[2m2025-10-22T19:50:15.163854Z[0m [32m INFO[0m [2mtools_backend[0m[2m:[0m Configuring CORS with allowed origins: http://localhost:3000,http://localhost:3001
+[2m2025-10-22T19:50:15.170524Z[0m [32m INFO[0m [2mtools_backend[0m[2m:[0m CORS configured with allowed origins from ALLOWED_ORIGINS environment variable
+[2m2025-10-22T19:50:15.220943Z[0m [32m INFO[0m [2mtools_backend[0m[2m:[0m Server running on http://0.0.0.0:3001
+[2m2025-10-22T19:56:57.983898Z[0m [32m INFO[0m [2msqlx_core::pool::inner[0m[2m:[0m ping on idle connection returned error [3merror[0m[2m=[0merror communicating with database: expected to read 5 bytes, got 0 bytes at EOF

@@ -29,6 +29,29 @@ jobs:
     - name: Install dependencies
       working-directory: ./frontend
       run: npm ci
+
+    - name: Security audit
+      working-directory: ./frontend
+      run: npm audit --audit-level moderate
+
+    - name: Run frontend tests
+      working-directory: ./frontend
+      run: npm test
+
+    - name: Upload frontend coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        # vitest outputs lcov to frontend/coverage/lcov.info when run from frontend dir
+        files: frontend/coverage/lcov.info
+        fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Upload frontend coverage artifact (fallback)
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-coverage-lcov
+        path: frontend/coverage/lcov.info
     
     - name: Run ESLint
       working-directory: ./frontend

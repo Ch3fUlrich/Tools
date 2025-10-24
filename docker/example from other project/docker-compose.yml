@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  ventu-web:
+    image: ghcr.io/ch3fulrich/ventu:${DOCKER_VERSION:-latest}
+    container_name: ventu-website
+    restart: unless-stopped
+    ports:
+      - "6805:6805"  # Format: "host_port:container_port" - Change both to use a different port
+    environment:
+      - NODE_ENV=production
+      - PORT=6805  # Internal container port - must match container_port in ports mapping above
+    # Security options - nginxinc/nginx-unprivileged is designed for security
+    security_opt:
+      - no-new-privileges:true
+    # read_only: true  # Removed - nginxinc image handles security differently
+    tmpfs:
+      - /tmp:noexec,nosuid,nodev,size=10m
+      - /var/run:noexec,nosuid,nodev,size=10m
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:$$PORT/ || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s

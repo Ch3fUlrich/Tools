@@ -1,0 +1,11 @@
+import React from 'react';
+
+export const AdvantageIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+    <path d="M3 11h6l-2-2" />
+    <path d="M21 13h-6l2 2" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+export default AdvantageIcon;
