@@ -18,6 +18,26 @@ use serial_test::serial;
 /// Maximum length for logged origin strings to prevent log injection
 const MAX_LOG_ORIGIN_LENGTH: usize = 100;
 
+// Redact credentials from database URL for safe logging. We keep scheme and host/DB portion
+// but replace any userinfo with '***'. This is intentionally conservative — we do not
+// attempt to parse everything perfectly, only to avoid printing credentials in logs.
+fn redact_database_url(url: &str) -> String {
+    if let Some(idx) = url.find("://") {
+        let scheme = &url[..idx];
+        let rest = &url[idx + 3..];
+        if let Some(at) = rest.find('@') {
+            // show `scheme://***@host...`
+            let host_part = &rest[at + 1..];
+            return format!("{}://***@{}", scheme, host_part);
+        }
+    }
+    if url.len() > 80 {
+        format!("{}...", &url[..80])
+    } else {
+        url.to_string()
+    }
+}
+
 /// Configure CORS based on environment variables
 ///
 /// Reads ALLOWED_ORIGINS environment variable which should contain comma-separated origins.
@@ -27,8 +47,27 @@ const MAX_LOG_ORIGIN_LENGTH: usize = 100;
 fn configure_cors() -> CorsLayer {
     use axum::http::{HeaderValue, Uri};
 
-    let allowed_origins = std::env::var("ALLOWED_ORIGINS")
-        .unwrap_or_else(|_| "http://localhost:3000,http://localhost:3001".to_string());
+    // Build a sensible default for allowed origins from FRONTEND_PORT and BACKEND_PORT
+    // so the defaults follow the ports the services actually run on. If BACKEND_PORT
+    // is not set we fall back to PORT (used elsewhere). If ALLOWED_ORIGINS is set,
+    // it takes precedence.
+    let default_frontend_port: u16 = std::env::var("FRONTEND_PORT")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(3000);
+
+    let default_backend_port: u16 = std::env::var("BACKEND_PORT")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .or_else(|| std::env::var("PORT").ok().and_then(|s| s.parse().ok()))
+        .unwrap_or(3001);
+
+    let default_allowed = format!(
+        "http://localhost:{},http://localhost:{}",
+        default_frontend_port, default_backend_port
+    );
+
+    let allowed_origins = std::env::var("ALLOWED_ORIGINS").unwrap_or_else(|_| default_allowed);
 
     let safe_allowed_origins: String = allowed_origins
         .chars()
@@ -122,11 +161,21 @@ async fn main() {
     // Build our application with routes
     // Initialize Postgres pool
     let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://localhost/tools".into());
-    let pool: PgPool = PgPoolOptions::new()
+    let pool: PgPool = match PgPoolOptions::new()
         .max_connections(5)
         .connect(&database_url)
         .await
-        .expect("Failed to connect to database");
+    {
+        Ok(p) => p,
+        Err(e) => {
+            let redacted = redact_database_url(&database_url);
+            tracing::error!("Failed to connect to database ({})", redacted);
+            tracing::error!("Error connecting to database: {}", e);
+            tracing::error!("Hints: Ensure the database is running and reachable. Check DATABASE_URL and network access. To see a backtrace run with RUST_BACKTRACE=1");
+            // Exit with non-zero code rather than panicking so error output is clearer to the user
+            std::process::exit(1);
+        }
+    };
 
     // Initialize optional Redis client and session store
     let redis_url_opt = std::env::var("REDIS_URL").ok();
@@ -142,10 +191,28 @@ async fn main() {
 
     let app = app::build_app(shared_pool.clone(), session_store_opt);
 
-    // Run the server
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
-    tracing::info!("Server running on http://0.0.0.0:3001");
-    axum::serve(listener, app).await.unwrap();
+    // Run the server. Honor PORT env var if set (fallback to 3001).
+    let port: u16 = std::env::var("PORT")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(3001);
+
+    let bind_addr = format!("0.0.0.0:{}", port);
+    let listener = match tokio::net::TcpListener::bind(&bind_addr).await {
+        Ok(l) => l,
+        Err(e) => {
+            tracing::error!("Failed to bind to {}: {}", bind_addr, e);
+            tracing::error!("Is the port already in use? If you meant a different port, set the PORT environment variable.");
+            std::process::exit(1);
+        }
+    };
+
+    tracing::info!("Server running on http://{}", bind_addr);
+
+    if let Err(e) = axum::serve(listener, app).await {
+        tracing::error!("Server error: {}", e);
+        std::process::exit(1);
+    }
 }
 
 /// Root endpoint

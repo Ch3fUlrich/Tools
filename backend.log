@@ -1,0 +1,8 @@
+nohup: ignoring input
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.84s
+warning: the following packages contain code that will be rejected by a future version of Rust: redis v0.23.3
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 3`
+     Running `backend/target/debug/tools-backend`
+[2m2025-10-24T09:38:39.510392Z[0m [32m INFO[0m [2mtools_backend[0m[2m:[0m Configuring CORS with allowed origins: http://localhost:3000,http://localhost:8080
+[2m2025-10-24T09:38:39.513430Z[0m [32m INFO[0m [2mtools_backend[0m[2m:[0m CORS configured with allowed origins from ALLOWED_ORIGINS environment variable
+[2m2025-10-24T09:38:39.561514Z[0m [32m INFO[0m [2mtools_backend[0m[2m:[0m Server running on http://0.0.0.0:8080

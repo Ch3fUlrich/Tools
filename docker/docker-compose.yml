@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  tools-frontend:
+    image: ghcr.io/ch3fulrich/tools-frontend:${DOCKER_VERSION:-latest}
+    container_name: tools-frontend
+    restart: unless-stopped
+    ports:
+      - "6805:6805"
+    environment:
+      - NODE_ENV=production
+      - PORT=6805
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:noexec,nosuid,nodev,size=10m
+      - /var/run:noexec,nosuid,nodev,size=10m
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:$$PORT/ || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s

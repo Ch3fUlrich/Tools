@@ -22,7 +22,7 @@ RUN strip target/x86_64-unknown-linux-musl/release/tools-backend
 FROM golang:1.20-alpine AS hc-builder
 WORKDIR /src
 COPY docker/healthcheck/healthcheck.go ./
-RUN CGO_ENABLED=0 GOOS=linux go build -o /healthcheck ./
+RUN CGO_ENABLED=0 GOOS=linux go build -o /healthcheck ./healthcheck.go
 
 FROM gcr.io/distroless/base-debian12:nonroot AS runtime
 
@@ -33,7 +33,6 @@ COPY --from=builder /usr/src/tools-backend/target/x86_64-unknown-linux-musl/rele
 
 # Copy the healthcheck binary built from the small Go stage
 COPY --from=hc-builder /healthcheck /app/healthcheck
-RUN chmod +x /app/healthcheck || true
 
 # Expose the application port
 EXPOSE 3001

@@ -13,7 +13,8 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (user: User) => void;
+  // login accepts an optional `remember` flag; when true user is stored in localStorage, otherwise sessionStorage
+  login: (user: User, remember?: boolean) => void;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
 }
@@ -30,10 +31,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const isAuthenticated = !!user;
 
-  const login = (userData: User) => {
+  const login = (userData: User, remember = false) => {
     setUser(userData);
-    // Store user data in localStorage for persistence
-    localStorage.setItem('auth_user', JSON.stringify(userData));
+    try {
+      // If user chose "remember", persist in localStorage; otherwise use sessionStorage
+      if (remember) {
+        localStorage.setItem('auth_user', JSON.stringify(userData));
+      } else {
+        sessionStorage.setItem('auth_user', JSON.stringify(userData));
+      }
+    } catch (err) {
+      // Storage may be unavailable in some environments; ignore failures but log for debugging
+      console.warn('Could not persist auth_user:', err);
+    }
   };
 
   const logout = async () => {
@@ -43,7 +53,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
-      localStorage.removeItem('auth_user');
+      try {
+        localStorage.removeItem('auth_user');
+        sessionStorage.removeItem('auth_user');
+      } catch (err) {
+        // ignore
+      }
     }
   };
 
@@ -51,14 +66,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // This would typically make an API call to verify the current session
     // For now, we'll just check localStorage
     try {
-      const storedUser = localStorage.getItem('auth_user');
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
+      // Prefer sessionStorage (session-limited). If not present, fall back to localStorage.
+      const s = sessionStorage.getItem('auth_user');
+      const l = localStorage.getItem('auth_user');
+      const stored = s ?? l;
+      if (stored) {
+        const userData = JSON.parse(stored);
         setUser(userData);
       }
     } catch (error) {
       console.error('Error refreshing auth:', error);
-      localStorage.removeItem('auth_user');
+      try {
+        localStorage.removeItem('auth_user');
+        sessionStorage.removeItem('auth_user');
+      } catch (e) {
+        // ignore
+      }
     } finally {
       setIsLoading(false);
     }

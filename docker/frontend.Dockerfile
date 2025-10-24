@@ -32,11 +32,16 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 RUN npm run build
 
 # ------------------------------
-# Stage 3: Runtime
+# Build a tiny, static healthcheck binary
 # ------------------------------
-## ------------------------------
-## Final: nginx-unprivileged runtime (serves static files)
-## ------------------------------
+FROM golang:1.20-alpine AS hc-builder
+WORKDIR /src
+COPY docker/healthcheck/healthcheck.go ./
+RUN CGO_ENABLED=0 GOOS=linux go build -o /healthcheck ./healthcheck.go
+
+# ------------------------------
+# Stage 3: Runtime (nginx-unprivileged) - final image
+# ------------------------------
 FROM nginxinc/nginx-unprivileged:alpine AS runtime
 
 # Switch to root for file operations
@@ -58,6 +63,10 @@ RUN sed -i 's/\r$//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 # Copy built static output from builder
 COPY --from=builder /app/out /usr/share/nginx/html
 
+# Copy the healthcheck binary built earlier
+COPY --from=hc-builder /healthcheck /app/healthcheck
+RUN chmod +x /app/healthcheck || true
+
 # Adjust ownership to nginx user provided by base image
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx && \
@@ -68,27 +77,6 @@ RUN chown -R nginx:nginx /usr/share/nginx/html && \
 # Default port (can be overridden at runtime)
 ENV PORT=3000
 EXPOSE ${PORT}
-
-# Build a tiny, static healthcheck binary and copy it into the runtime so the
-# healthcheck can run even if the base runtime is stripped (no shell/curl).
-FROM golang:1.20-alpine AS hc-builder
-WORKDIR /src
-COPY docker/healthcheck/healthcheck.go ./
-RUN CGO_ENABLED=0 GOOS=linux go build -o /healthcheck ./
-
-# Copy built static output from builder
-COPY --from=builder /app/out /usr/share/nginx/html
-
-# Adjust ownership to nginx user provided by base image
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx/conf.d && \
-    touch /var/run/nginx.pid && chown -R nginx:nginx /var/run/nginx.pid
-
-# Copy the healthcheck binary into the nginx runtime
-COPY --from=hc-builder /healthcheck /app/healthcheck
-RUN chmod +x /app/healthcheck || true
 
 # Healthcheck using static binary (probes root path)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
