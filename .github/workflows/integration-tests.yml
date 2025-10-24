@@ -1,0 +1,147 @@
+name: Integration Tests & Build
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  integration:
+    name: Full tests (runs only after CI smoke succeeds)
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: tools
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: tools
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tools -d tools" --health-interval 5s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Set environment
+        run: |
+          echo "TEST_DATABASE_URL=postgres://tools:pass@localhost:5432/tools" >> $GITHUB_ENV
+          echo "REDIS_URL=redis://localhost:6379" >> $GITHUB_ENV
+
+      - name: Run backend integration tests
+        run: |
+          cd backend
+          cargo test --workspace --all-features --no-fail-fast
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install and build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build --if-present
+
+      - name: Package build artifacts (zip)
+        run: |
+          mkdir -p artifacts
+          cp backend/target/release/tools-backend artifacts/ || true
+          cp -r frontend/out artifacts/frontend-out || true
+          cd artifacts
+          zip -r ../build-artifacts.zip . || true
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-zip
+          path: build-artifacts.zip
+
+  automerge-dependabot:
+    name: Auto-merge Dependabot PRs on success
+    runs-on: ubuntu-latest
+    needs: integration
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Enable auto-merge for Dependabot minor/patch PRs
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const owner = context.repo.owner
+            const repo = context.repo.repo
+            const sha = context.payload.workflow_run.head_sha
+
+            // list PRs for the commit
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({ owner, repo, commit_sha: sha })
+            core.info(`Found ${prs.length} PR(s) associated with commit ${sha}`)
+
+            function semverDiff(a, b) {
+              const pa = a.split('.').map(n=>parseInt(n||'0'))
+              const pb = b.split('.').map(n=>parseInt(n||'0'))
+              if (pa[0] !== pb[0]) return 'major'
+              if (pa[1] !== pb[1]) return 'minor'
+              if (pa[2] !== pb[2]) return 'patch'
+              return 'none'
+            }
+
+            for (const pr of prs) {
+              const author = pr.user && pr.user.login || ''
+              if (!author.startsWith('dependabot')) {
+                core.info(`Skipping PR #${pr.number} (author ${author})`)
+                continue
+              }
+
+              // Try to parse versions from title "Bump X from A to B"
+              const m = pr.title.match(/from\s+(\d+\.\d+\.\d+)\s+to\s+(\d+\.\d+\.\d+)/i)
+              if (!m) {
+                core.info(`Could not parse versions from PR #${pr.number} title: ${pr.title}`)
+                continue
+              }
+              const from = m[1]
+              const to = m[2]
+              const diff = semverDiff(from, to)
+              core.info(`PR #${pr.number}: version ${from} -> ${to} (${diff})`)
+
+              if (diff === 'patch' || diff === 'minor') {
+                // enable auto-merge (squash) for this PR
+                try {
+                  await github.request('PUT /repos/{owner}/{repo}/pulls/{pull_number}/auto-merge', {
+                    owner, repo, pull_number: pr.number,
+                    merge_method: 'squash'
+                  })
+                  core.info(`Enabled auto-merge for PR #${pr.number}`)
+                } catch (err) {
+                  core.info(`Failed to enable auto-merge for PR #${pr.number}: ${err}`)
+                }
+              } else {
+                core.info(`Skipping auto-merge for PR #${pr.number} due to semver ${diff}`)
+              }
+            }

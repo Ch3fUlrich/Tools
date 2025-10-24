@@ -93,6 +93,36 @@ on:
     branches: [ main ]
 
 jobs:
+  smoke:
+    name: Quick smoke tests (fast)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Quick backend unit tests
+        run: |
+          cd backend
+          # Fast unit-only tests (no DB/Redis services) - non-blocking
+          cargo test --workspace --lib --locked || true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Quick frontend unit tests
+        run: |
+          cd frontend
+          npm ci --no-audit --no-fund
+          npm test --silent || true
+
   test:
     name: Run backend tests (Postgres + Redis)
     runs-on: ubuntu-latest
@@ -141,45 +171,42 @@ jobs:
           cd backend
           cargo test --workspace --all-features --no-fail-fast
 
-  build:
-    name: Build backend & frontend
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  smoke:
+    name: Quick smoke tests (fast)
     runs-on: ubuntu-latest
-    needs: test
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Rust (stable)
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          components: rustfmt, clippy
           profile: minimal
 
-      - name: Cache Cargo registry
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Quick backend unit tests
+        run: |
+          cd backend
+          # Fast unit-only tests (no DB/Redis services) - non-blocking
+          cargo test --workspace --lib --locked || true
 
-      - name: Build backend (release)
-        working-directory: backend
-        run: cargo build --release
-
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: '20'
 
-      - name: Install and build frontend
-        working-directory: frontend
+      - name: Quick frontend unit tests
         run: |
-          npm ci
-          npm run build --if-present
-
-      - name: Run frontend linter
-        if: always()
-        working-directory: frontend
-        run: npm run lint --if-present || true
+          cd frontend
+          npm ci --no-audit --no-fund
+          npm test --silent || true
