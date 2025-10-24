@@ -1,0 +1,40 @@
+name: cargo-audit
+
+on:
+  schedule:
+    # Weekly run on Monday at 03:00 UTC
+    - cron: '0 3 * * 1'
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+
+jobs:
+  audit:
+    name: cargo audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Install cargo-audit
+        run: |
+          cargo install --locked cargo-audit
+
+      - name: Run cargo audit
+        run: |
+          cargo audit --version
+          # run audit and output JSON report (workflow will fail if vulnerabilities are found)
+          cargo audit --json > cargo-audit.json
+
+      - name: Upload cargo-audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: cargo-audit-report
+          path: cargo-audit.json
