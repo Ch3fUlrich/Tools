@@ -24,7 +24,7 @@ openidconnect = "3.0"
 oauth2 = "4.0"
 base64 = "0.21"
 anyhow = "1.0"
-rust-embed = "6.4.0"
+rust-embed = "8.8.0"
 
 [dev-dependencies]
 axum-test = "14.0"
