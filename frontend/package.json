@@ -10,7 +10,7 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.1.15",
+    "@tailwindcss/postcss": "^4.1.16",
     "autoprefixer": "^10.4.21",
     "next": "15.5.6",
     "react": "19.1.0",
