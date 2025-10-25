@@ -41,6 +41,76 @@ describe('N26Analyzer', () => {
       await waitFor(() => expect(screen.getByText(/Recent Transactions/)).toBeInTheDocument());
   });
 
+  it('renders full analysis results with transactions and category totals', async () => {
+    const user = userEvent.setup();
+
+    const mockResult = {
+      overall_total: 150.75,
+      category_totals: {
+        'Food': -45.50,
+        'Transport': -25.25,
+        'Salary': 200.00,
+        'Entertainment': -15.25
+      },
+      transactions: [
+        {
+          date: '2024-01-15',
+          category: 'Food',
+          comment: 'Lunch at restaurant',
+          amount: -12.50
+        },
+        {
+          date: '2024-01-14',
+          category: 'Transport',
+          comment: 'Bus ticket',
+          amount: -2.90
+        },
+        {
+          date: '2024-01-13',
+          category: 'Salary',
+          comment: 'Monthly salary',
+          amount: 200.00
+        }
+      ]
+    };
+
+    const spy = vi.spyOn(apiClient, 'analyzeN26Data').mockResolvedValueOnce(mockResult);
+
+    const { container } = render(<N26Analyzer />);
+
+    const file = new File([JSON.stringify({ transactions: [] })], 'n26.json', { type: 'application/json' });
+    (file as any).text = async () => JSON.stringify({ transactions: [] });
+
+    const input = screen.getByLabelText(/Upload N26 JSON File/i) as HTMLInputElement;
+    await user.upload(input, file);
+
+    await waitFor(() => expect(screen.getByRole('button', { name: /Analyze Transactions/i })).not.toBeDisabled());
+
+    const form = container.querySelector('form') as HTMLFormElement | null;
+    if (!form) throw new Error('form not found');
+    fireEvent.submit(form);
+
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+
+    // Check overall total
+    expect(screen.getByText('+150.75 €')).toBeInTheDocument();
+
+    // Check category totals - look for Food in the category totals section
+    const categoryTotalsSection = screen.getByText('Category Totals').closest('div');
+    expect(categoryTotalsSection).toHaveTextContent('Food');
+    expect(categoryTotalsSection).toHaveTextContent('-45.50 €');
+    expect(categoryTotalsSection).toHaveTextContent('Transport');
+    expect(categoryTotalsSection).toHaveTextContent('-25.25 €');
+    expect(categoryTotalsSection).toHaveTextContent('Salary');
+    expect(categoryTotalsSection).toHaveTextContent('+200.00 €');
+
+    // Check transactions table
+    expect(screen.getByText('Recent Transactions (3 total)')).toBeInTheDocument();
+    expect(screen.getByText('2024-01-15')).toBeInTheDocument();
+    expect(screen.getByText('Lunch at restaurant')).toBeInTheDocument();
+    expect(screen.getByText('-12.50 €')).toBeInTheDocument();
+  });
+
   it('shows error when uploading invalid (non-JSON) file', async () => {
     const user = userEvent.setup();
   const { container } = render(<N26Analyzer />);

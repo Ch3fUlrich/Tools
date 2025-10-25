@@ -113,4 +113,49 @@ describe('AuthModal and AuthContext', () => {
     fireEvent.click(screen.getByText('logout'));
     await waitFor(() => expect(screen.getByText(/auth:no/i)).toBeInTheDocument());
   });
+
+  it('handles localStorage errors gracefully', async () => {
+    // Mock localStorage to throw errors
+    const originalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = vi.fn(() => {
+      throw new Error('Storage quota exceeded');
+    });
+
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const Test = () => {
+      const auth = useAuth();
+      return (
+        <div>
+          <div>auth:{auth.isAuthenticated ? 'yes' : 'no'}</div>
+          <button onClick={() => auth.login({ id: '1', email: 'a@b.com', created_at: 'now' }, true)}>login</button>
+        </div>
+      );
+    };
+
+    render(
+      <AuthProvider>
+        <Test />
+      </AuthProvider>
+    );
+
+    fireEvent.click(screen.getByText('login'));
+
+    // Should still work despite storage error
+    expect(screen.getByText(/auth:yes/i)).toBeInTheDocument();
+    expect(consoleWarnSpy).toHaveBeenCalledWith('Could not persist auth_user:', expect.any(Error));
+
+    // Restore mocks
+    Storage.prototype.setItem = originalSetItem;
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('handles useAuth outside provider', () => {
+    const Test = () => {
+      useAuth();
+      return <div>test</div>;
+    };
+
+    expect(() => render(<Test />)).toThrow('useAuth must be used within an AuthProvider');
+  });
 });

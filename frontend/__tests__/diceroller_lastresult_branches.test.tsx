@@ -34,7 +34,7 @@ describe('DiceRoller lastResult mapping branches', () => {
   test('renders multiple roll entries and per-die rows', async () => {
     render(<DiceRoller />);
     // click Roll button to cause mockRollDice to populate lastResult
-    const rollButton = screen.getByLabelText(/Roll dice/);
+    const rollButton = screen.getByText('Roll Dice');
     rollButton.click();
 
   // expect roll headers and chart/testid counts; ensure per-die joined text exists
@@ -45,6 +45,6 @@ describe('DiceRoller lastResult mapping branches', () => {
   expect(boxplots.length).toBeGreaterThanOrEqual(2);
   expect(hists.length).toBeGreaterThanOrEqual(2);
   // check a specific per-die joined string appears
-  expect(screen.getByText(/3, 1/)).toBeInTheDocument();
+  expect(screen.getByText(/3 → 1/)).toBeInTheDocument();
   });
 });

@@ -4,21 +4,30 @@ export interface RollDicePayload {
   advantage?: 'none' | 'adv' | 'dis';
 }
 
+// Use named exports for all API functions to keep imports consistent across the codebase.
+// Default export removed to avoid accidental partial imports.
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 export async function rollDice(payload: RollDicePayload) {
-  const base = process.env.NEXT_PUBLIC_API_URL ?? '';
-  const url = base ? `${base.replace(/\/$/, '')}/api/tools/dice/roll` : '/api/tools/dice/roll';
-  const res = await fetch(url, {
+  const response = await fetch(`${API_BASE_URL}/api/tools/dice/roll`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) throw new Error(`Roll API error: ${res.status}`);
-  return res.json();
+  if (!response.ok) {
+    let errorMessage = `Roll API error: ${response.status}`;
+    try {
+      const text = await response.text();
+      errorMessage += `: ${text}`;
+    } catch {
+      // If we can't read the response body, just use the status code
+    }
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
 }
-// Use named exports for all API functions to keep imports consistent across the codebase.
-// Default export removed to avoid accidental partial imports.
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export interface FatLossRequest {
   kcal_deficit: number;
@@ -213,6 +222,88 @@ export async function handleOIDCCallback(request: OIDCCallbackRequest): Promise<
       errorMessage = errorData.error || errorMessage;
     } catch {
       // If we can't parse the error response, use the status text
+    }
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+export interface Substance {
+  id: string;
+  name: string;
+  halfLifeHours: number;
+  description?: string;
+  category?: string;
+  commonDosageMg?: number;
+  maxDailyDoseMg?: number;
+  eliminationRoute?: string;
+  bioavailabilityPercent?: number;
+}
+
+export interface SubstanceIntakeRequest {
+  substance: string;
+  time: string;
+  intake_type: string;
+  time_after_meal: number | null;
+  dosage_mg: number;
+}
+
+export interface ToleranceCalculationRequest {
+  intakes: SubstanceIntakeRequest[];
+  time_points: string[];
+}
+
+export interface BloodLevelPoint {
+  time: string;
+  substance: string;
+  amountMg: number;
+}
+
+export interface ToleranceCalculationResponse {
+  blood_levels: BloodLevelPoint[];
+}
+
+export async function getToleranceSubstances(): Promise<Substance[]> {
+  const response = await fetch(`${API_BASE_URL}/api/tools/tolerance/substances`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Failed to get substances (${response.status})`;
+    try {
+      const text = await response.text();
+      errorMessage += `: ${text}`;
+    } catch {
+      // If we can't read the response body, just use the status code
+    }
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+export async function calculateTolerance(
+  request: ToleranceCalculationRequest
+): Promise<ToleranceCalculationResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/tools/tolerance/calculate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Failed to calculate tolerance (${response.status})`;
+    try {
+      const text = await response.text();
+      errorMessage += `: ${text}`;
+    } catch {
+      // If we can't read the response body, just use the status code
     }
     throw new Error(errorMessage);
   }

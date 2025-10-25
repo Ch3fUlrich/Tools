@@ -20,12 +20,14 @@ describe('FatLossCalculator', () => {
 
     render(<FatLossCalculator />);
 
-  fireEvent.change(screen.getByLabelText(/Calorie Deficit/i), { target: { value: '3500' } });
-  fireEvent.change(screen.getByLabelText(/Weight Loss/i), { target: { value: '1' } });
-  fireEvent.click(screen.getByRole('button', { name: /Calculate/i }));
+  fireEvent.change(screen.getByLabelText(/Daily Calorie Deficit/i), { target: { value: '3500' } });
+  fireEvent.change(screen.getByLabelText(/Weekly Weight Loss/i), { target: { value: '1' } });
+  fireEvent.click(screen.getByRole('button', { name: /Calculate Composition/i }));
 
-  await waitFor(() => expect(screen.getByText(/Results:/)).toBeInTheDocument());
-  expect(screen.getByText(/80.00%/)).toBeInTheDocument();
+  await waitFor(() => expect(screen.getByText(/Body Composition Results/)).toBeInTheDocument());
+  // Check that the fat loss percentage appears in the results (should be unique in context)
+  const resultsSection = screen.getByText(/Body Composition Results/).parentElement;
+  expect(resultsSection).toHaveTextContent('80.0%');
   });
 
   it('shows error message when calculation fails', async () => {
@@ -34,10 +36,10 @@ describe('FatLossCalculator', () => {
 
     render(<FatLossCalculator />);
 
-  fireEvent.change(screen.getByLabelText(/Calorie Deficit/i), { target: { value: '0' } });
-  fireEvent.change(screen.getByLabelText(/Weight Loss/i), { target: { value: '0' } });
-  fireEvent.click(screen.getByRole('button', { name: /Calculate/i }));
+  fireEvent.change(screen.getByLabelText(/Daily Calorie Deficit/i), { target: { value: '0' } });
+  fireEvent.change(screen.getByLabelText(/Weekly Weight Loss/i), { target: { value: '0' } });
+  fireEvent.click(screen.getByRole('button', { name: /Calculate Composition/i }));
 
-  await waitFor(() => expect(screen.getByText(/Failed to calculate/)).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByText(/server error/)).toBeInTheDocument());
   });
 });

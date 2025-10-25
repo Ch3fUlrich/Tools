@@ -10,6 +10,6 @@ describe('DiceRoller component', () => {
     render(<DiceRoller />);
     expect(screen.getByText('Dice Roller')).toBeInTheDocument();
     // Use aria-label to uniquely identify the Roll button (avoids matching Reroll Low)
-    expect(screen.getByLabelText('Roll dice')).toBeInTheDocument();
+    expect(screen.getByText('Roll Dice')).toBeInTheDocument();
   });
 });

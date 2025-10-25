@@ -29,38 +29,81 @@ describe('DiceRoller', () => {
 
     render(<DiceRoller />);
 
-  // Use roles: die is a combobox, count/sides are spinbuttons
-  const dieSelect = screen.getByRole('combobox');
-  fireEvent.change(dieSelect, { target: { value: 'custom' } });
-  const spinbuttons = screen.getAllByRole('spinbutton');
-  // when custom is selected, order is: Sides, Count
-  fireEvent.change(spinbuttons[0], { target: { value: '6' } });
-  fireEvent.change(spinbuttons[1], { target: { value: '2' } });
-  fireEvent.click(screen.getByLabelText(/Roll dice/i));
+    // The default configuration should work (1 d6)
+    // Click roll button
+    fireEvent.click(screen.getByRole('button', { name: /Roll Dice/ }));
 
-    await waitFor(() => expect(screen.getByText(/Sum:/)).toBeInTheDocument());
-    // match the sum together with the label to avoid ambiguous numeric matches elsewhere
-    expect(screen.getByText(/Sum:\s*7/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/Latest Roll Results/)).toBeInTheDocument());
+    // Look for the total in the results section specifically
+    const resultsSection = screen.getByText(/Latest Roll Results/).closest('.bg-white');
+    expect(resultsSection).toHaveTextContent('7');
   });
 
   it('shows error message when roll fails', async () => {
     const { rollDice } = await import('@/lib/api/client');
-  (rollDice as any).mockRejectedValueOnce(new Error('fail'));
-  const alertSpy = vi.spyOn(global, 'alert').mockImplementation(() => {});
+    (rollDice as any).mockRejectedValueOnce(new Error('fail'));
+    const alertSpy = vi.spyOn(global, 'alert').mockImplementation(() => {});
 
     render(<DiceRoller />);
 
-    const spinbuttons2 = screen.getAllByRole('spinbutton');
-    // default when not custom: only one spinbutton (Count) may be present; ensure we set it
-    if (spinbuttons2.length === 1) {
-      fireEvent.change(spinbuttons2[0], { target: { value: '1' } });
-    } else {
-      // if custom shown, second is count
-      fireEvent.change(spinbuttons2[1], { target: { value: '1' } });
-    }
-  fireEvent.click(screen.getByLabelText(/Roll dice/i));
+    // Set count to 1
+    const spinbuttons = screen.getAllByRole('spinbutton');
+    fireEvent.change(spinbuttons[0], { target: { value: '1' } });
+    // Click roll button
+    fireEvent.click(screen.getByRole('button', { name: /Roll Dice/ }));
 
     await waitFor(() => expect(alertSpy).toHaveBeenCalled());
     alertSpy.mockRestore();
+  });
+
+  it('allows custom die sides input when custom die is selected', async () => {
+    const { rollDice } = await import('@/lib/api/client');
+    (rollDice as any).mockResolvedValueOnce({
+      summary: { total: 5 },
+      rolls: [{
+        sum: 5,
+        average: 5,
+        perDie: [{ original: [5], final: 5 }],
+        used: [5],
+      }],
+    });
+
+    render(<DiceRoller />);
+
+    // Select custom die from dropdown
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'custom' } });
+
+    // Should show sides input
+    const spinbuttons = screen.getAllByRole('spinbutton');
+    expect(spinbuttons).toHaveLength(2); // Count input and sides input
+
+    // Set custom sides
+    fireEvent.change(spinbuttons[1], { target: { value: '8' } });
+    fireEvent.change(spinbuttons[0], { target: { value: '1' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /Roll Dice/ }));
+
+    await waitFor(() => expect(screen.getByText(/Latest Roll Results/)).toBeInTheDocument());
+  });
+
+  it('supports keyboard interaction for rolling dice', async () => {
+    const { rollDice } = await import('@/lib/api/client');
+    (rollDice as any).mockResolvedValueOnce({
+      summary: { total: 3 },
+      rolls: [{
+        sum: 3,
+        average: 3,
+        perDie: [{ original: [3], final: 3 }],
+        used: [3],
+      }],
+    });
+
+    render(<DiceRoller />);
+
+    // Click the roll button
+    fireEvent.click(screen.getByRole('button', { name: /Roll Dice/ }));
+
+    await waitFor(() => expect(screen.getByText(/Latest Roll Results/)).toBeInTheDocument());
   });
 });

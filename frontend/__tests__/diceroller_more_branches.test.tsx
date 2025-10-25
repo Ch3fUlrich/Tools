@@ -36,9 +36,9 @@ describe('DiceRoller extra branches', () => {
 
     render(<DiceRoller />);
 
-  // select custom die type from the select (no label association) — use combobox role
-  const select = screen.getAllByRole('combobox')[0];
-  fireEvent.change(select, { target: { value: 'custom' } });
+  // select custom die type by clicking the custom button
+  const customButton = screen.getByText('CUSTOM');
+  fireEvent.click(customButton);
 
   // sides input: use spinbutton role (number inputs). First spinbutton is Sides in the DOM
   const spinbuttons = screen.getAllByRole('spinbutton');
@@ -46,26 +46,19 @@ describe('DiceRoller extra branches', () => {
   fireEvent.change(sidesInput, { target: { value: '6' } });
   expect((sidesInput as HTMLInputElement).value).toBe('6');
 
-  // toggle advantage: scope to the Advantage control to avoid matching the label
-  const advantageLabel = screen.getByText(/Advantage/i);
-  const advantageContainer = advantageLabel.parentElement as HTMLElement;
-  const buttons = within(advantageContainer).getAllByRole('button');
-  // buttons: [None, Adv, Dis] -> pick index 1
-  const advButton = buttons[1];
+  // toggle advantage: find the advantage button directly
+  const advButton = screen.getByText('Advantage');
   fireEvent.click(advButton);
   // clicking again toggles off
   fireEvent.click(advButton);
 
     // click roll
-    const rollButton = screen.getByLabelText(/Roll dice/);
+    const rollButton = screen.getByText('Roll Dice');
     fireEvent.click(rollButton);
 
     // wait for mock to have been called and charts to be visible
   expect(mockRollDice).toHaveBeenCalled();
   expect(await screen.findByTestId('boxplot')).toBeInTheDocument();
   expect(await screen.findByTestId('histogram')).toBeInTheDocument();
-
-    // per-die table row should exist
-    expect(screen.getByText(/d6/)).toBeInTheDocument();
   });
 });

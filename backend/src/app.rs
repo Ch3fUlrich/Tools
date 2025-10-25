@@ -11,7 +11,7 @@ async fn root() -> Json<serde_json::Value> {
     Json(json!({
         "name": "Tools Backend API",
         "version": "0.1.0",
-        "endpoints": ["/api/health","/api/tools/fat-loss","/api/tools/n26-analyzer"]
+        "endpoints": ["/api/health","/api/tools/fat-loss","/api/tools/n26-analyzer","/api/tools/tolerance/calculate","/api/tools/tolerance/substances"]
     }))
 }
 
@@ -36,8 +36,12 @@ pub fn build_app(
             post(crate::api::fat_loss::calculate_fat_loss),
         )
         .route(
-            "/api/tools/n26-analyzer",
-            post(crate::api::n26_analyzer::analyze_n26_data),
+            "/api/tools/tolerance/calculate",
+            post(crate::api::tolerance::calculate_tolerance),
+        )
+        .route(
+            "/api/tools/tolerance/substances",
+            get(crate::api::tolerance::get_substances),
         )
         .route("/api/tools/dice/roll", post(crate::api::dice::roll))
         .route("/api/tools/dice/save", post(crate::api::dice_history::save))

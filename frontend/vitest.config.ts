@@ -22,7 +22,7 @@ export default defineConfig({
       // include all key frontend source folders
       include: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}', 'lib/**/*.{ts,tsx}'],
   // exclude test-only helpers and type-only files from coverage calculations
-  exclude: ['**/app/layout.testable.tsx', 'lib/types/**', '**/*.testable.*'],
+  exclude: ['lib/types/**', '**/*.testable.*'],
   // V8 provider doesn't support numeric threshold fields here.
     },
   },

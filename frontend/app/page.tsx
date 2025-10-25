@@ -127,6 +127,21 @@ export default function Home() {
                 Roll dice with various options including advantage/disadvantage and custom dice types.
               </p>
             </Link>
+
+            {/* Tolerance Calculator Card */}
+            <Link href="/tools/tolerance" className="p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-left block">
+              <div className="flex items-center mb-3 sm:mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl sm:text-2xl">🧪</span>
+                </div>
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white ml-3 sm:ml-4">
+                  Tolerance Calculator
+                </h2>
+              </div>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                Calculate substance elimination and blood levels over time using pharmacokinetic models.
+              </p>
+            </Link>
           </div>
         ) : null}
         </div>

@@ -151,7 +151,7 @@ async fn main() {
         .init();
 
     // Configure CORS with environment-based origin restrictions
-    let _cors = configure_cors();
+    let cors = configure_cors();
 
     tracing::info!(
         "CORS configured with allowed origins from ALLOWED_ORIGINS environment variable"
@@ -189,7 +189,8 @@ async fn main() {
 
     let shared_pool = Arc::new(pool);
 
-    let app = app::build_app(shared_pool.clone(), session_store_opt);
+    let app = app::build_app(shared_pool.clone(), session_store_opt)
+        .layer(cors);
 
     // Run the server. Honor PORT env var if set (fallback to 3001).
     let port: u16 = std::env::var("PORT")
@@ -284,7 +285,10 @@ fn test_env_cleanup_on_panic() {
     // Test that environment variables are properly restored even if a panic occurs
     // This test demonstrates the safety improvement of using temp_env
 
-    // Store the original value (or lack thereof)
+    // Ensure we start with a clean environment for this test
+    std::env::remove_var("ALLOWED_ORIGINS");
+
+    // Store the original value (should be None after removal)
     let original = std::env::var("ALLOWED_ORIGINS").ok();
 
     // This should panic but still clean up the environment variable
@@ -302,6 +306,9 @@ fn test_env_cleanup_on_panic() {
 
     // Verify the environment variable was restored to its original state
     assert_eq!(std::env::var("ALLOWED_ORIGINS").ok(), original);
+
+    // Clean up: ensure ALLOWED_ORIGINS is not set for other tests
+    std::env::remove_var("ALLOWED_ORIGINS");
 }
 
 #[test]
