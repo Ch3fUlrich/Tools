@@ -1,15 +1,15 @@
+// Mock router with a shared push mock so tests can assert it was called
+const push = vi.fn();
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push }),
+}));
+
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AuthProvider, useAuth } from '@/components/auth/AuthContext';
 import { UserProfile } from '@/components/auth/UserProfile';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LoginForm } from '@/components/auth/LoginForm';
-
-// Mock router with a shared push mock so tests can assert it was called
-const push = vi.fn();
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push }),
-}));
 
 // Mock API client where needed
 vi.mock('@/lib/api/client', async () => {
@@ -26,7 +26,14 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 
 describe('Auth components', () => {
   beforeEach(() => {
-    localStorage.clear();
+    // Clear both storages so sessionStorage doesn't leak between tests
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_) {
+      // Ignore if storage is unavailable in environment
+    }
     vi.resetAllMocks();
   });
 

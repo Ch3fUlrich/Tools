@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct DiceSpec {
@@ -93,11 +93,15 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
     }
 
     // determine effective max rerolls per die
-    let max_rerolls = req.max_rerolls_per_die.unwrap_or(10).min(MAX_REROLLS_PER_DIE);
+    let max_rerolls = req
+        .max_rerolls_per_die
+        .unwrap_or(10)
+        .min(MAX_REROLLS_PER_DIE);
 
     // estimated work heuristic: count * (1 + max_rerolls) * rolls
-    let est_work: u128 = (req.count as u128) * ((max_rerolls as u128) + 1) * (rolls as u128);
-    let safe_threshold: u128 = (MAX_DICE as u128) * ((MAX_REROLLS_PER_DIE as u128) + 1) * (MAX_INDEPENDENT_ROLLS as u128);
+    let est_work: u128 = u128::from(req.count) * (u128::from(max_rerolls) + 1) * u128::from(rolls);
+    let safe_threshold: u128 =
+        u128::from(MAX_DICE) * (u128::from(MAX_REROLLS_PER_DIE) + 1) * u128::from(MAX_INDEPENDENT_ROLLS);
     // reject requests whose estimated work meets or exceeds the safe threshold
     if est_work >= safe_threshold {
         return Err(serde_json::json!({"error":"request too large; exceeds server cost limits"}));
@@ -106,10 +110,10 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
     // Helper: roll a single die with optional rerolls; returns (originals, final)
     let roll_with_rerolls = |rng: &mut rand::rngs::ThreadRng| -> (Vec<i32>, i32) {
         let mut originals = Vec::new();
-            let mut v = rng.gen_range(1..=(sides as i32));
+        let mut v = rng.gen_range(1..=(sides as i32));
         originals.push(v);
         let mut tries = 0u32;
-            if let Some(rspec) = &req.reroll {
+        if let Some(rspec) = &req.reroll {
             loop {
                 let should = match rspec.mode.as_str() {
                     "lt" => v <= rspec.threshold,
@@ -134,7 +138,10 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
         let mut used: Vec<i32> = Vec::new();
         for _ in 0..req.count {
             let (originals, finalv) = roll_with_rerolls(rng);
-            per_die.push(PerDieDetail { original: originals.clone(), r#final: finalv });
+            per_die.push(PerDieDetail {
+                original: originals.clone(),
+                r#final: finalv,
+            });
             used.push(finalv);
         }
         (per_die, used)
@@ -143,7 +150,10 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
     for _ in 0..rolls {
         let mut rng = rand::thread_rng();
         let advantage = req.advantage.clone().unwrap_or_else(|| "none".to_string());
-    let adv_mode = req.advantage_mode.clone().unwrap_or_else(|| "per-die".to_string());
+        let adv_mode = req
+            .advantage_mode
+            .clone()
+            .unwrap_or_else(|| "per-die".to_string());
 
         if advantage == "none" || adv_mode == "per-die" {
             // per-die advantage: for each die, roll either once (none) or twice and pick
@@ -153,60 +163,140 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
             for _ in 0..req.count {
                 if advantage == "none" {
                     let (originals, finalv) = roll_with_rerolls(&mut rng);
-                    per_die.push(PerDieDetail { original: originals.clone(), r#final: finalv });
+                    per_die.push(PerDieDetail {
+                        original: originals.clone(),
+                        r#final: finalv,
+                    });
                     used.push(finalv);
                 } else {
                     // roll two independent attempts (each with their own rerolls), then pick per die
                     let (orig1, f1) = roll_with_rerolls(&mut rng);
                     let (orig2, f2) = roll_with_rerolls(&mut rng);
-                    let chosen = if advantage == "adv" { std::cmp::max(f1, f2) } else { std::cmp::min(f1, f2) };
+                    let chosen = if advantage == "adv" {
+                        std::cmp::max(f1, f2)
+                    } else {
+                        std::cmp::min(f1, f2)
+                    };
                     // combine originals for traceability
                     let mut combined = orig1.clone();
                     combined.extend(orig2.iter());
-                    per_die.push(PerDieDetail { original: combined, r#final: chosen });
+                    per_die.push(PerDieDetail {
+                        original: combined,
+                        r#final: chosen,
+                    });
                     used.push(chosen);
                 }
             }
 
             // compute stats
             let sum: i32 = used.iter().sum();
-            let average = if used.len() > 0 { sum as f64 / used.len() as f64 } else { 0.0 };
+            let average = if used.is_empty() {
+                0.0
+            } else {
+                f64::from(sum) / used.len() as f64
+            };
             let mut used_sorted = used.clone();
-            used_sorted.sort();
+            used_sorted.sort_unstable();
             let median = if used_sorted.len() % 2 == 1 {
-                used_sorted[used_sorted.len()/2] as f64
-            } else if used_sorted.len() > 0 {
-                let hi = used_sorted[used_sorted.len()/2];
-                let lo = used_sorted[used_sorted.len()/2 - 1];
-                (hi + lo) as f64 / 2.0
-            } else { 0.0 };
-            let spread = if used_sorted.len()>0 { used_sorted.last().unwrap() - used_sorted.first().unwrap() } else { 0 };
+                f64::from(used_sorted[used_sorted.len() / 2])
+            } else if !used_sorted.is_empty() {
+                let hi = used_sorted[used_sorted.len() / 2];
+                let lo = used_sorted[used_sorted.len() / 2 - 1];
+                f64::from(hi + lo) / 2.0
+            } else {
+                0.0
+            };
+            let spread = if used_sorted.is_empty() {
+                0
+            } else {
+                used_sorted.last().unwrap() - used_sorted.first().unwrap()
+            };
 
-            results.push(DiceRollResult { per_die, used, sum, average, median, spread });
+            results.push(DiceRollResult {
+                per_die,
+                used,
+                sum,
+                average,
+                median,
+                spread,
+            });
         } else {
             // per-set advantage: perform two full sets and pick the set with higher/lower total
             let (per1, used1) = perform_set(&mut rng);
             let sum1: i32 = used1.iter().sum();
             let (per2, used2) = perform_set(&mut rng);
             let sum2: i32 = used2.iter().sum();
-            let pick_first = if advantage == "adv" { sum1 >= sum2 } else { sum1 <= sum2 };
-            if pick_first {
-                let average = if used1.len()>0 { sum1 as f64 / used1.len() as f64 } else {0.0};
-                let mut used_sorted = used1.clone(); used_sorted.sort();
-                let median = if used_sorted.len()%2==1 { used_sorted[used_sorted.len()/2] as f64 } else if used_sorted.len()>0 { (used_sorted[used_sorted.len()/2] + used_sorted[used_sorted.len()/2 -1]) as f64 /2.0 } else {0.0};
-                let spread = if used_sorted.len()>0 { used_sorted.last().unwrap() - used_sorted.first().unwrap() } else {0};
-                results.push(DiceRollResult { per_die: per1, used: used1, sum: sum1, average, median, spread });
+            let pick_first = if advantage == "adv" {
+                sum1 >= sum2
             } else {
-                let average = if used2.len()>0 { sum2 as f64 / used2.len() as f64 } else {0.0};
-                let mut used_sorted = used2.clone(); used_sorted.sort();
-                let median = if used_sorted.len()%2==1 { used_sorted[used_sorted.len()/2] as f64 } else if used_sorted.len()>0 { (used_sorted[used_sorted.len()/2] + used_sorted[used_sorted.len()/2 -1]) as f64 /2.0 } else {0.0};
-                let spread = if used_sorted.len()>0 { used_sorted.last().unwrap() - used_sorted.first().unwrap() } else {0};
-                results.push(DiceRollResult { per_die: per2, used: used2, sum: sum2, average, median, spread });
+                sum1 <= sum2
+            };
+            if pick_first {
+                let average = if used1.is_empty() {
+                    0.0
+                } else {
+                    f64::from(sum1) / used1.len() as f64
+                };
+                let mut used_sorted = used1.clone();
+                used_sorted.sort_unstable();
+                let median = if used_sorted.len() % 2 == 1 {
+                    f64::from(used_sorted[used_sorted.len() / 2])
+                } else if !used_sorted.is_empty() {
+                    f64::from(used_sorted[used_sorted.len() / 2] + used_sorted[used_sorted.len() / 2 - 1])
+                        / 2.0
+                } else {
+                    0.0
+                };
+                let spread = if used_sorted.is_empty() {
+                    0
+                } else {
+                    used_sorted.last().unwrap() - used_sorted.first().unwrap()
+                };
+                results.push(DiceRollResult {
+                    per_die: per1,
+                    used: used1,
+                    sum: sum1,
+                    average,
+                    median,
+                    spread,
+                });
+            } else {
+                let average = if used2.is_empty() {
+                    0.0
+                } else {
+                    f64::from(sum2) / used2.len() as f64
+                };
+                let mut used_sorted = used2.clone();
+                used_sorted.sort_unstable();
+                let median = if used_sorted.len() % 2 == 1 {
+                    f64::from(used_sorted[used_sorted.len() / 2])
+                } else if !used_sorted.is_empty() {
+                    f64::from(used_sorted[used_sorted.len() / 2] + used_sorted[used_sorted.len() / 2 - 1])
+                        / 2.0
+                } else {
+                    0.0
+                };
+                let spread = if used_sorted.is_empty() {
+                    0
+                } else {
+                    used_sorted.last().unwrap() - used_sorted.first().unwrap()
+                };
+                results.push(DiceRollResult {
+                    per_die: per2,
+                    used: used2,
+                    sum: sum2,
+                    average,
+                    median,
+                    spread,
+                });
             }
         }
     }
 
-    Ok(DiceResponse { rolls: results, summary: serde_json::json!({"totalRollsRequested": rolls}) })
+    Ok(DiceResponse {
+        rolls: results,
+        summary: serde_json::json!({"totalRollsRequested": rolls}),
+    })
 }
 
 #[cfg(test)]
@@ -216,7 +306,10 @@ mod tests {
     #[tokio::test]
     async fn test_basic_roll() {
         let req = DiceRequest {
-            die: DiceSpec { r#type: "d6".to_string(), sides: None },
+            die: DiceSpec {
+                r#type: "d6".to_string(),
+                sides: None,
+            },
             count: 3,
             advantage: None,
             advantage_mode: None,
@@ -239,7 +332,10 @@ mod tests {
     #[tokio::test]
     async fn test_advantage_per_die() {
         let req = DiceRequest {
-            die: DiceSpec { r#type: "d6".to_string(), sides: None },
+            die: DiceSpec {
+                r#type: "d6".to_string(),
+                sides: None,
+            },
             count: 5,
             advantage: Some("adv".to_string()),
             advantage_mode: Some("per-die".to_string()),
@@ -256,7 +352,10 @@ mod tests {
     #[tokio::test]
     async fn test_advantage_per_set() {
         let req = DiceRequest {
-            die: DiceSpec { r#type: "d6".to_string(), sides: None },
+            die: DiceSpec {
+                r#type: "d6".to_string(),
+                sides: None,
+            },
             count: 4,
             advantage: Some("dis".to_string()),
             advantage_mode: Some("per-set".to_string()),
@@ -273,11 +372,18 @@ mod tests {
     #[tokio::test]
     async fn test_reroll_lt_threshold() {
         let req = DiceRequest {
-            die: DiceSpec { r#type: "d6".to_string(), sides: None },
+            die: DiceSpec {
+                r#type: "d6".to_string(),
+                sides: None,
+            },
             count: 10,
             advantage: None,
             advantage_mode: None,
-            reroll: Some(RerollSpec { mode: "lt".to_string(), threshold: 2, max_rerolls: Some(10) }),
+            reroll: Some(RerollSpec {
+                mode: "lt".to_string(),
+                threshold: 2,
+                max_rerolls: Some(10),
+            }),
             max_rerolls_per_die: Some(10),
             rolls: Some(1),
         };
@@ -293,7 +399,10 @@ mod tests {
     #[tokio::test]
     async fn test_multi_rolls_and_limits() {
         let req = DiceRequest {
-            die: DiceSpec { r#type: "d2".to_string(), sides: None },
+            die: DiceSpec {
+                r#type: "d2".to_string(),
+                sides: None,
+            },
             count: 3,
             advantage: None,
             advantage_mode: None,
@@ -309,11 +418,18 @@ mod tests {
     #[tokio::test]
     async fn test_request_too_large_rejected() {
         let req = DiceRequest {
-            die: DiceSpec { r#type: "d20".to_string(), sides: None },
+            die: DiceSpec {
+                r#type: "d20".to_string(),
+                sides: None,
+            },
             count: 1000,
             advantage: None,
             advantage_mode: None,
-            reroll: Some(RerollSpec { mode: "lt".to_string(), threshold: 1, max_rerolls: Some(1000) }),
+            reroll: Some(RerollSpec {
+                mode: "lt".to_string(),
+                threshold: 1,
+                max_rerolls: Some(1000),
+            }),
             max_rerolls_per_die: Some(1000),
             rolls: Some(100),
         };
@@ -325,7 +441,10 @@ mod tests {
     #[tokio::test]
     async fn test_unknown_die_type_rejected() {
         let req = DiceRequest {
-            die: DiceSpec { r#type: "d999".to_string(), sides: None },
+            die: DiceSpec {
+                r#type: "d999".to_string(),
+                sides: None,
+            },
             count: 1,
             advantage: None,
             advantage_mode: None,
@@ -343,7 +462,10 @@ mod tests {
     #[tokio::test]
     async fn test_custom_sides_exceed_max_rejected() {
         let req = DiceRequest {
-            die: DiceSpec { r#type: "custom".to_string(), sides: Some(20000) },
+            die: DiceSpec {
+                r#type: "custom".to_string(),
+                sides: Some(20000),
+            },
             count: 1,
             advantage: None,
             advantage_mode: None,
@@ -361,7 +483,10 @@ mod tests {
     #[tokio::test]
     async fn test_too_many_independent_rolls_rejected() {
         let req = DiceRequest {
-            die: DiceSpec { r#type: "d6".to_string(), sides: None },
+            die: DiceSpec {
+                r#type: "d6".to_string(),
+                sides: None,
+            },
             count: 1,
             advantage: None,
             advantage_mode: None,
@@ -378,7 +503,10 @@ mod tests {
     #[tokio::test]
     async fn test_count_zero_rejected() {
         let req = DiceRequest {
-            die: DiceSpec { r#type: "d6".to_string(), sides: None },
+            die: DiceSpec {
+                r#type: "d6".to_string(),
+                sides: None,
+            },
             count: 0,
             advantage: None,
             advantage_mode: None,
@@ -396,7 +524,10 @@ mod tests {
     #[tokio::test]
     async fn test_custom_default_sides_uses_six() {
         let req = DiceRequest {
-            die: DiceSpec { r#type: "custom".to_string(), sides: None },
+            die: DiceSpec {
+                r#type: "custom".to_string(),
+                sides: None,
+            },
             count: 2,
             advantage: None,
             advantage_mode: None,

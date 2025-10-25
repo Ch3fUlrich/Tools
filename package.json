@@ -8,6 +8,17 @@
   },
   "scripts": {
     "prepare": "husky install",
-    "commitlint": "commitlint --from=HEAD~1"
+    "commitlint": "commitlint --from=HEAD~1",
+    "lint": "npm run lint:frontend && npm run lint:css && npm run lint:backend",
+    "lint:fix": "npm run lint:fix:frontend && npm run lint:css:fix && npm run lint:fix:backend",
+    "lint:css": "cd frontend && npm run lint:css",
+    "lint:css:fix": "cd frontend && npm run lint:css:fix",
+    "lint:fix:frontend": "cd frontend && npm run lint:fix",
+    "lint:fix:backend": "cd backend && cargo clippy --fix -- -D warnings",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:backend": "cd backend && cargo clippy -- -D warnings",
+    "format": "npm run format:frontend && npm run format:backend",
+    "format:frontend": "cd frontend && npx prettier --write .",
+    "format:backend": "cd backend && cargo fmt"
   }
 }

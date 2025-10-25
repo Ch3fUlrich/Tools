@@ -2,35 +2,45 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "vitest run --coverage"
+    "lint:fix": "eslint . --fix",
+    "lint:css": "stylelint **/*.css",
+    "lint:css:fix": "stylelint **/*.css --fix",
+    "format": "prettier --write .",
+    "test": "vitest run --coverage",
+    "screenshot": "playwright screenshot http://localhost:3000 --save-path tmp/home.png && playwright screenshot http://localhost:3000/auth --save-path tmp/auth.png"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.15",
     "autoprefixer": "^10.4.21",
-    "next": "15.5.6",
+    "next": "^16.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
+    "@eslint/js": "^9.15.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/testing-library__user-event": "^4.1.1",
-    "@vitest/coverage-v8": "^4.0.1",
-    "eslint": "^9",
-    "eslint-config-next": "15.5.6",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "eslint": "^9.15.0",
+    "eslint-plugin-jsx-a11y": "^6.10.0",
+    "eslint-plugin-react": "^7.37.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
     "jsdom": "^27.0.1",
-    "tailwindcss": "^4.1.15",
-    "typescript": "^5",
-    "vitest": "^4.0.1"
+    "prettier": "^3.3.3",
+    "stylelint": "^16.10.0",
+    "stylelint-config-standard": "^36.0.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   }
 }

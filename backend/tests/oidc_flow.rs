@@ -11,10 +11,15 @@ async fn test_oidc_state_store_roundtrip() {
     };
     // This is a minimal smoke test that ensures SessionStore can store and take state
     use tools_backend::tools::session::SessionStore;
-    let mut store = SessionStore::new(&redis_url, "test").await.expect("session store");
+    let mut store = SessionStore::new(&redis_url, "test")
+        .await
+        .expect("session store");
     let state = "teststate".to_string();
     let nonce = "noncetoken".to_string();
-    store.store_oidc_state(&state, &nonce, 10).await.expect("store state");
+    store
+        .store_oidc_state(&state, &nonce, 10)
+        .await
+        .expect("store state");
     let taken = store.take_oidc_nonce(&state).await.expect("take state");
     assert_eq!(taken.unwrap(), nonce);
 }
@@ -30,11 +35,19 @@ async fn test_oidc_state_edge_cases() {
     };
 
     use tools_backend::tools::session::SessionStore;
-    let mut store = SessionStore::new(&redis_url, "test").await.expect("session store");
+    let mut store = SessionStore::new(&redis_url, "test")
+        .await
+        .expect("session store");
 
     // Test taking non-existent state
-    let result = store.take_oidc_nonce("nonexistent").await.expect("take nonexistent");
-    assert!(result.is_none(), "should return None for non-existent state");
+    let result = store
+        .take_oidc_nonce("nonexistent")
+        .await
+        .expect("take nonexistent");
+    assert!(
+        result.is_none(),
+        "should return None for non-existent state"
+    );
 
     // Test storing with empty state
     let result = store.store_oidc_state("", "nonce", 10).await;
@@ -47,19 +60,31 @@ async fn test_oidc_state_edge_cases() {
     assert!(result.is_ok(), "should handle very long state and nonce");
 
     // Test taking the long state
-    let taken = store.take_oidc_nonce(&long_state).await.expect("take long state");
+    let taken = store
+        .take_oidc_nonce(&long_state)
+        .await
+        .expect("take long state");
     assert_eq!(taken.unwrap(), long_nonce);
 
     // Test expired state (set TTL to 1 second, wait, then try to take)
     let exp_state = "expiring_state";
     let exp_nonce = "expiring_nonce";
-    store.store_oidc_state(exp_state, exp_nonce, 1).await.expect("store expiring state");
+    store
+        .store_oidc_state(exp_state, exp_nonce, 1)
+        .await
+        .expect("store expiring state");
 
     // Immediately try to take it (should work)
-    let taken = store.take_oidc_nonce(exp_state).await.expect("take expiring state");
+    let taken = store
+        .take_oidc_nonce(exp_state)
+        .await
+        .expect("take expiring state");
     assert_eq!(taken.unwrap(), exp_nonce);
 
     // Try to take again (should be gone)
-    let taken = store.take_oidc_nonce(exp_state).await.expect("take expired state");
+    let taken = store
+        .take_oidc_nonce(exp_state)
+        .await
+        .expect("take expired state");
     assert!(taken.is_none(), "should return None after taking state");
 }

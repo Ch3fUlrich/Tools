@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import DiceIcon from '../icons/DiceIcon';
 import RerollIcon from '../icons/RerollIcon';

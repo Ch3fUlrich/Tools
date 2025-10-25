@@ -81,13 +81,20 @@ describe('AuthModal and AuthContext', () => {
 
   it('AuthProvider login/logout persists to localStorage', async () => {
     // ensure no leftover auth state from other tests
-    localStorage.clear();
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_) {
+      // ignore
+    }
     const Test = () => {
       const auth = useAuth();
       return (
-        <div>
-          <div>auth:{auth.isAuthenticated ? 'yes' : 'no'}</div>
-          <button onClick={() => auth.login({ id: '1', email: 'a@b.com', created_at: 'now' })}>login</button>
+      <div>
+        <div>auth:{auth.isAuthenticated ? 'yes' : 'no'}</div>
+        {/* pass remember=true so login persists to localStorage (not just sessionStorage) */}
+        <button onClick={() => auth.login({ id: '1', email: 'a@b.com', created_at: 'now' }, true)}>login</button>
           <button onClick={() => auth.logout()}>logout</button>
         </div>
       );

@@ -1,16 +1,16 @@
 mod api;
-mod tools;
-mod middleware;
 mod app;
+mod middleware;
+mod tools;
 
-use axum::http::{Method, header};
+use axum::http::{header, Method};
 use axum::Json;
 use serde_json::json;
-use tower_http::cors::CorsLayer;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use std::sync::Arc;
+use tower_http::cors::CorsLayer;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 // Test-only imports
 #[cfg(test)]
 use serial_test::serial;
@@ -28,7 +28,7 @@ fn redact_database_url(url: &str) -> String {
         if let Some(at) = rest.find('@') {
             // show `scheme://***@host...`
             let host_part = &rest[at + 1..];
-            return format!("{}://***@{}", scheme, host_part);
+            return format!("{scheme}://***@{host_part}");
         }
     }
     if url.len() > 80 {
@@ -40,10 +40,10 @@ fn redact_database_url(url: &str) -> String {
 
 /// Configure CORS based on environment variables
 ///
-/// Reads ALLOWED_ORIGINS environment variable which should contain comma-separated origins.
+/// Reads `ALLOWED_ORIGINS` environment variable which should contain comma-separated origins.
 /// Defaults to localhost origins for development if not set.
 ///
-/// Example: ALLOWED_ORIGINS="http://localhost:3000,https://example.com"
+/// Example: `ALLOWED_ORIGINS="http://localhost:3000,https://example.com`"
 fn configure_cors() -> CorsLayer {
     use axum::http::{HeaderValue, Uri};
 
@@ -63,11 +63,10 @@ fn configure_cors() -> CorsLayer {
         .unwrap_or(3001);
 
     let default_allowed = format!(
-        "http://localhost:{},http://localhost:{}",
-        default_frontend_port, default_backend_port
+        "http://localhost:{default_frontend_port},http://localhost:{default_backend_port}"
     );
 
-    let allowed_origins = std::env::var("ALLOWED_ORIGINS").unwrap_or_else(|_| default_allowed);
+    let allowed_origins = std::env::var("ALLOWED_ORIGINS").unwrap_or(default_allowed);
 
     let safe_allowed_origins: String = allowed_origins
         .chars()
@@ -81,13 +80,13 @@ fn configure_cors() -> CorsLayer {
 
     let origins: Vec<_> = allowed_origins
         .split(',')
-        .map(|s| s.trim())
+        .map(str::trim)
         .filter(|s| !s.is_empty())
         .filter_map(|origin| {
             origin.parse::<Uri>().ok().and_then(|uri| {
                 let scheme = uri.scheme_str()?;
                 let authority = uri.authority()?;
-                Some(format!("{}://{}", scheme, authority))
+                Some(format!("{scheme}://{authority}"))
             })
         })
         .collect();
@@ -160,7 +159,8 @@ async fn main() {
 
     // Build our application with routes
     // Initialize Postgres pool
-    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://localhost/tools".into());
+    let database_url =
+        std::env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://localhost/tools".into());
     let pool: PgPool = match PgPoolOptions::new()
         .max_connections(5)
         .connect(&database_url)
@@ -197,7 +197,7 @@ async fn main() {
         .and_then(|s| s.parse().ok())
         .unwrap_or(3001);
 
-    let bind_addr = format!("0.0.0.0:{}", port);
+    let bind_addr = format!("0.0.0.0:{port}");
     let listener = match tokio::net::TcpListener::bind(&bind_addr).await {
         Ok(l) => l,
         Err(e) => {
@@ -229,92 +229,92 @@ async fn root() -> Json<serde_json::Value> {
     }))
 }
 
-    #[test]
-    #[serial(env)]
-    fn test_configure_cors_with_default_origins() {
-        // Test that CORS is configured with default localhost origins when env var is not set
-        temp_env::with_var_unset("ALLOWED_ORIGINS", || {
-            let cors_layer = configure_cors();
-            // Should not panic and should create a valid CorsLayer
-            assert!(std::mem::size_of_val(&cors_layer) > 0);
-        });
-    }
-
-    #[test]
-    #[serial(env)]
-    fn test_configure_cors_with_custom_origins() {
-        // Test that CORS accepts custom origins from environment variable
-        temp_env::with_var(
-            "ALLOWED_ORIGINS",
-            Some("http://example.com,https://app.example.com"),
-            || {
-                let cors_layer = configure_cors();
-                assert!(std::mem::size_of_val(&cors_layer) > 0);
-            },
-        );
-    }
-
-    #[test]
-    #[serial(env)]
-    fn test_configure_cors_with_empty_origins() {
-        // Test that CORS handles empty origin string
-        temp_env::with_var("ALLOWED_ORIGINS", Some(""), || {
-            let cors_layer = configure_cors();
-            assert!(std::mem::size_of_val(&cors_layer) > 0);
-        });
-    }
-
-    #[test]
-    #[serial(env)]
-    fn test_configure_cors_with_invalid_origins() {
-        // Test that CORS handles invalid origin strings gracefully
-        temp_env::with_var(
-            "ALLOWED_ORIGINS",
-            Some("not-a-valid-url,another-invalid"),
-            || {
-                let cors_layer = configure_cors();
-                assert!(std::mem::size_of_val(&cors_layer) > 0);
-            },
-        );
-    }
-
-    #[test]
-    #[serial(env)]
-    fn test_env_cleanup_on_panic() {
-        // Test that environment variables are properly restored even if a panic occurs
-        // This test demonstrates the safety improvement of using temp_env
-
-        // Store the original value (or lack thereof)
-        let original = std::env::var("ALLOWED_ORIGINS").ok();
-
-        // This should panic but still clean up the environment variable
-        let result = std::panic::catch_unwind(|| {
-            temp_env::with_var("ALLOWED_ORIGINS", Some("test-value"), || {
-                // Verify the value is set
-                assert_eq!(std::env::var("ALLOWED_ORIGINS").unwrap(), "test-value");
-                // Simulate a panic
-                panic!("Intentional panic for testing");
-            });
-        });
-
-        // Verify the panic occurred
-        assert!(result.is_err());
-
-        // Verify the environment variable was restored to its original state
-        assert_eq!(std::env::var("ALLOWED_ORIGINS").ok(), original);
-    }
-
-    #[test]
-    fn test_configure_cors_with_multiple_valid_origins() {
-        // Test that multiple origins are all properly configured
-        // This test verifies the fix for the issue where calling allow_origin
-        // repeatedly in a loop would overwrite previous values
-        std::env::set_var(
-            "ALLOWED_ORIGINS",
-            "http://localhost:3000,http://localhost:3001,https://example.com,https://app.example.com"
-        );
+#[test]
+#[serial(env)]
+fn test_configure_cors_with_default_origins() {
+    // Test that CORS is configured with default localhost origins when env var is not set
+    temp_env::with_var_unset("ALLOWED_ORIGINS", || {
         let cors_layer = configure_cors();
-        // Should not panic and should create a valid CorsLayer with all origins
+        // Should not panic and should create a valid CorsLayer
         assert!(std::mem::size_of_val(&cors_layer) > 0);
-        std::env::remove_var("ALLOWED_ORIGINS");
-    }
+    });
+}
+
+#[test]
+#[serial(env)]
+fn test_configure_cors_with_custom_origins() {
+    // Test that CORS accepts custom origins from environment variable
+    temp_env::with_var(
+        "ALLOWED_ORIGINS",
+        Some("http://example.com,https://app.example.com"),
+        || {
+            let cors_layer = configure_cors();
+            assert!(std::mem::size_of_val(&cors_layer) > 0);
+        },
+    );
+}
+
+#[test]
+#[serial(env)]
+fn test_configure_cors_with_empty_origins() {
+    // Test that CORS handles empty origin string
+    temp_env::with_var("ALLOWED_ORIGINS", Some(""), || {
+        let cors_layer = configure_cors();
+        assert!(std::mem::size_of_val(&cors_layer) > 0);
+    });
+}
+
+#[test]
+#[serial(env)]
+fn test_configure_cors_with_invalid_origins() {
+    // Test that CORS handles invalid origin strings gracefully
+    temp_env::with_var(
+        "ALLOWED_ORIGINS",
+        Some("not-a-valid-url,another-invalid"),
+        || {
+            let cors_layer = configure_cors();
+            assert!(std::mem::size_of_val(&cors_layer) > 0);
+        },
+    );
+}
+
+#[test]
+#[serial(env)]
+fn test_env_cleanup_on_panic() {
+    // Test that environment variables are properly restored even if a panic occurs
+    // This test demonstrates the safety improvement of using temp_env
+
+    // Store the original value (or lack thereof)
+    let original = std::env::var("ALLOWED_ORIGINS").ok();
+
+    // This should panic but still clean up the environment variable
+    let result = std::panic::catch_unwind(|| {
+        temp_env::with_var("ALLOWED_ORIGINS", Some("test-value"), || {
+            // Verify the value is set
+            assert_eq!(std::env::var("ALLOWED_ORIGINS").unwrap(), "test-value");
+            // Simulate a panic
+            panic!("Intentional panic for testing");
+        });
+    });
+
+    // Verify the panic occurred
+    assert!(result.is_err());
+
+    // Verify the environment variable was restored to its original state
+    assert_eq!(std::env::var("ALLOWED_ORIGINS").ok(), original);
+}
+
+#[test]
+fn test_configure_cors_with_multiple_valid_origins() {
+    // Test that multiple origins are all properly configured
+    // This test verifies the fix for the issue where calling allow_origin
+    // repeatedly in a loop would overwrite previous values
+    std::env::set_var(
+        "ALLOWED_ORIGINS",
+        "http://localhost:3000,http://localhost:3001,https://example.com,https://app.example.com",
+    );
+    let cors_layer = configure_cors();
+    // Should not panic and should create a valid CorsLayer with all origins
+    assert!(std::mem::size_of_val(&cors_layer) > 0);
+    std::env::remove_var("ALLOWED_ORIGINS");
+}

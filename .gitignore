@@ -4,6 +4,7 @@
 Cargo.lock
 
 # Next.js / Node
+node_modules
 /frontend/node_modules/
 /frontend/.next/
 /frontend/out/
@@ -18,7 +19,7 @@ Cargo.lock
 *.pem
 
 # Ignore workspace tmp folder (screenshots, temp artifacts)
-/tmp/
+*/tmp/
 
 # Debug
 npm-debug.log*

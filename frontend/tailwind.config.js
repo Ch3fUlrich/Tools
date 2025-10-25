@@ -1,18 +1,17 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './app/**/*.{js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}',
-    './lib/**/*.{js,ts,jsx,tsx}',
+    './app/**/*.{js,ts,jsx,tsx,html}',
+    './components/**/*.{js,ts,jsx,tsx,html}',
+    './lib/**/*.{js,ts,jsx,tsx,html}',
+    './src/**/*.{js,ts,jsx,tsx,rs,html}',
+    '../**/*.{rs,html}',
+    './**/*.{rs,html}',
   ],
+  // Keep content paths wide enough to scan Rust templates and generated HTML.
+  // Removing safelist to simplify config; re-add only if needed.
   theme: {
     extend: {},
   },
-  // Safelist responsive variants to prevent accidental purging of responsive classes
-  // (e.g. md:grid-cols-2) which are used in JSX but sometimes omitted by static analysis.
-  safelist: [
-    // include any responsive prefixed utility via regex
-    { pattern: /^(sm|md|lg|xl|2xl):/ },
-  ],
   plugins: [],
 }

@@ -1,7 +1,7 @@
 use std::env;
 
-use sqlx::{PgPool, Row};
 use redis::AsyncCommands;
+use sqlx::{PgPool, Row};
 
 #[tokio::test]
 async fn test_postgres_and_redis_integration() {
@@ -24,12 +24,14 @@ async fn test_postgres_and_redis_integration() {
     };
 
     // Connect to Postgres
-    let pool = PgPool::connect(&db_url).await.expect("Failed to connect to Postgres");
+    let pool = PgPool::connect(&db_url)
+        .await
+        .expect("Failed to connect to Postgres");
 
     // Ensure minimal tables exist (idempotent)
-    let _ = sqlx::query(
-        r#"CREATE EXTENSION IF NOT EXISTS pgcrypto;"#
-    ).execute(&pool).await;
+    let _ = sqlx::query(r#"CREATE EXTENSION IF NOT EXISTS pgcrypto;"#)
+        .execute(&pool)
+        .await;
 
     let _ = sqlx::query(
         r#"CREATE TABLE IF NOT EXISTS users (
@@ -37,8 +39,11 @@ async fn test_postgres_and_redis_integration() {
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT,
             display_name TEXT
-        );"#
-    ).execute(&pool).await.expect("create users failed");
+        );"#,
+    )
+    .execute(&pool)
+    .await
+    .expect("create users failed");
 
     let _ = sqlx::query(
         r#"CREATE TABLE IF NOT EXISTS dice_rolls (
@@ -46,26 +51,31 @@ async fn test_postgres_and_redis_integration() {
             user_id uuid REFERENCES users(id) ON DELETE SET NULL,
             payload jsonb NOT NULL,
             created_at timestamptz NOT NULL DEFAULT now()
-        );"#
-    ).execute(&pool).await.expect("create dice_rolls failed");
+        );"#,
+    )
+    .execute(&pool)
+    .await
+    .expect("create dice_rolls failed");
 
     // Insert a user
     let email = format!("test+{}@example.com", uuid::Uuid::new_v4());
-    let inserted = sqlx::query("INSERT INTO users (email, password_hash) VALUES ($1, '') RETURNING id::text")
-        .bind(&email)
-        .fetch_one(&pool)
-        .await
-        .expect("insert user failed");
+    let inserted =
+        sqlx::query("INSERT INTO users (email, password_hash) VALUES ($1, '') RETURNING id::text")
+            .bind(&email)
+            .fetch_one(&pool)
+            .await
+            .expect("insert user failed");
     let user_id: String = inserted.try_get("id").unwrap();
 
     // Insert a dice roll associated with user
     let payload = serde_json::json!({"test":"payload"});
-    let inserted_roll = sqlx::query("INSERT INTO dice_rolls (user_id, payload) VALUES ($1, $2) RETURNING id::text")
-        .bind(user_id.parse::<uuid::Uuid>().ok())
-        .bind(payload)
-        .fetch_one(&pool)
-        .await
-        .expect("insert dice_roll failed");
+    let inserted_roll =
+        sqlx::query("INSERT INTO dice_rolls (user_id, payload) VALUES ($1, $2) RETURNING id::text")
+            .bind(user_id.parse::<uuid::Uuid>().ok())
+            .bind(payload)
+            .fetch_one(&pool)
+            .await
+            .expect("insert dice_roll failed");
     let roll_id: String = inserted_roll.try_get("id").unwrap();
     assert!(!roll_id.is_empty());
 
@@ -79,8 +89,12 @@ async fn test_postgres_and_redis_integration() {
 
     // If REDIS_URL present, test Redis list operations
     if !redis_url.is_empty() {
-        let client = redis::Client::open(redis_url.as_str()).expect("Failed to create redis client");
-        let mut conn = client.get_async_connection().await.expect("Failed to connect to redis");
+        let client =
+            redis::Client::open(redis_url.as_str()).expect("Failed to create redis client");
+        let mut conn = client
+            .get_async_connection()
+            .await
+            .expect("Failed to connect to redis");
 
         let key = format!("test:history:{}", uuid::Uuid::new_v4());
         let _: () = conn.lpush(&key, "payload1").await.expect("lpush failed");
@@ -96,7 +110,10 @@ async fn test_database_connection_failures() {
     // Test invalid database URL
     let invalid_url = "postgresql://invalid:invalid@invalid:5432/invalid";
     let result = PgPool::connect(invalid_url).await;
-    assert!(result.is_err(), "Should fail to connect to invalid database URL");
+    assert!(
+        result.is_err(),
+        "Should fail to connect to invalid database URL"
+    );
 
     // Test with valid URL but invalid credentials (if we can construct one)
     // This is harder to test reliably, but we can test the error handling
@@ -112,27 +129,49 @@ async fn test_database_query_error_handling() {
         }
     };
 
-    let pool = PgPool::connect(&db_url).await.expect("Failed to connect to Postgres");
+    let pool = PgPool::connect(&db_url)
+        .await
+        .expect("Failed to connect to Postgres");
 
     // Test invalid SQL syntax
     let result = sqlx::query("INVALID SQL SYNTAX").execute(&pool).await;
     assert!(result.is_err(), "Should fail with invalid SQL");
 
     // Test query on non-existent table
-    let result = sqlx::query("SELECT * FROM nonexistent_table").execute(&pool).await;
-    assert!(result.is_err(), "Should fail when querying non-existent table");
+    let result = sqlx::query("SELECT * FROM nonexistent_table")
+        .execute(&pool)
+        .await;
+    assert!(
+        result.is_err(),
+        "Should fail when querying non-existent table"
+    );
 
     // Test constraint violation (if we can trigger one)
     // First ensure we have a table with constraints
-    let _ = sqlx::query("CREATE TABLE IF NOT EXISTS test_constraints (id SERIAL PRIMARY KEY, email TEXT UNIQUE)").execute(&pool).await;
+    let _ = sqlx::query(
+        "CREATE TABLE IF NOT EXISTS test_constraints (id SERIAL PRIMARY KEY, email TEXT UNIQUE)",
+    )
+    .execute(&pool)
+    .await;
 
     // Insert first record
-    let _ = sqlx::query("INSERT INTO test_constraints (email) VALUES ($1)").bind("test@example.com").execute(&pool).await;
+    let _ = sqlx::query("INSERT INTO test_constraints (email) VALUES ($1)")
+        .bind("test@example.com")
+        .execute(&pool)
+        .await;
 
     // Try to insert duplicate email (should fail due to unique constraint)
-    let result = sqlx::query("INSERT INTO test_constraints (email) VALUES ($1)").bind("test@example.com").execute(&pool).await;
-    assert!(result.is_err(), "Should fail due to unique constraint violation");
+    let result = sqlx::query("INSERT INTO test_constraints (email) VALUES ($1)")
+        .bind("test@example.com")
+        .execute(&pool)
+        .await;
+    assert!(
+        result.is_err(),
+        "Should fail due to unique constraint violation"
+    );
 
     // Clean up
-    let _ = sqlx::query("DROP TABLE test_constraints").execute(&pool).await;
+    let _ = sqlx::query("DROP TABLE test_constraints")
+        .execute(&pool)
+        .await;
 }

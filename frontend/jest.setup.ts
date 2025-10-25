@@ -4,7 +4,7 @@ try {
   // it's optional for these simple unit tests, so guard in case it's missing
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('@testing-library/jest-dom');
-} catch (e) {
+} catch {
   // ignore if not installed
 }
 

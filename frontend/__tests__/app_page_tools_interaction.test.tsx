@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi } from 'vitest';
 
 // Mock next/router
@@ -20,27 +19,19 @@ vi.mock('@/components/tools/N26Analyzer', () => ({ __esModule: true, default: ()
 import Home from '@/app/page';
 
 describe('Home page tool interactions', () => {
-  test('selects Fat Loss and N26 tools and navigates back', async () => {
+  test('home page exposes links to per-tool pages', async () => {
     render(<Home />);
 
     // Ensure the grid and tool titles render
     expect(screen.getByRole('heading', { name: /Tools Collection/i })).toBeInTheDocument();
-  const fatBtn = screen.getByRole('button', { name: /Fat Loss Calculator/i });
-  // query N26 button later to avoid stale element after navigation
-  // const n26Btn = screen.getByRole('button', { name: /N26 Transaction Analyzer/i });
 
-    // Click Fat Loss and expect mocked component
-    await userEvent.click(fatBtn);
-    expect(await screen.findByText('MockFatLoss')).toBeInTheDocument();
+    // Each tool should be a link to its route
+    const fatLink = screen.getByRole('link', { name: /Fat Loss Calculator/i });
+    const n26Link = screen.getByRole('link', { name: /N26 Transaction Analyzer/i });
+    const diceLink = screen.getByRole('link', { name: /Dice Roller/i });
 
-  // Click back to tools
-  const backBtn = screen.getByRole('button', { name: /Back to Tools/i });
-  await userEvent.click(backBtn);
-  expect(screen.getByRole('heading', { name: /Fat Loss Calculator/i })).toBeInTheDocument();
-
-  // Re-query the N26 button (DOM changed) and click it
-  const n26BtnNow = screen.getByRole('button', { name: /N26 Transaction Analyzer/i });
-  await userEvent.click(n26BtnNow);
-  expect(await screen.findByText('MockN26')).toBeInTheDocument();
+    expect(fatLink).toHaveAttribute('href', '/tools/fat-loss');
+    expect(n26Link).toHaveAttribute('href', '/tools/n26');
+    expect(diceLink).toHaveAttribute('href', '/tools/dice');
   });
 });

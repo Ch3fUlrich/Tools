@@ -56,7 +56,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         localStorage.removeItem('auth_user');
         sessionStorage.removeItem('auth_user');
-      } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_) {
         // ignore
       }
     }
@@ -79,7 +80,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         localStorage.removeItem('auth_user');
         sessionStorage.removeItem('auth_user');
-      } catch (e) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_) {
         // ignore
       }
     } finally {

@@ -4,10 +4,7 @@ import * as apiClient from '@/lib/api/client';
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { analyzeN26Data } from '@/lib/api/client';
 import N26Analyzer from '@/components/tools/N26Analyzer';
-
-const mockAnalyze = analyzeN26Data as Mock;
 
 describe('N26Analyzer', () => {
   beforeEach(() => {

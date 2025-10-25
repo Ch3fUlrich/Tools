@@ -1,5 +1,5 @@
-use std::process::Command;
 use std::env;
+use std::process::Command;
 
 #[tokio::test]
 async fn test_migrate_binary_success() {
@@ -21,9 +21,14 @@ async fn test_migrate_binary_success() {
     // Check that it succeeded or failed with expected error (migration already applied/modified)
     let stderr = String::from_utf8_lossy(&output.stderr);
     let is_success = output.status.success();
-    let has_expected_error = stderr.contains("previously applied but has been modified") || stderr.contains("already applied");
+    let has_expected_error = stderr.contains("previously applied but has been modified")
+        || stderr.contains("already applied");
 
-    assert!(is_success || has_expected_error, "Migrate binary should succeed or fail with expected migration error: {}", stderr);
+    assert!(
+        is_success || has_expected_error,
+        "Migrate binary should succeed or fail with expected migration error: {}",
+        stderr
+    );
 }
 
 #[tokio::test]
@@ -46,9 +51,15 @@ async fn test_migrate_binary_idempotent() {
 
         let stderr = String::from_utf8_lossy(&output.stderr);
         let is_success = output.status.success();
-        let has_expected_error = stderr.contains("previously applied but has been modified") || stderr.contains("already applied");
+        let has_expected_error = stderr.contains("previously applied but has been modified")
+            || stderr.contains("already applied");
 
-        assert!(is_success || has_expected_error, "Migrate binary should succeed or fail with expected migration error on run {}: {}", i, stderr);
+        assert!(
+            is_success || has_expected_error,
+            "Migrate binary should succeed or fail with expected migration error on run {}: {}",
+            i,
+            stderr
+        );
     }
 }
 
@@ -61,10 +72,16 @@ async fn test_migrate_binary_missing_env() {
         .expect("Failed to run migrate binary");
 
     // Should fail with exit code 1
-    assert!(!output.status.success(), "Migrate binary should fail without DATABASE_URL");
+    assert!(
+        !output.status.success(),
+        "Migrate binary should fail without DATABASE_URL"
+    );
 
     // Should contain error about missing DATABASE_URL
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("DATABASE_URL") || stderr.contains("environment variable"),
-            "Error message should mention DATABASE_URL: {}", stderr);
+    assert!(
+        stderr.contains("DATABASE_URL") || stderr.contains("environment variable"),
+        "Error message should mention DATABASE_URL: {}",
+        stderr
+    );
 }

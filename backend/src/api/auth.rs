@@ -1,9 +1,14 @@
-use axum::{extract::{Json, Extension}, http::{StatusCode, header, Response}, response::IntoResponse, Json as AxumJson};
-use sqlx::Row;
+use axum::{
+    extract::{Extension, Json},
+    http::{header, Response, StatusCode},
+    response::IntoResponse,
+    Json as AxumJson,
+};
 use serde::Deserialize;
-use sqlx::PgPool;
-use std::sync::Arc;
 use serde_json::json;
+use sqlx::PgPool;
+use sqlx::Row;
+use std::sync::Arc;
 // uuid::Uuid imported where needed in other modules; not used directly here
 use crate::tools::auth as auth_tools;
 use crate::tools::session::SessionStore;
@@ -20,11 +25,21 @@ pub async fn register(
     Extension(pool): Extension<Arc<PgPool>>,
     Json(payload): Json<RegisterRequest>,
 ) -> impl IntoResponse {
-    match auth_tools::register_user(&*pool, &payload.email, &payload.password, payload.display_name.as_deref()).await {
+    match auth_tools::register_user(
+        &pool,
+        &payload.email,
+        &payload.password,
+        payload.display_name.as_deref(),
+    )
+    .await
+    {
         Ok(id) => (StatusCode::CREATED, AxumJson(json!({"id": id.to_string()}))),
         Err(e) => {
             tracing::error!("register failed: {}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR, AxumJson(json!({"error":"internal"})))
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                AxumJson(json!({"error":"internal"})),
+            )
         }
     }
 }
@@ -49,19 +64,32 @@ pub async fn login(
         Ok(Some(rec)) => {
             let pwd: Option<String> = rec.try_get("password_hash").ok();
             let pwd = pwd.unwrap_or_default();
-            if auth_tools::verify_password(&pwd, &payload.password).await.unwrap_or(false) {
+            if auth_tools::verify_password(&pwd, &payload.password)
+                .await
+                .unwrap_or(false)
+            {
                 // create session
                 let uid: uuid::Uuid = rec.try_get("id").unwrap();
                 let mut guard = store.lock().await;
-                let sid = guard.create_session(uid, 60*60*24).await.unwrap();
+                let sid = guard.create_session(uid, 60 * 60 * 24).await.unwrap();
                 // set cookie
-                let cookie = format!("sid={}; HttpOnly; Path=/; SameSite=Lax; Secure", sid);
+                let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax; Secure");
                 let body = serde_json::to_string(&json!({"ok": true})).unwrap();
-                return Response::builder().status(StatusCode::OK).header(header::SET_COOKIE, cookie).body(body).unwrap();
+                return Response::builder()
+                    .status(StatusCode::OK)
+                    .header(header::SET_COOKIE, cookie)
+                    .body(body)
+                    .unwrap();
             }
-            Response::builder().status(StatusCode::UNAUTHORIZED).body(serde_json::to_string(&json!({"error":"invalid credentials"})).unwrap()).unwrap()
+            Response::builder()
+                .status(StatusCode::UNAUTHORIZED)
+                .body(serde_json::to_string(&json!({"error":"invalid credentials"})).unwrap())
+                .unwrap()
         }
-        _ => Response::builder().status(StatusCode::UNAUTHORIZED).body(serde_json::to_string(&json!({"error":"invalid credentials"})).unwrap()).unwrap(),
+        _ => Response::builder()
+            .status(StatusCode::UNAUTHORIZED)
+            .body(serde_json::to_string(&json!({"error":"invalid credentials"})).unwrap())
+            .unwrap(),
     }
 }
 
@@ -86,5 +114,9 @@ pub async fn logout(
     }
     // clear cookie
     let cookie = "sid=deleted; HttpOnly; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    Response::builder().status(StatusCode::OK).header(header::SET_COOKIE, cookie).body(serde_json::to_string(&json!({"ok":true})).unwrap()).unwrap()
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(header::SET_COOKIE, cookie)
+        .body(serde_json::to_string(&json!({"ok":true})).unwrap())
+        .unwrap()
 }

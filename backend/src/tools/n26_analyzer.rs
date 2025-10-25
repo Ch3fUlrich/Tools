@@ -36,7 +36,7 @@ fn process_category(
 
     for entry in data {
         if let (Some(amount), Some(date), Some(comment)) = (
-            entry.get(amount_field).and_then(|v| v.as_f64()),
+            entry.get(amount_field).and_then(serde_json::Value::as_f64),
             entry.get(date_field).and_then(|v| v.as_str()),
             entry.get(comment_field).and_then(|v| v.as_str()),
         ) {
@@ -84,20 +84,20 @@ pub fn parse_n26_json(n26_data: N26Data) -> Result<Vec<Transaction>, String> {
     if let Some(Some(card_data)) = n26_data.data.get("cardTransactions") {
         for entry in card_data {
             if let (Some(end_amount), Some(date), Some(merchant)) = (
-                entry.get("end_amount").and_then(|v| v.as_f64()),
+                entry.get("end_amount").and_then(serde_json::Value::as_f64),
                 entry.get("transaction_date").and_then(|v| v.as_str()),
                 entry.get("merchant_name").and_then(|v| v.as_str()),
             ) {
                 let original_amount = entry
                     .get("original_amount")
-                    .and_then(|v| v.as_f64())
+                    .and_then(serde_json::Value::as_f64)
                     .unwrap_or(end_amount);
 
                 transactions.push(Transaction {
                     amount: -end_amount,
                     date: date.to_string(),
                     category: "cardTransactions".to_string(),
-                    comment: format!("{}: {}", merchant, original_amount),
+                    comment: format!("{merchant}: {original_amount}"),
                 });
             }
         }
@@ -107,6 +107,7 @@ pub fn parse_n26_json(n26_data: N26Data) -> Result<Vec<Transaction>, String> {
 }
 
 /// Analyze transactions and calculate totals
+#[must_use] 
 pub fn analyze_transactions(transactions: Vec<Transaction>) -> AnalysisResult {
     let mut category_totals: HashMap<String, f64> = HashMap::new();
     let mut overall_total = 0.0;

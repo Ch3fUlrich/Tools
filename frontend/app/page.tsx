@@ -1,15 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import FatLossCalculator from '@/components/tools/FatLossCalculator';
-import N26Analyzer from '@/components/tools/N26Analyzer';
-import { useAuth, ProtectedRoute, UserProfile } from '@/components/auth';
-
-type Tool = 'fat-loss' | 'n26';
+import Link from 'next/link';
+import { useAuth, UserProfile } from '@/components/auth';
 
 export default function Home() {
-  const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
   const { isAuthenticated } = useAuth();
   const router = useRouter();
 
@@ -47,14 +42,13 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-        {!selectedTool ? (
-          <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+          <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+        <div>
+        {!false ? (
+          // ensure an explicit mobile fallback + md two-column layout so compiled CSS includes both classes
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {/* Fat Loss Calculator Card */}
-            <button
-              onClick={() => setSelectedTool('fat-loss')}
-              className="p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-left"
-            >
+            <Link href="/tools/fat-loss" className="p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-left block">
               <div className="flex items-center mb-3 sm:mb-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center flex-shrink-0">
                   <svg
@@ -78,19 +72,10 @@ export default function Home() {
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Calculate the percentage of fat vs muscle loss based on your calorie deficit and weight loss.
               </p>
-              <div className="mt-3 sm:mt-4 text-blue-600 dark:text-blue-400 font-semibold flex items-center text-sm sm:text-base">
-                Open Tool
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </button>
+            </Link>
 
             {/* N26 Analyzer Card */}
-            <button
-              onClick={() => setSelectedTool('n26')}
-              className="p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-left"
-            >
+            <Link href="/tools/n26" className="p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-left block">
               <div className="flex items-center mb-3 sm:mb-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
                   <svg
@@ -114,32 +99,37 @@ export default function Home() {
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Analyze your N26 bank transactions, view spending patterns, and get insights into your financial data.
               </p>
-              <div className="mt-3 sm:mt-4 text-blue-600 dark:text-blue-400 font-semibold flex items-center text-sm sm:text-base">
-                Open Tool
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </button>
-          </div>
-        ) : (
-          <ProtectedRoute>
-            <div>
-              <button
-                onClick={() => setSelectedTool(null)}
-                className="mb-4 sm:mb-6 flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-sm sm:text-base"
-              >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to Tools
-              </button>
+            </Link>
 
-              {selectedTool === 'fat-loss' && <FatLossCalculator />}
-              {selectedTool === 'n26' && <N26Analyzer />}
-            </div>
-          </ProtectedRoute>
-        )}
+            {/* Dice Roller Card */}
+            <Link href="/tools/dice" className="p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-left block">
+              <div className="flex items-center mb-3 sm:mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white ml-3 sm:ml-4">
+                  Dice Roller
+                </h2>
+              </div>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                Roll dice with various options including advantage/disadvantage and custom dice types.
+              </p>
+            </Link>
+          </div>
+        ) : null}
+        </div>
       </main>
 
       {/* Footer */}
