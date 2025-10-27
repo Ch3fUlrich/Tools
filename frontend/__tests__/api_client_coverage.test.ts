@@ -2,6 +2,8 @@ import {
   rollDice,
   calculateFatLoss,
   analyzeN26Data,
+  getToleranceSubstances,
+  calculateTolerance,
   registerUser,
   loginUser,
   logoutUser,
@@ -90,5 +92,23 @@ describe('api client full coverage', () => {
   it('rollDice failure branch (already covered success elsewhere)', async () => {
     (globalThis as any).fetch.mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'err' });
     await expect(rollDice({ die: { type: 'd6' }, count: 1 } as any)).rejects.toThrow(/Roll API error/);
+  });
+
+  it('tolerance endpoints success and failure', async () => {
+    const subs = [{ id: 's1', name: 'Sub', halfLifeHours: 2 }];
+    (globalThis as any).fetch.mockResolvedValueOnce({ ok: true, json: async () => subs });
+    const got = await getToleranceSubstances();
+    expect(got).toEqual(subs);
+
+    (globalThis as any).fetch.mockResolvedValueOnce({ ok: false, status: 404, text: async () => 'nope' });
+    await expect(getToleranceSubstances()).rejects.toThrow(/Failed to get substances/);
+
+    const resp = { blood_levels: [{ time: 't', substance: 's1', amountMg: 1 }] };
+    (globalThis as any).fetch.mockResolvedValueOnce({ ok: true, json: async () => resp });
+    const calc = await calculateTolerance({ intakes: [], time_points: [] });
+    expect(calc).toEqual(resp);
+
+    (globalThis as any).fetch.mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'bad' });
+    await expect(calculateTolerance({ intakes: [], time_points: [] })).rejects.toThrow(/Failed to calculate tolerance/);
   });
 });

@@ -39,15 +39,11 @@ describe('AuthModal and RegisterForm', () => {
     // Ensure RegisterForm heading is visible
     expect(await screen.findByRole('heading', { name: /Create Account/i })).toBeInTheDocument();
 
-    // Click the close (X) button - picking the button whose child svg has class 'w-6' (the X icon)
-    const allButtons = screen.getAllByRole('button');
-    const closeButton = allButtons.find((b) => {
-      const svg = b.querySelector('svg');
-      return svg?.classList.contains('w-6');
-    });
+    // Click the close (X) button which is rendered with aria-label="Close"
+    const closeButton = screen.getByLabelText('Close');
     expect(closeButton).toBeTruthy();
     // Click using userEvent so events bubble correctly
-    await userEvent.click(closeButton!);
+    await userEvent.click(closeButton);
 
     expect(onClose).toHaveBeenCalled();
 
@@ -83,7 +79,7 @@ describe('AuthModal and RegisterForm', () => {
 
   test('RegisterForm shows validation errors and calls OIDC start', async () => {
     const onSuccess = vi.fn();
-  const startSpy = vi.spyOn(api, 'startOIDCLogin').mockImplementation(() => undefined);
+  const startSpy = vi.spyOn(api, 'startOIDCLogin').mockResolvedValue(undefined as any);
   const registerSpy = vi.spyOn(api, 'registerUser').mockResolvedValue(undefined as any);
 
     render(<RegisterForm onSuccess={onSuccess} />);

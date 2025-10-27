@@ -42,6 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     } catch (err) {
       // Storage may be unavailable in some environments; ignore failures but log for debugging
+      /* eslint-disable-next-line no-console */
       console.warn('Could not persist auth_user:', err);
     }
   };
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       await logoutUser();
     } catch (error) {
+      /* eslint-disable-next-line no-console */
       console.error('Logout error:', error);
     } finally {
       setUser(null);
@@ -76,6 +78,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(userData);
       }
     } catch (error) {
+      /* eslint-disable-next-line no-console */
       console.error('Error refreshing auth:', error);
       try {
         localStorage.removeItem('auth_user');

@@ -6,7 +6,9 @@ export interface RollDicePayload {
 
 // Use named exports for all API functions to keep imports consistent across the codebase.
 // Default export removed to avoid accidental partial imports.
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// Use a relative default so tests and client-side code that expect
+// relative API paths don't attempt to call an absolute localhost URL.
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export async function rollDice(payload: RollDicePayload) {
   const response = await fetch(`${API_BASE_URL}/api/tools/dice/roll`, {

@@ -1,6 +1,8 @@
-'use client';
+/* global HTMLDivElement, MouseEvent, Node */
+ 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import NumberInput from '@/components/ui/NumberInput';
 import { calculateFatLoss, type FatLossResponse } from '../../lib/api/client';
 import FatLossVisualization from './FatLossVisualization';
 
@@ -69,8 +71,8 @@ export const FatLossCalculator: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Input Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+      {/* Input Form */}
+      <div className="card">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
             <div className="w-2 h-8 bg-blue-500 rounded-full mr-3"></div>
             Input Parameters
@@ -84,20 +86,15 @@ export const FatLossCalculator: React.FC = () => {
               >
                 Daily Calorie Deficit (kcal)
               </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  id="kcalDeficit"
-                  value={kcalDeficit}
-                  onChange={(e) => setKcalDeficit(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-colors"
-                  placeholder="e.g., 500"
-                  required
-                  min="0"
-                  step="1"
-                />
-                <span className="absolute right-3 top-3 text-sm text-gray-500 dark:text-gray-400">kcal/day</span>
-              </div>
+              <NumberInput
+                id="kcalDeficit"
+                value={kcalDeficit}
+                onChange={(v) => setKcalDeficit(v)}
+                step={100}
+                min={0}
+                placeholder="e.g., 500"
+                unit="kcal/day"
+              />
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Recommended: 300-500 kcal deficit for sustainable weight loss
               </p>
@@ -110,20 +107,15 @@ export const FatLossCalculator: React.FC = () => {
               >
                 Weekly Weight Loss (kg)
               </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  id="weightLoss"
-                  value={weightLoss}
-                  onChange={(e) => setWeightLoss(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-colors"
-                  placeholder="e.g., 0.5"
-                  required
-                  min="0"
-                  step="0.01"
-                />
-                <span className="absolute right-3 top-3 text-sm text-gray-500 dark:text-gray-400">kg/week</span>
-              </div>
+              <NumberInput
+                id="weightLoss"
+                value={weightLoss}
+                onChange={(v) => setWeightLoss(v)}
+                step={0.1}
+                min={0}
+                placeholder="e.g., 0.5"
+                unit="kg/week"
+              />
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Healthy range: 0.2-1.0 kg per week
               </p>
@@ -133,11 +125,11 @@ export const FatLossCalculator: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 text-base shadow-md hover:shadow-lg disabled:cursor-not-allowed"
+                className="btn-primary flex-1 text-base shadow-md disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    <span className="spinner animate-spin mr-2 text-white" />
                     Calculating...
                   </div>
                 ) : (
@@ -150,7 +142,7 @@ export const FatLossCalculator: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowInfo(!showInfo)}
-                  className="w-12 h-12 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                  className="w-12 h-12 btn-ghost flex items-center justify-center"
                   title="Information about calculation method and sources"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,7 +190,7 @@ export const FatLossCalculator: React.FC = () => {
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                className="btn-ghost px-6 py-3"
               >
                 Reset
               </button>
@@ -218,7 +210,7 @@ export const FatLossCalculator: React.FC = () => {
           )}
 
           {result && result.is_valid && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div className="card">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
                 <div className="w-2 h-8 bg-green-500 rounded-full mr-3"></div>
                 Body Composition Results

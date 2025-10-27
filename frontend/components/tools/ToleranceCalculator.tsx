@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { calculateTolerance, getToleranceSubstances, Substance, SubstanceIntakeRequest, ToleranceCalculationRequest, BloodLevelPoint } from '../../lib/api/client';
+import NumberInput from '@/components/ui/NumberInput';
+import { calculateTolerance, getToleranceSubstances, Substance, BloodLevelPoint } from '../../lib/api/client';
 import LineChart from '../charts/LineChart';
 
 interface SubstanceIntake {
@@ -35,6 +36,7 @@ const ToleranceCalculator: React.FC = () => {
         const subs = await getToleranceSubstances();
         setSubstances(subs);
       } catch (err) {
+        /* eslint-disable-next-line no-console */
         console.error('Failed to load substances:', err);
       }
     };
@@ -91,8 +93,10 @@ const ToleranceCalculator: React.FC = () => {
 
       const response = await calculateTolerance(request);
       setBloodLevels(response.blood_levels);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Calculation failed');
+      } catch (err) {
+        /* eslint-disable-next-line no-console */
+        console.error('Tolerance calc error:', err);
+        setError(err instanceof Error ? err.message : 'Calculation failed');
     } finally {
       setLoading(false);
     }
@@ -118,7 +122,7 @@ const ToleranceCalculator: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Input Panel */}
         <div className="xl:col-span-1">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+          <div className="card">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <div className="w-2 h-8 bg-green-500 rounded-full mr-3"></div>
               Substance Intake
@@ -145,7 +149,7 @@ const ToleranceCalculator: React.FC = () => {
                           <select
                             value={intake.substance}
                             onChange={(e) => updateIntake(index, { substance: e.target.value })}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="form-input text-sm"
                           >
                             <option value="">Select substance...</option>
                             {substances.map((sub) => (
@@ -160,14 +164,14 @@ const ToleranceCalculator: React.FC = () => {
                             type="datetime-local"
                             value={intake.time.slice(0, 16)}
                             onChange={(e) => updateIntake(index, { time: new Date(e.target.value).toISOString() })}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="form-input text-sm"
                           />
                         </td>
                         <td className="px-3 py-2">
                           <select
                             value={intake.intakeType}
                             onChange={(e) => updateIntake(index, { intakeType: e.target.value })}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="form-input text-sm"
                           >
                             <option value="oral">Oral</option>
                             <option value="intravenous">Intravenous</option>
@@ -176,22 +180,23 @@ const ToleranceCalculator: React.FC = () => {
                           </select>
                         </td>
                         <td className="px-3 py-2">
-                          <input
-                            type="number"
+                          <NumberInput
+                            value={intake.timeAfterMeal ? String(intake.timeAfterMeal) : ''}
+                            onChange={(v) => updateIntake(index, { timeAfterMeal: v ? Number(v) : null })}
+                            step={1}
+                            min={0}
                             placeholder="minutes"
-                            value={intake.timeAfterMeal || ''}
-                            onChange={(e) => updateIntake(index, { timeAfterMeal: e.target.value ? Number(e.target.value) : null })}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="form-input--compact"
                           />
                         </td>
                         <td className="px-3 py-2">
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.1"
-                            value={intake.dosageMg}
-                            onChange={(e) => updateIntake(index, { dosageMg: Number(e.target.value) })}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          <NumberInput
+                            value={String(intake.dosageMg)}
+                            onChange={(v) => updateIntake(index, { dosageMg: Number(v) })}
+                            step={0.1}
+                            min={0}
+                            placeholder="mg"
+                            className="form-input--compact"
                           />
                         </td>
                         <td className="px-3 py-2">
@@ -212,7 +217,7 @@ const ToleranceCalculator: React.FC = () => {
 
               <button
                 onClick={addIntake}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 text-sm"
+                  className="btn-success w-full text-sm"
               >
                 + Add Intake
               </button>
@@ -220,11 +225,11 @@ const ToleranceCalculator: React.FC = () => {
               <button
                 onClick={calculateBloodLevels}
                 disabled={loading}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed text-base mt-6"
+                  className="btn-primary w-full text-base mt-6 shadow-md disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    <span className="spinner animate-spin mr-2 text-white" />
                     Calculating...
                   </div>
                 ) : (
@@ -246,7 +251,7 @@ const ToleranceCalculator: React.FC = () => {
 
         {/* Results Panel */}
         <div className="xl:col-span-1">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+          <div className="card">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <div className="w-2 h-8 bg-blue-500 rounded-full mr-3"></div>
               Blood Level Graph

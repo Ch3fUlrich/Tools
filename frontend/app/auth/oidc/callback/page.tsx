@@ -50,6 +50,7 @@ export default function OIDCLoginCallback() {
         // Redirect to home page
         router.push('/');
       } catch (err) {
+        /* eslint-disable-next-line no-console */
         console.error('OIDC callback error:', err);
         setError(err instanceof Error ? err.message : 'OIDC authentication failed');
         // Redirect to auth page with error after a delay

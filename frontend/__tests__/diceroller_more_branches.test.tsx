@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 // Mock rollDice API
@@ -36,9 +36,9 @@ describe('DiceRoller extra branches', () => {
 
     render(<DiceRoller />);
 
-  // select custom die type by clicking the custom button
-  const customButton = screen.getByText('CUSTOM');
-  fireEvent.click(customButton);
+  // select custom die type by choosing the custom option in the select
+  const select = screen.getByRole('combobox');
+  fireEvent.change(select, { target: { value: 'custom' } });
 
   // sides input: use spinbutton role (number inputs). First spinbutton is Sides in the DOM
   const spinbuttons = screen.getAllByRole('spinbutton');

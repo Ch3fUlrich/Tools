@@ -9,7 +9,7 @@ vi.mock('@/components/auth', () => ({
 }));
 
 // Mock global CSS before importing the real layout to avoid PostCSS running in tests
-vi.mock('../app/globals.css', () => ({}), { virtual: true });
+vi.mock('../app/globals.css', () => ({}));
 import RootLayout from '../app/layout';
 
 describe('RootLayout', () => {

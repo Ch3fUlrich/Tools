@@ -9,7 +9,7 @@ export const Boxplot: React.FC<{ values: number[]; className?: string }> = ({ va
   const median = sorted[Math.floor(sorted.length/2)];
 
   return (
-    <svg className={className} viewBox="0 0 100 20" preserveAspectRatio="none">
+    <svg data-testid="boxplot" className={className} viewBox="0 0 100 20" preserveAspectRatio="none">
       <line x1="5" x2="95" y1="10" y2="10" stroke="#e5e7eb" strokeWidth="2" />
       <rect x="45" y="4" width="10" height="12" fill="#6366f1" rx="2" />
       <circle cx="50" cy="10" r="2" fill="#fff" />

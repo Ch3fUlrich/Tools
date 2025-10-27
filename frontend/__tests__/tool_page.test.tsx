@@ -9,10 +9,9 @@ describe('ToolPage', () => {
       </ToolPage>
     );
 
-    expect(screen.getByText('Test Tool')).toBeInTheDocument();
-    expect(screen.getByText('This is a test tool description')).toBeInTheDocument();
-    expect(screen.getByText('Test content')).toBeInTheDocument();
-    expect(screen.getByText('Back to Tools')).toBeInTheDocument();
+  expect(screen.getByText('Test Tool')).toBeInTheDocument();
+  expect(screen.getByText('This is a test tool description')).toBeInTheDocument();
+  expect(screen.getByText('Test content')).toBeInTheDocument();
   });
 
   it('renders without description', () => {
@@ -22,9 +21,9 @@ describe('ToolPage', () => {
       </ToolPage>
     );
 
-    expect(screen.getByText('Test Tool')).toBeInTheDocument();
-    expect(screen.getByText('Test content')).toBeInTheDocument();
-    expect(screen.queryByText('This is a test tool description')).not.toBeInTheDocument();
+  expect(screen.getByText('Test Tool')).toBeInTheDocument();
+  expect(screen.getByText('Test content')).toBeInTheDocument();
+  expect(screen.queryByText('This is a test tool description')).not.toBeInTheDocument();
   });
 
   it('renders back link with correct href', () => {
@@ -34,7 +33,8 @@ describe('ToolPage', () => {
       </ToolPage>
     );
 
-    const backLink = screen.getByText('Back to Tools');
-    expect(backLink.closest('a')).toHaveAttribute('href', '/');
+    // Back link removed from layout; ensure there's no anchor to '/'
+    const anchors = screen.queryAllByRole('link');
+    expect(anchors.every(a => a.getAttribute('href') !== '/')).toBe(true);
   });
 });

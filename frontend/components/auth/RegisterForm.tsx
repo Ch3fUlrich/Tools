@@ -6,9 +6,10 @@ import { registerUser, startOIDCLogin } from '@/lib/api/client';
 interface RegisterFormProps {
   onSuccess?: () => void;
   onSwitchMode?: () => void;
+  onClose?: () => void;
 }
 
-export function RegisterForm({ onSuccess, onSwitchMode }: RegisterFormProps) {
+export function RegisterForm({ onSuccess, onSwitchMode, onClose }: RegisterFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -47,7 +48,20 @@ export function RegisterForm({ onSuccess, onSwitchMode }: RegisterFormProps) {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8">
+      <div className="card relative">
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 z-10 remove-btn"
+            aria-label="Close"
+            title="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
             Create Account
@@ -67,7 +81,7 @@ export function RegisterForm({ onSuccess, onSwitchMode }: RegisterFormProps) {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              className="form-input h-10"
               placeholder="your@email.com"
               required
             />
@@ -82,7 +96,7 @@ export function RegisterForm({ onSuccess, onSwitchMode }: RegisterFormProps) {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              className="form-input h-10"
               placeholder="••••••••"
               required
             />
@@ -97,7 +111,7 @@ export function RegisterForm({ onSuccess, onSwitchMode }: RegisterFormProps) {
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              className="form-input h-10"
               placeholder="••••••••"
               required
             />
@@ -112,7 +126,7 @@ export function RegisterForm({ onSuccess, onSwitchMode }: RegisterFormProps) {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+            className="btn-primary w-full"
           >
             {isLoading ? 'Creating Account...' : 'Create Account'}
           </button>
@@ -132,7 +146,8 @@ export function RegisterForm({ onSuccess, onSwitchMode }: RegisterFormProps) {
 
           <button
             onClick={handleOIDCLogin}
-            className="mt-4 w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+            className="mt-4 w-full flex items-center justify-center btn-ghost px-4 py-2 border-purple-500 dark:border-purple-400 text-purple-700 dark:text-purple-300"
+            type="button"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

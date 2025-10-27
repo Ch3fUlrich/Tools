@@ -37,7 +37,7 @@ export default function N26Analyzer() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+    <div className="card">
       <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900 dark:text-white">
         N26 Transaction Analyzer
       </h2>
@@ -58,20 +58,24 @@ export default function N26Analyzer() {
           >
             Upload N26 JSON File
           </label>
-          <input
-            type="file"
-            id="file"
-            accept=".json"
-            onChange={handleFileChange}
-            className="w-full px-3 sm:px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm file:mr-2 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-3 sm:file:px-4 file:rounded-lg file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-gray-600 dark:file:text-gray-200"
-            required
-          />
+          <div className="flex items-center gap-3">
+            <input
+              type="file"
+              id="file"
+              accept=".json"
+              onChange={handleFileChange}
+              className="hidden"
+              required
+            />
+            <label htmlFor="file" className="file-browse-label">Browse</label>
+            <span className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-xs">{file ? file.name : 'No file chosen'}</span>
+          </div>
         </div>
 
         <button
           type="submit"
           disabled={loading || !file}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-colors duration-200 text-sm sm:text-base"
+           className="btn-primary w-full text-sm sm:text-base"
         >
           {loading ? 'Analyzing...' : 'Analyze Transactions'}
         </button>

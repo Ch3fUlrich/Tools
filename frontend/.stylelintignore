@@ -1,0 +1,5 @@
+.next/
+out/
+node_modules/
+
+# You can add more paths here if other generated CSS causes false positives

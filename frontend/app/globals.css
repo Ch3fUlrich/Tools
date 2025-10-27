@@ -1,23 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
 @reference "tailwindcss";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root, html, body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+/* Page background & text colors: make the whole page use the theme variables */
+html, body, #__next {
+  background-color: var(--bg);
+  color: var(--fg);
+  min-height: 100%;
+  margin: 0; /* remove default browser margin so background spans full viewport */
+  padding: 0;
+}
+
 /* Color Variables */
 :root {
-  --bg: #ffffff;
+  --bg: #fff;
   --fg: #1f2937;
+  --input-bg: rgb(15 23 42 / 4%); /* subtle translucent dark tint on light theme */
+  --input-border: rgb(15 23 42 / 8%);
   --muted: #6b7280;
   --accent: #4f46e5;
   --accent-hover: #4338ca;
   --success: #10b981;
   --error: #ef4444;
 }
+
+/* Dark mode variables (class-based). We keep the media query fallback for older browsers and
+   for users who prefer automatic theme via OS settings. The `.dark` class on <html>
+   will take precedence and allow an explicit user choice. */
+.dark {
+  --bg: #111827;
+  --fg: #e5e7eb;
+  --input-bg: #0b1220; /* dark input background */
+  --input-border: rgb(255 255 255 / 6%);
+  --muted: #9ca3af;
+  --accent: #8b5cf6;
+  --accent-hover: #7c3aed;
+  --success: #34d399;
+  --error: #f87171;
+}
+
+/* Optional explicit light class so we can force light when needed */
+.light {
+  --bg: #fff;
+  --fg: #1f2937;
+  --muted: #6b7280;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+
+  border: 1px solid rgb(139 92 246 / 18%);
+  background: rgb(139 92 246 / 4%);
+  font-size: 0.85rem;
+  color: rgb(139 92 246 / 90%);
+  min-width: 36px;
+  padding: 0.35rem 0.55rem;
+  }
+
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111827;
-    --fg: #e5e7eb;
-    --muted: #9ca3af;
+  background: linear-gradient(90deg, rgb(139 92 246 / 18%), rgb(139 92 246 / 12%));
+  color: var(--accent-hover);
+  border-color: rgb(139 92 246 / 28%);
+
     --accent: #8b5cf6;
     --accent-hover: #7c3aed;
     --success: #34d399;
@@ -26,65 +77,437 @@
 }
 
 /* Base Typography */
-@utility text-content {
-  @apply text-base text-gray-600 dark:text-gray-300 leading-relaxed tracking-wide;
+.text-content {
+  font-size: 1rem; /* text-base */
+  color: var(--muted);
+  line-height: 1.6; /* leading-relaxed */
+  letter-spacing: 0.01em; /* tracking-wide approximation */
 }
 
 /* Layout Containers */
-@utility site-container {
-  @apply max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16;
+.site-container {
+  max-width: 64rem; /* approx. max-w-5xl */
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1.5rem 1rem; /* px-4 */
 }
-@utility content-box {
-  @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8 lg:p-10 transition-all duration-300;
+
+.content-box {
+  /* make content boxes frameless by default: keep padding and rounded corners but remove heavy border/shadow
+     — pages can still opt into stronger card visuals if needed */
+  background: transparent;
+  border-radius: 0.75rem; /* rounded-xl */
+  padding: 1.5rem;
+  transition: all 0.3s;
 }
-@utility tool-card {
-  @apply p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.03] text-left border border-gray-100 dark:border-gray-700;
+
+/* Card utility: heavier visual weight for important panels */
+.card {
+  /* reduced padding so boxes and inputs fit better inside cards */
+  background-color: var(--bg);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px rgb(2 6 23 / 6%);
+  padding: 1rem;
+  border: 1px solid rgb(0 0 0 / 6%);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tool-card {
+  padding: 1rem;
+  background-color: var(--bg);
+  border-radius: 0.75rem;
+  box-shadow: 0 6px 10px rgb(2 6 23 / 4%);
+  transition: all 0.3s;
+  text-align: left;
+  border: 1px solid rgb(0 0 0 / 4%);
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* Buttons */
-@utility btn-primary {
-  @apply inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[var(--accent)] text-white text-sm font-semibold shadow-md hover:bg-[var(--accent-hover)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent)] dark:focus:ring-[var(--accent-hover)] transition-all duration-300;
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem; /* py-3 px-6 */
+  border-radius: 0.5rem; /* rounded-lg */
+  background-color: var(--accent);
+  color: #fff;
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 600;
+  box-shadow: 0 6px 12px rgb(79 70 229 / 12%);
+  transition: transform 150ms, background-color 150ms;
 }
+
 .btn-primary:hover {
-  animation: bounce 0.3s ease-in-out;
+  transform: translateY(-2px);
 }
 
-@utility btn-ghost {
-  @apply inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-transparent border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-300;
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.25rem; /* py-2.5 px-5 */
+  border-radius: 0.5rem;
+  background: transparent;
+  border: 2px solid rgb(0 0 0 / 6%);
+  color: var(--fg);
+  transition: transform 150ms, background-color 150ms;
 }
+
 .btn-ghost:hover {
-  animation: bounce 0.3s ease-in-out;
+  transform: translateY(-2px);
 }
 
-@utility btn-success {
-  @apply inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[var(--success)] text-white text-sm font-semibold shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transition-all duration-300;
+.btn-success {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  background-color: var(--success);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgb(16 185 129 / 12%);
+  transition: transform 150ms, background-color 150ms;
 }
+
 .btn-success:hover {
-  animation: bounce 0.3s ease-in-out;
+  transform: translateY(-2px);
 }
 
-/* Forms */
-@utility form-input {
-  @apply block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2.5 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] dark:focus:ring-[var(--accent-hover)] transition-all duration-200;
+/* Danger (destructive) button */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background-color: var(--error);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgb(239 68 68 / 12%);
+  transition: transform 150ms, background-color 150ms;
 }
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+}
+
+.form-input {
+  display: block;
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(0 0 0 / 6%);
+  background-color: var(--input-bg);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: inherit;
+  height: 44px;
+  box-sizing: border-box;
+  transition: all 200ms;
+  font-family: inherit;
+}
+
 .form-input:focus {
   transform: scale(1.01);
 }
 
-/* Tables */
-@utility styled-table {
-  @apply w-full border-collapse rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700;
+/* Hover/focus purple border for inputs to match the requested style */
+.form-input:hover, .form-input:focus {
+  border-color: rgb(79 70 229 / 32%);
+  box-shadow: 0 6px 12px rgb(79 70 229 / 4%);
 }
+
+/* Modern checkbox styles */
+.modern-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.modern-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.modern-checkbox .box {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1px solid var(--input-border);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms;
+}
+.modern-checkbox .box svg { width: 12px; height: 12px; color: #fff; }
+
+.modern-checkbox input:checked + .box {
+  background: linear-gradient(90deg, rgb(139 92 246 / 18%), rgb(79 70 229 / 12%));
+  border-color: rgb(79 70 229 / 28%);
+}
+
+/* ensure the check-mark is visible in dark & light themes */
+.modern-checkbox input + .box svg { color: transparent; }
+.modern-checkbox input:checked + .box svg { color: #fff; }
+
+/* die type badge in results table */
+.die-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.die-type-badge .die-icon {
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgb(79 70 229 / 6%), rgb(139 92 246 / 3%));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* Hide native number input spinners for a clean cross-browser look */
+
+/* Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  appearance: textfield;
+}
+
+/* Custom number input wrapper with small steppers to the right */
+.number-input {
+  position: relative;
+}
+
+.number-input .number-stepper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; /* slightly narrower */
+  height: 12px; /* slightly shorter */
+  padding: 0;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid var(--input-border);
+  color: inherit;
+  font-size: 9px;
+}
+
+.number-input .number-stepper + .number-stepper {
+  margin-top: 0; /* steppers nearly touching */
+}
+
+.number-input .stepper-wrap {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0; /* remove gap so steppers visually touch */
+}
+
+.number-input .form-input {
+  padding-right: 36px; /* reduced to match narrower steppers */
+}
+
+/* Compact variant for table cells where inputs must be narrow */
+.form-input--compact {
+  max-width: 4rem; /* slimmer counters */
+  width: 100%;
+  text-align: center;
+  border: 1px solid rgb(0 0 0 / 6%);
+  padding: 0.28rem 0.45rem;
+}
+
+/* Remove button variant: visible border and light red tone */
+.remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid rgb(239 68 68 / 18%);
+  color: rgb(239 68 68 / 90%);
+  transition: background-color 150ms, transform 120ms, color 150ms;
+}
+
+.remove-btn:hover {
+  background: rgb(239 68 68 / 6%);
+  transform: translateY(-2px);
+}
+
+/* Button group for adding specific dice types */
+.dice-add-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dice-add-group .btn-ghost {
+  padding: 0.45rem 0.6rem;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+/* Die button: boxed appearance for quick-add die types */
+.die-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(0 0 0 / 6%);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 0.9rem;
+  min-width: 44px;
+  text-align: center;
+}
+.die-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgb(79 70 229 / 18%); border-color: var(--accent); border-width: 1.5px; }
+
+/* Sign-in button visual used in header and auth modal */
+.btn-signin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+  transition: background-color 150ms, transform 120ms, color 150ms, box-shadow 150ms;
+}
+
+.btn-signin:hover {
+  background: linear-gradient(90deg, rgb(139 92 246 / 6%), rgb(79 70 229 / 4%));
+  color: #fff;
+  box-shadow: 0 8px 20px rgb(79 70 229 / 12%);
+  transform: translateY(-2px);
+}
+
+/* Small operator button used in tables for advantage/reroll operators */
+.op-btn {
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  background: var(--input-bg);
+  border: 1px solid rgb(0 0 0 / 6%);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.op-btn:hover { background: rgb(0 0 0 / 2%); }
+.op-btn.active { background: rgb(79 70 229 / 8%); color: var(--accent-hover); border-color: rgb(79 70 229 / 12%); }
+.op-btn.active.danger { background: rgb(239 68 68 / 8%); color: #b91c1c; border-color: rgb(239 68 68 / 12%); }
+
+/* Success variant used for advantage buttons (green instead of purple) */
+.op-btn.active.success { background: rgb(16 185 129 / 8%); color: var(--success); border-color: rgb(16 185 129 / 12%); }
+
+/* Spinner utility: adapts color via currentColor (parent should set text color) */
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  border: 2px solid currentcolor;
+  border-top-color: transparent;
+}
+
+.file-browse-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(90deg, rgb(139 92 246 / 12%), rgb(79 70 229 / 6%));
+  color: var(--accent-hover);
+  border: 1px solid rgb(139 92 246 / 18%);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 6px 12px rgb(79 70 229 / 6%);
+}
+
+
+/* Checkbox styling */
+.form-checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--input-border);
+  background-color: transparent;
+  color: var(--accent);
+  transition: color 150ms, background-color 150ms, border-color 150ms;
+}
+
+.form-checkbox:checked {
+  background: linear-gradient(90deg, rgb(79 70 229 / 18%), rgb(139 92 246 / 8%));
+  border-color: rgb(79 70 229 / 28%);
+}
+
+/* Textarea styling */
+.form-textarea {
+  display: block;
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(0 0 0 / 6%);
+  background-color: #fff;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: inherit;
+  transition: all 200ms;
+}
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid rgb(0 0 0 / 6%);
+}
+
 .styled-table thead tr th {
-  @apply text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 px-5 py-3.5;
+  text-align: left;
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  background: #f8fafc;
+  padding: 0.875rem 1.25rem;
 }
+
 .styled-table tbody tr td {
-  @apply px-5 py-3.5 text-sm text-gray-700 dark:text-gray-200 border-t border-gray-100 dark:border-gray-700 transition-all duration-200;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--fg);
+  border-top: 1px solid rgb(0 0 0 / 4%);
+  transition: all 200ms;
 }
 
 /* Utilities */
-@utility section-divider {
-  @apply border-t border-gray-200 dark:border-gray-700 my-8;
+.section-divider {
+  border-top: 1px solid rgb(0 0 0 / 6%);
+  margin: 2rem 0;
 }
 
 /* Animations */
@@ -92,6 +515,7 @@
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }

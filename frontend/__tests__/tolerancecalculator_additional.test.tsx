@@ -1,0 +1,63 @@
+// @vitest-environment jsdom
+import React from 'react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+
+// Mock API client
+vi.mock('../lib/api/client', () => ({
+  getToleranceSubstances: vi.fn(),
+  calculateTolerance: vi.fn(),
+}));
+
+import { getToleranceSubstances, calculateTolerance } from '../lib/api/client';
+import ToleranceCalculator from '../components/tools/ToleranceCalculator';
+
+beforeEach(() => {
+  vi.resetAllMocks();
+});
+
+describe('ToleranceCalculator additional interactions', () => {
+  it('allows adding and removing intakes and updates inputs (covers removeIntake and input onChange handlers)', async () => {
+    (getToleranceSubstances as any).mockResolvedValueOnce([]);
+    (calculateTolerance as any).mockResolvedValueOnce({ blood_levels: [] });
+
+    render(<ToleranceCalculator />);
+
+    // Wait for initial render and find the Add Intake button
+    const addBtn = screen.getByText('+ Add Intake');
+    const table = screen.getByRole('table');
+    const beforeRows = within(table).getAllByRole('row').length;
+
+    // add another intake
+    fireEvent.click(addBtn);
+    const afterAddRows = within(table).getAllByRole('row').length;
+    expect(afterAddRows).toBeGreaterThan(beforeRows);
+
+    // there should now be a Remove button for the new row; click it
+    const removeBtns = screen.getAllByText('Remove');
+    expect(removeBtns.length).toBeGreaterThan(0);
+    fireEvent.click(removeBtns[removeBtns.length - 1]);
+
+    const afterRemoveRows = within(table).getAllByRole('row').length;
+    expect(afterRemoveRows).toBe(beforeRows);
+
+    // interact with the datetime-local input and intake type select to cover their handlers
+  const datetime = within(table).getAllByDisplayValue(() => true).find((el) => el.getAttribute('type') === 'datetime-local');
+    if (datetime) fireEvent.change(datetime, { target: { value: '2025-01-01T12:00' } });
+
+    const intakeTypeSelect = within(table).getAllByRole('combobox').find((s) => s.tagName === 'SELECT');
+    if (intakeTypeSelect) fireEvent.change(intakeTypeSelect, { target: { value: 'inhaled' } });
+  });
+
+  it('logs an error if getToleranceSubstances fails (covers loadSubstances catch branch)', async () => {
+    // make the getToleranceSubstances reject
+    (getToleranceSubstances as any).mockRejectedValueOnce(new Error('nope'));
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(<ToleranceCalculator />);
+
+    // wait a tick for the effect to run
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    spy.mockRestore();
+  });
+});

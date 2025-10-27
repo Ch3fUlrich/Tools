@@ -74,13 +74,15 @@ describe('DiceRoller', () => {
     const select = screen.getByRole('combobox');
     fireEvent.change(select, { target: { value: 'custom' } });
 
-    // Should show sides input
-    const spinbuttons = screen.getAllByRole('spinbutton');
-    expect(spinbuttons).toHaveLength(2); // Count input and sides input
+  // Should show sides input and count input
+  const sidesInput = screen.getByPlaceholderText('sides');
+  expect(sidesInput).toBeInTheDocument();
 
-    // Set custom sides
-    fireEvent.change(spinbuttons[1], { target: { value: '8' } });
-    fireEvent.change(spinbuttons[0], { target: { value: '1' } });
+  const countInput = screen.getByLabelText('count');
+
+  // Set custom sides and count
+  fireEvent.change(sidesInput, { target: { value: '8' } });
+  fireEvent.change(countInput, { target: { value: '1' } });
 
     fireEvent.click(screen.getByRole('button', { name: /Roll Dice/ }));
 

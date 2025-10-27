@@ -1,13 +1,10 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth, UserProfile } from '@/components/auth';
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
-  const router = useRouter();
-
   // Use logout directly where needed; keep handler logic inline to avoid an unused variable.
 
   return (
@@ -25,18 +22,9 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Auth Section */}
+            {/* Auth Section - moved sign-in into header banner */}
             <div className="flex items-center space-x-4">
-              {isAuthenticated ? (
-                <UserProfile />
-              ) : (
-                <button
-                  onClick={() => router.push('/auth')}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
-                >
-                  Sign In
-                </button>
-              )}
+              {isAuthenticated ? <UserProfile /> : null}
             </div>
           </div>
         </div>

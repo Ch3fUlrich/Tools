@@ -36,22 +36,12 @@ export function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'login' }:
 
         {/* Modal panel */}
         <div className="inline-block align-bottom bg-transparent rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="relative">
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            {/* Form content */}
+          <div>
+            {/* Pass onClose so forms can render the close button inside the card */}
             {mode === 'login' ? (
-              <LoginForm onSuccess={handleSuccess} onSwitchMode={handleSwitchMode} />
+              <LoginForm onSuccess={handleSuccess} onSwitchMode={handleSwitchMode} onClose={onClose} />
             ) : (
-              <RegisterForm onSuccess={handleSuccess} onSwitchMode={handleSwitchMode} />
+              <RegisterForm onSuccess={handleSuccess} onSwitchMode={handleSwitchMode} onClose={onClose} />
             )}
           </div>
         </div>

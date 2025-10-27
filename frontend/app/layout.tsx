@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import AuthProviderClient from '@/components/auth/AuthProviderClient';
+import AuthProviderClient from "@/components/auth/AuthProviderClient";
+import Header from "@/components/layout/Header";
+import ThemeInitializer from "@/components/ThemeInitializer";
 
 export const metadata: Metadata = {
   title: "Tools Collection",
@@ -12,7 +14,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="antialiased vsc-initialized">
         <AuthProviderClient>
-          {children}
+          <ThemeInitializer />
+          <Header />
+          <main className="site-container">{children}</main>
         </AuthProviderClient>
       </body>
     </html>
