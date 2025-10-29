@@ -14,11 +14,12 @@ async fn test_sliding_window_limiter() {
         .await
         .expect("session store");
     let key = "testlim:lim:key";
-    // nuke key
+    // nuke key using a per-call multiplexed connection
     // DEL returns number of keys removed; use i64 to satisfy FromRedisValue bound
+    let mut conn = store.get_conn().await.expect("redis conn");
     let _: i64 = redis::cmd("DEL")
         .arg(key)
-        .query_async(&mut store.conn)
+        .query_async(&mut conn)
         .await
         .unwrap();
     // allow up to 3 in 2 seconds
@@ -48,9 +49,10 @@ async fn test_sliding_window_limiter_edge_cases() {
 
     // Test with zero limit
     let key1 = "testlim:zero:key";
+    let mut conn1 = store.get_conn().await.expect("redis conn");
     let _: i64 = redis::cmd("DEL")
         .arg(key1)
-        .query_async(&mut store.conn)
+        .query_async(&mut conn1)
         .await
         .unwrap();
     let ok = store
@@ -61,9 +63,10 @@ async fn test_sliding_window_limiter_edge_cases() {
 
     // Test with very short window
     let key2 = "testlim:short:key";
+    let mut conn2 = store.get_conn().await.expect("redis conn");
     let _: i64 = redis::cmd("DEL")
         .arg(key2)
-        .query_async(&mut store.conn)
+        .query_async(&mut conn2)
         .await
         .unwrap();
     let ok = store
@@ -79,9 +82,10 @@ async fn test_sliding_window_limiter_edge_cases() {
 
     // Test with very large limit
     let key3 = "testlim:large:key";
+    let mut conn3 = store.get_conn().await.expect("redis conn");
     let _: i64 = redis::cmd("DEL")
         .arg(key3)
-        .query_async(&mut store.conn)
+        .query_async(&mut conn3)
         .await
         .unwrap();
     for i in 0..10 {

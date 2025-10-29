@@ -1,0 +1,9 @@
+```tsx
+// Deprecated shim removed: the component has been renamed to `BloodLevelCalculator`.
+// Keep a sentinel export that throws if accidentally imported so remaining
+// references fail loudly during development and can be migrated.
+export default function ToleranceCalculatorDeprecated() {
+	throw new Error('ToleranceCalculator has been removed. Import BloodLevelCalculator from "./BloodLevelCalculator" instead.');
+}
+
+```

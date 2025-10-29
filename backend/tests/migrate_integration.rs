@@ -13,7 +13,7 @@ async fn test_migrate_binary_success() {
 
     // Run the migrate binary
     let output = Command::new("cargo")
-        .args(&["run", "--bin", "migrate"])
+        .args(["run", "--bin", "migrate"])
         .env("DATABASE_URL", &database_url)
         .output()
         .expect("Failed to run migrate binary");
@@ -44,7 +44,7 @@ async fn test_migrate_binary_idempotent() {
     // Run migrate twice to test idempotency
     for i in 0..2 {
         let output = Command::new("cargo")
-            .args(&["run", "--bin", "migrate"])
+            .args(["run", "--bin", "migrate"])
             .env("DATABASE_URL", &database_url)
             .output()
             .expect("Failed to run migrate binary");
@@ -67,15 +67,12 @@ async fn test_migrate_binary_idempotent() {
 async fn test_migrate_binary_missing_env() {
     // Run migrate without DATABASE_URL
     let output = Command::new("cargo")
-        .args(&["run", "--bin", "migrate"])
+        .args(["run", "--bin", "migrate"])
         .output()
         .expect("Failed to run migrate binary");
 
     // Should fail with exit code 1
-    assert!(
-        !output.status.success(),
-        "Migrate binary should fail without DATABASE_URL"
-    );
+    assert!(!output.status.success(), "Migrate binary should fail without DATABASE_URL");
 
     // Should contain error about missing DATABASE_URL
     let stderr = String::from_utf8_lossy(&output.stderr);

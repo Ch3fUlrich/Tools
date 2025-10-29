@@ -90,10 +90,7 @@ async fn test_http_error_responses() {
         .post("/api/tools/fat-loss")
         .text("invalid json")
         .await;
-    assert!(
-        resp.status_code().is_client_error(),
-        "Should return client error for invalid content"
-    );
+    assert!(resp.status_code().is_client_error(), "Should return client error for invalid content");
 
     // Test invalid dice request (negative count)
     let body = r#"{"die":{"type":"d6"},"count":-1,"rolls":1}"#;

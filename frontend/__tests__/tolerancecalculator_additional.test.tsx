@@ -10,7 +10,7 @@ vi.mock('../lib/api/client', () => ({
 }));
 
 import { getToleranceSubstances, calculateTolerance } from '../lib/api/client';
-import ToleranceCalculator from '../components/tools/ToleranceCalculator';
+import BloodLevelCalculator from '../components/tools/BloodLevelCalculator';
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -21,7 +21,7 @@ describe('ToleranceCalculator additional interactions', () => {
     (getToleranceSubstances as any).mockResolvedValueOnce([]);
     (calculateTolerance as any).mockResolvedValueOnce({ blood_levels: [] });
 
-    render(<ToleranceCalculator />);
+  render(<BloodLevelCalculator />);
 
     // Wait for initial render and find the Add Intake button
     const addBtn = screen.getByText('+ Add Intake');
@@ -54,7 +54,7 @@ describe('ToleranceCalculator additional interactions', () => {
     (getToleranceSubstances as any).mockRejectedValueOnce(new Error('nope'));
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    render(<ToleranceCalculator />);
+  render(<BloodLevelCalculator />);
 
     // wait a tick for the effect to run
     await waitFor(() => expect(spy).toHaveBeenCalled());

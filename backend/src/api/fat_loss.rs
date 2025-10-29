@@ -18,10 +18,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_calculate_fat_loss_valid() {
-        let request = FatLossRequest {
-            kcal_deficit: 3500.0,
-            weight_loss_kg: 0.5,
-        };
+        let request = FatLossRequest { kcal_deficit: 3500.0, weight_loss_kg: 0.5 };
 
         let _response = calculate_fat_loss(Json(request)).await;
         // Response should be OK

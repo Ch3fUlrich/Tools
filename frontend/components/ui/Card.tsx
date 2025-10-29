@@ -7,7 +7,8 @@ interface Props {
 
 export default function Card({ children, className = '' }: Props) {
   return (
-    <div className={`content-box ${className}`}>
+    // Low-risk: ensure cards provide a readable default text color for nested content
+    <div className={`content-box text-gray-900 dark:text-white ${className}`}>
       {children}
     </div>
   );

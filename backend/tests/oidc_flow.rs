@@ -44,10 +44,7 @@ async fn test_oidc_state_edge_cases() {
         .take_oidc_nonce("nonexistent")
         .await
         .expect("take nonexistent");
-    assert!(
-        result.is_none(),
-        "should return None for non-existent state"
-    );
+    assert!(result.is_none(), "should return None for non-existent state");
 
     // Test storing with empty state
     let result = store.store_oidc_state("", "nonce", 10).await;

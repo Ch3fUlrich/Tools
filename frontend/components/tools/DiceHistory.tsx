@@ -9,7 +9,7 @@ interface DiceEntry {
 
 export const DiceHistory: React.FC<{ entries?: DiceEntry[] }> = ({ entries = [] }) => {
   return (
-    <aside className="p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm">
+    <aside className="p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm text-gray-900 dark:text-white">
       <header className="flex items-center gap-2 mb-3">
         <DiceIcon className="w-5 h-5 text-indigo-600" />
         <h3 className="text-md font-medium">Session History</h3>

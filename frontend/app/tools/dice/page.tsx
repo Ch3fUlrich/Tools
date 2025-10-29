@@ -2,7 +2,7 @@ import DiceRoller from '@/components/tools/DiceRoller';
 import ToolPage from '@/components/tools/ToolPage';
 
 export const metadata = {
-  title: 'Dice Roller',
+  title: 'Dice — 🧰',
 };
 
 export default function DicePage() {

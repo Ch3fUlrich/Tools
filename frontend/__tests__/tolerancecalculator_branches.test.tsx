@@ -8,7 +8,7 @@ vi.mock('../lib/api/client', () => ({
 }));
 
 import { getToleranceSubstances, calculateTolerance } from '../lib/api/client';
-import ToleranceCalculator from '../components/tools/ToleranceCalculator';
+import BloodLevelCalculator from '../components/tools/BloodLevelCalculator';
 
 describe('ToleranceCalculator branches', () => {
   beforeEach(() => {
@@ -19,7 +19,7 @@ describe('ToleranceCalculator branches', () => {
     (getToleranceSubstances as any).mockResolvedValueOnce([{ id: 's1', name: 'Sub', halfLifeHours: 2 }]);
     (calculateTolerance as any).mockResolvedValueOnce({ blood_levels: [{ time: 't', substance: 'Sub', amountMg: 5 }] });
 
-    render(<ToleranceCalculator />);
+  render(<BloodLevelCalculator />);
 
     // wait for options to be populated
     await waitFor(() => expect(screen.getByText('Sub')).toBeInTheDocument());
@@ -44,7 +44,7 @@ describe('ToleranceCalculator branches', () => {
     (getToleranceSubstances as any).mockResolvedValueOnce([]);
     (calculateTolerance as any).mockRejectedValueOnce(new Error('boom'));
 
-    render(<ToleranceCalculator />);
+  render(<BloodLevelCalculator />);
 
     // set a substance and dosage to allow request payload
     // since no substances loaded, we manipulate the DOM inputs directly

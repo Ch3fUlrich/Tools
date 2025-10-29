@@ -12,7 +12,7 @@ vi.mock('@/lib/api/client', async () => {
   };
 });
 
-import ToleranceCalculator from '@/components/tools/ToleranceCalculator';
+import BloodLevelCalculator from '@/components/tools/BloodLevelCalculator';
 import * as api from '@/lib/api/client';
 
 describe('ToleranceCalculator', () => {
@@ -27,7 +27,7 @@ describe('ToleranceCalculator', () => {
     ] as any);
     const calc = vi.spyOn(api, 'calculateTolerance').mockResolvedValue({ blood_levels: [{ time: new Date().toISOString(), substance: 'TestSub', amountMg: 2 }] } as any);
 
-    render(<ToleranceCalculator />);
+  render(<BloodLevelCalculator />);
 
     // wait for substance options to load (select should include TestSub)
     await waitFor(() => expect(getSub).toHaveBeenCalled());

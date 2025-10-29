@@ -10,6 +10,8 @@ export default function OIDCLoginCallback() {
   const { login } = useAuth();
 
   useEffect(() => {
+  // set tab title while completing sign-in
+  document.title = 'Signing In — 🧰';
     const handleOIDCCallback = async () => {
       try {
         // Get the authorization code from URL parameters
@@ -115,3 +117,6 @@ export default function OIDCLoginCallback() {
     </div>
   );
 }
+
+// Set the tab title for this client callback page
+// (title set inside useEffect)

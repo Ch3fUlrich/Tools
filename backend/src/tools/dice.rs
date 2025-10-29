@@ -100,8 +100,9 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
 
     // estimated work heuristic: count * (1 + max_rerolls) * rolls
     let est_work: u128 = u128::from(req.count) * (u128::from(max_rerolls) + 1) * u128::from(rolls);
-    let safe_threshold: u128 =
-        u128::from(MAX_DICE) * (u128::from(MAX_REROLLS_PER_DIE) + 1) * u128::from(MAX_INDEPENDENT_ROLLS);
+    let safe_threshold: u128 = u128::from(MAX_DICE)
+        * (u128::from(MAX_REROLLS_PER_DIE) + 1)
+        * u128::from(MAX_INDEPENDENT_ROLLS);
     // reject requests whose estimated work meets or exceeds the safe threshold
     if est_work >= safe_threshold {
         return Err(serde_json::json!({"error":"request too large; exceeds server cost limits"}));
@@ -138,10 +139,7 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
         let mut used: Vec<i32> = Vec::new();
         for _ in 0..req.count {
             let (originals, finalv) = roll_with_rerolls(rng);
-            per_die.push(PerDieDetail {
-                original: originals.clone(),
-                r#final: finalv,
-            });
+            per_die.push(PerDieDetail { original: originals.clone(), r#final: finalv });
             used.push(finalv);
         }
         (per_die, used)
@@ -163,10 +161,7 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
             for _ in 0..req.count {
                 if advantage == "none" {
                     let (originals, finalv) = roll_with_rerolls(&mut rng);
-                    per_die.push(PerDieDetail {
-                        original: originals.clone(),
-                        r#final: finalv,
-                    });
+                    per_die.push(PerDieDetail { original: originals.clone(), r#final: finalv });
                     used.push(finalv);
                 } else {
                     // roll two independent attempts (each with their own rerolls), then pick per die
@@ -180,21 +175,14 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
                     // combine originals for traceability
                     let mut combined = orig1.clone();
                     combined.extend(orig2.iter());
-                    per_die.push(PerDieDetail {
-                        original: combined,
-                        r#final: chosen,
-                    });
+                    per_die.push(PerDieDetail { original: combined, r#final: chosen });
                     used.push(chosen);
                 }
             }
 
             // compute stats
             let sum: i32 = used.iter().sum();
-            let average = if used.is_empty() {
-                0.0
-            } else {
-                f64::from(sum) / used.len() as f64
-            };
+            let average = if used.is_empty() { 0.0 } else { f64::from(sum) / used.len() as f64 };
             let mut used_sorted = used.clone();
             used_sorted.sort_unstable();
             let median = if used_sorted.len() % 2 == 1 {
@@ -212,38 +200,25 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
                 used_sorted.last().unwrap() - used_sorted.first().unwrap()
             };
 
-            results.push(DiceRollResult {
-                per_die,
-                used,
-                sum,
-                average,
-                median,
-                spread,
-            });
+            results.push(DiceRollResult { per_die, used, sum, average, median, spread });
         } else {
             // per-set advantage: perform two full sets and pick the set with higher/lower total
             let (per1, used1) = perform_set(&mut rng);
             let sum1: i32 = used1.iter().sum();
             let (per2, used2) = perform_set(&mut rng);
             let sum2: i32 = used2.iter().sum();
-            let pick_first = if advantage == "adv" {
-                sum1 >= sum2
-            } else {
-                sum1 <= sum2
-            };
+            let pick_first = if advantage == "adv" { sum1 >= sum2 } else { sum1 <= sum2 };
             if pick_first {
-                let average = if used1.is_empty() {
-                    0.0
-                } else {
-                    f64::from(sum1) / used1.len() as f64
-                };
+                let average =
+                    if used1.is_empty() { 0.0 } else { f64::from(sum1) / used1.len() as f64 };
                 let mut used_sorted = used1.clone();
                 used_sorted.sort_unstable();
                 let median = if used_sorted.len() % 2 == 1 {
                     f64::from(used_sorted[used_sorted.len() / 2])
                 } else if !used_sorted.is_empty() {
-                    f64::from(used_sorted[used_sorted.len() / 2] + used_sorted[used_sorted.len() / 2 - 1])
-                        / 2.0
+                    f64::from(
+                        used_sorted[used_sorted.len() / 2] + used_sorted[used_sorted.len() / 2 - 1],
+                    ) / 2.0
                 } else {
                     0.0
                 };
@@ -261,18 +236,16 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
                     spread,
                 });
             } else {
-                let average = if used2.is_empty() {
-                    0.0
-                } else {
-                    f64::from(sum2) / used2.len() as f64
-                };
+                let average =
+                    if used2.is_empty() { 0.0 } else { f64::from(sum2) / used2.len() as f64 };
                 let mut used_sorted = used2.clone();
                 used_sorted.sort_unstable();
                 let median = if used_sorted.len() % 2 == 1 {
                     f64::from(used_sorted[used_sorted.len() / 2])
                 } else if !used_sorted.is_empty() {
-                    f64::from(used_sorted[used_sorted.len() / 2] + used_sorted[used_sorted.len() / 2 - 1])
-                        / 2.0
+                    f64::from(
+                        used_sorted[used_sorted.len() / 2] + used_sorted[used_sorted.len() / 2 - 1],
+                    ) / 2.0
                 } else {
                     0.0
                 };
@@ -293,10 +266,7 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
         }
     }
 
-    Ok(DiceResponse {
-        rolls: results,
-        summary: serde_json::json!({"totalRollsRequested": rolls}),
-    })
+    Ok(DiceResponse { rolls: results, summary: serde_json::json!({"totalRollsRequested": rolls}) })
 }
 
 #[cfg(test)]
@@ -306,10 +276,7 @@ mod tests {
     #[tokio::test]
     async fn test_basic_roll() {
         let req = DiceRequest {
-            die: DiceSpec {
-                r#type: "d6".to_string(),
-                sides: None,
-            },
+            die: DiceSpec { r#type: "d6".to_string(), sides: None },
             count: 3,
             advantage: None,
             advantage_mode: None,
@@ -324,7 +291,7 @@ mod tests {
             assert_eq!(r.used.len(), 3);
             // values should be between 1 and 6
             for v in r.used {
-                assert!(v >= 1 && v <= 6);
+                assert!((1..=6).contains(&v));
             }
         }
     }
@@ -332,10 +299,7 @@ mod tests {
     #[tokio::test]
     async fn test_advantage_per_die() {
         let req = DiceRequest {
-            die: DiceSpec {
-                r#type: "d6".to_string(),
-                sides: None,
-            },
+            die: DiceSpec { r#type: "d6".to_string(), sides: None },
             count: 5,
             advantage: Some("adv".to_string()),
             advantage_mode: Some("per-die".to_string()),
@@ -352,10 +316,7 @@ mod tests {
     #[tokio::test]
     async fn test_advantage_per_set() {
         let req = DiceRequest {
-            die: DiceSpec {
-                r#type: "d6".to_string(),
-                sides: None,
-            },
+            die: DiceSpec { r#type: "d6".to_string(), sides: None },
             count: 4,
             advantage: Some("dis".to_string()),
             advantage_mode: Some("per-set".to_string()),
@@ -372,10 +333,7 @@ mod tests {
     #[tokio::test]
     async fn test_reroll_lt_threshold() {
         let req = DiceRequest {
-            die: DiceSpec {
-                r#type: "d6".to_string(),
-                sides: None,
-            },
+            die: DiceSpec { r#type: "d6".to_string(), sides: None },
             count: 10,
             advantage: None,
             advantage_mode: None,
@@ -399,10 +357,7 @@ mod tests {
     #[tokio::test]
     async fn test_multi_rolls_and_limits() {
         let req = DiceRequest {
-            die: DiceSpec {
-                r#type: "d2".to_string(),
-                sides: None,
-            },
+            die: DiceSpec { r#type: "d2".to_string(), sides: None },
             count: 3,
             advantage: None,
             advantage_mode: None,
@@ -418,10 +373,7 @@ mod tests {
     #[tokio::test]
     async fn test_request_too_large_rejected() {
         let req = DiceRequest {
-            die: DiceSpec {
-                r#type: "d20".to_string(),
-                sides: None,
-            },
+            die: DiceSpec { r#type: "d20".to_string(), sides: None },
             count: 1000,
             advantage: None,
             advantage_mode: None,
@@ -441,10 +393,7 @@ mod tests {
     #[tokio::test]
     async fn test_unknown_die_type_rejected() {
         let req = DiceRequest {
-            die: DiceSpec {
-                r#type: "d999".to_string(),
-                sides: None,
-            },
+            die: DiceSpec { r#type: "d999".to_string(), sides: None },
             count: 1,
             advantage: None,
             advantage_mode: None,
@@ -462,10 +411,7 @@ mod tests {
     #[tokio::test]
     async fn test_custom_sides_exceed_max_rejected() {
         let req = DiceRequest {
-            die: DiceSpec {
-                r#type: "custom".to_string(),
-                sides: Some(20000),
-            },
+            die: DiceSpec { r#type: "custom".to_string(), sides: Some(20000) },
             count: 1,
             advantage: None,
             advantage_mode: None,
@@ -483,10 +429,7 @@ mod tests {
     #[tokio::test]
     async fn test_too_many_independent_rolls_rejected() {
         let req = DiceRequest {
-            die: DiceSpec {
-                r#type: "d6".to_string(),
-                sides: None,
-            },
+            die: DiceSpec { r#type: "d6".to_string(), sides: None },
             count: 1,
             advantage: None,
             advantage_mode: None,
@@ -503,10 +446,7 @@ mod tests {
     #[tokio::test]
     async fn test_count_zero_rejected() {
         let req = DiceRequest {
-            die: DiceSpec {
-                r#type: "d6".to_string(),
-                sides: None,
-            },
+            die: DiceSpec { r#type: "d6".to_string(), sides: None },
             count: 0,
             advantage: None,
             advantage_mode: None,
@@ -524,10 +464,7 @@ mod tests {
     #[tokio::test]
     async fn test_custom_default_sides_uses_six() {
         let req = DiceRequest {
-            die: DiceSpec {
-                r#type: "custom".to_string(),
-                sides: None,
-            },
+            die: DiceSpec { r#type: "custom".to_string(), sides: None },
             count: 2,
             advantage: None,
             advantage_mode: None,

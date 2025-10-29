@@ -47,11 +47,7 @@ pub async fn save(
             match row {
                 Ok(rec) => {
                     let id: String = rec.try_get("id").unwrap_or_else(|_| String::new());
-                    (
-                        StatusCode::CREATED,
-                        axum::Json(serde_json::json!({"id": id})),
-                    )
-                        .into_response()
+                    (StatusCode::CREATED, axum::Json(serde_json::json!({"id": id}))).into_response()
                 }
                 Err(e) => (
                     StatusCode::INTERNAL_SERVER_ERROR,
@@ -76,14 +72,15 @@ pub async fn save(
                     }
                 });
                 if let Some(sid) = sid_opt {
-                    let mut guard = store_arc.lock().await;
+                    let guard = store_arc.lock().await;
                     let key = format!("history:{sid}");
                     let payload_str =
                         serde_json::to_string(&req.payload).unwrap_or_else(|_| "null".to_string());
                     let res: Result<(), redis::RedisError> = async {
-                        let _: () = guard.conn.lpush(&key, payload_str).await?;
-                        let _: () = guard.conn.ltrim(&key, 0, 49).await?;
-                        let _: () = guard.conn.expire(&key, 3600).await?;
+                        let mut conn = guard.get_conn().await?;
+                        let _: () = conn.lpush(&key, payload_str).await?;
+                        let _: () = conn.ltrim(&key, 0, 49).await?;
+                        let _: () = conn.expire(&key, 3600).await?;
                         Ok(())
                     }
                     .await;
@@ -173,11 +170,7 @@ pub async fn history(
                         r.try_get("payload").unwrap_or(serde_json::json!(null));
                     let created_at: chrono::DateTime<chrono::Utc> =
                         r.try_get("created_at").unwrap_or(chrono::Utc::now());
-                    out.push(HistoryEntry {
-                        id,
-                        payload,
-                        created_at: created_at.to_rfc3339(),
-                    });
+                    out.push(HistoryEntry { id, payload, created_at: created_at.to_rfc3339() });
                 }
                 (StatusCode::OK, axum::Json(out)).into_response()
             }
@@ -203,10 +196,13 @@ pub async fn history(
                 }
             });
             if let Some(sid) = sid_opt {
-                let mut guard = store.lock().await;
+                let guard = store.lock().await;
                 let key = format!("history:{sid}");
-                let vals: Result<Vec<String>, redis::RedisError> =
-                    guard.conn.lrange(&key, 0, 49).await;
+                let vals: Result<Vec<String>, redis::RedisError> = async {
+                    let mut conn = guard.get_conn().await?;
+                    conn.lrange(&key, 0, 49).await
+                }
+                .await;
                 match vals {
                     Ok(list) => {
                         let now = Utc::now().to_rfc3339();
@@ -215,11 +211,7 @@ pub async fn history(
                             .map(|s| {
                                 let v: JsonValue =
                                     serde_json::from_str(&s).unwrap_or(serde_json::json!(null));
-                                HistoryEntry {
-                                    id: None,
-                                    payload: v,
-                                    created_at: now.clone(),
-                                }
+                                HistoryEntry { id: None, payload: v, created_at: now.clone() }
                             })
                             .collect();
                         return (StatusCode::OK, axum::Json(out)).into_response();
@@ -227,9 +219,7 @@ pub async fn history(
                     Err(e) => {
                         return (
                             StatusCode::INTERNAL_SERVER_ERROR,
-                            axum::Json(
-                                serde_json::json!({"error": format!("redis error: {}", e)}),
-                            ),
+                            axum::Json(serde_json::json!({"error": format!("redis error: {}", e)})),
                         )
                             .into_response()
                     }
@@ -237,10 +227,7 @@ pub async fn history(
             }
         }
         // Fallback: unauthorized
-        (
-            StatusCode::UNAUTHORIZED,
-            axum::Json(serde_json::json!({"error":"unauthorized"})),
-        )
+        (StatusCode::UNAUTHORIZED, axum::Json(serde_json::json!({"error":"unauthorized"})))
             .into_response()
     }
 }

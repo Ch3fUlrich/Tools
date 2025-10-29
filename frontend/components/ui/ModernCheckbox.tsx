@@ -11,7 +11,7 @@ type Props = {
 
 export default function ModernCheckbox({ checked = false, onChange, id, label, className = '', ariaLabel }: Props) {
   return (
-    <label className={`modern-checkbox ${className}`} htmlFor={id}>
+    <label className={`modern-checkbox text-gray-900 dark:text-white ${className}`} htmlFor={id}>
       <input id={id} type="checkbox" aria-label={ariaLabel} checked={checked} onChange={(e) => onChange && onChange(e.target.checked)} />
       <span className="box" aria-hidden>
         {checked && (

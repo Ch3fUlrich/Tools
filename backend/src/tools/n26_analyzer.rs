@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -107,7 +108,7 @@ pub fn parse_n26_json(n26_data: N26Data) -> Result<Vec<Transaction>, String> {
 }
 
 /// Analyze transactions and calculate totals
-#[must_use] 
+#[must_use]
 pub fn analyze_transactions(transactions: Vec<Transaction>) -> AnalysisResult {
     let mut category_totals: HashMap<String, f64> = HashMap::new();
     let mut overall_total = 0.0;
@@ -119,11 +120,7 @@ pub fn analyze_transactions(transactions: Vec<Transaction>) -> AnalysisResult {
         overall_total += transaction.amount;
     }
 
-    AnalysisResult {
-        transactions,
-        category_totals,
-        overall_total,
-    }
+    AnalysisResult { transactions, category_totals, overall_total }
 }
 
 #[cfg(test)]
@@ -171,11 +168,8 @@ mod tests {
             Some(vec![json!({"amount": 10.5, "transaction_date": "2024-01-01", "transaction_type": "cash"})]),
         );
 
-        let n26 = N26Data {
-            id: "1".to_string(),
-            created: "2024-01-01".to_string(),
-            data: data_map,
-        };
+        let n26 =
+            N26Data { id: "1".to_string(), created: "2024-01-01".to_string(), data: data_map };
 
         let res = parse_n26_json(n26).expect("parse failed");
         assert_eq!(res.len(), 1);

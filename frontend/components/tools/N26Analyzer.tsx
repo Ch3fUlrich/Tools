@@ -37,7 +37,7 @@ export default function N26Analyzer() {
   };
 
   return (
-    <div className="card">
+    <div className="card text-gray-900 dark:text-white">
       <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900 dark:text-white">
         N26 Transaction Analyzer
       </h2>

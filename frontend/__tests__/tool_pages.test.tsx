@@ -11,7 +11,7 @@ describe('Tool Pages', () => {
       // Check for the main h1 title (first one in the page layout)
       const headings = screen.getAllByRole('heading', { level: 1, name: 'Dice Roller' });
       expect(headings.length).toBeGreaterThan(0);
-  expect(screen.getByText('Roll dice with various options including advantage/disadvantage and custom dice types.')).toBeInTheDocument();
+  // Page-level description removed; ensure the page title is present and the tool is rendered.
     });
   });
 
@@ -22,7 +22,7 @@ describe('Tool Pages', () => {
       // Check for the main h1 title (first one in the page layout)
       const headings = screen.getAllByRole('heading', { level: 1, name: 'Fat Loss Calculator' });
       expect(headings.length).toBeGreaterThan(0);
-  expect(screen.getByText('Calculate the percentage of fat vs muscle loss based on your calorie deficit and weight loss.')).toBeInTheDocument();
+  // Page-level description removed; title presence is the primary check.
     });
   });
 
@@ -32,7 +32,7 @@ describe('Tool Pages', () => {
 
       // Check for the main h1 title
       expect(screen.getByRole('heading', { level: 1, name: 'N26 Transaction Analyzer' })).toBeInTheDocument();
-  expect(screen.getByText('Analyze your N26 bank transactions and get insights into your spending patterns.')).toBeInTheDocument();
+  // Page-level description removed; ensure title renders.
     });
   });
 });

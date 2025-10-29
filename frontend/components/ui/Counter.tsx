@@ -13,7 +13,7 @@ interface Props {
 
 export default function Counter({ value, min = 0, max = 100, onChange, className = '' }: Props) {
   return (
-    <div className={`inline-flex items-center ${className}`}>
+    <div className={`inline-flex items-center text-gray-900 dark:text-white ${className}`}>
       <NumberInput
         ariaLabel="count"
         incrementLabel="increment"

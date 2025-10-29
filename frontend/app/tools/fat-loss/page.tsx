@@ -2,7 +2,7 @@ import FatLossCalculator from '@/components/tools/FatLossCalculator';
 import ToolPage from '@/components/tools/ToolPage';
 
 export const metadata = {
-  title: 'Fat Loss Calculator',
+  title: 'Fat Loss',
 };
 
 export default function FatLossPage() {

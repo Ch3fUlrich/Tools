@@ -2,7 +2,7 @@ import N26Analyzer from '@/components/tools/N26Analyzer';
 import ToolPage from '@/components/tools/ToolPage';
 
 export const metadata = {
-  title: 'N26 Transaction Analyzer',
+  title: 'N26 — 🧰',
 };
 
 export default function N26Page() {

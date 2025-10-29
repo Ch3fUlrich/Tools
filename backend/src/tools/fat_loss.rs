@@ -23,7 +23,7 @@ pub struct FatLossResponse {
 /// - 1kg of fat = 7000 kcal
 /// - 1kg of muscle = 1200 kcal
 /// - `fat_loss` = (`kcal_deficit` - 1200 * `weight_loss`) / 5800 / `weight_loss`
-#[must_use] 
+#[must_use]
 pub fn calculate_fat_loss_percentage(kcal_deficit: f64, weight_loss_kg: f64) -> FatLossResponse {
     // Validation
     if kcal_deficit <= 0.0 || weight_loss_kg <= 0.0 {

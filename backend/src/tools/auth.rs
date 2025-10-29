@@ -33,10 +33,13 @@ pub async fn register_user(
     // Hash password with Argon2id
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
-    let password_hash = argon2
-        .hash_password(password.as_bytes(), &salt)
-        .unwrap()
-        .to_string();
+    let password_hash = match argon2.hash_password(password.as_bytes(), &salt) {
+        Ok(h) => h.to_string(),
+        Err(e) => {
+            // Map hashing failures into a generic sqlx error so callers receive an Err
+            return Err(sqlx::Error::Protocol(e.to_string()));
+        }
+    };
 
     let rec = sqlx::query(
         "INSERT INTO users (email, password_hash, display_name) VALUES ($1, $2, $3) RETURNING id",

@@ -29,7 +29,7 @@ export default function DieSelect({ options, value, onChange, className }: DieSe
   const selected = options.find(o => o.value === value) || options[0];
 
   return (
-    <div className={`relative inline-block text-left ${className || ''}`} ref={ref}>
+    <div className={`relative inline-block text-left text-gray-900 dark:text-white ${className || ''}`} ref={ref}>
       {/* Native select kept for compatibility with tests and progressive enhancement.
           Visually hidden via off-screen positioning but left in the accessibility tree
           so testing-library can query it by role (combobox). */}

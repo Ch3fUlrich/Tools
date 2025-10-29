@@ -19,12 +19,12 @@ export const LineChart: React.FC<LineChartProps> = ({
   width = 400,
   height = 200,
   className = '',
-  color = '#3b82f6',
+  color = 'var(--accent)',
   title
 }) => {
   if (!data || data.length === 0) {
     return (
-      <div className={`flex items-center justify-center ${className}`} style={{ width, height }}>
+      <div className={`flex items-center justify-center text-gray-900 dark:text-white ${className}`} style={{ width, height }}>
         <p className="text-gray-500 dark:text-gray-400">No data to display</p>
       </div>
     );
@@ -41,17 +41,19 @@ export const LineChart: React.FC<LineChartProps> = ({
 
   if (validData.length === 0) {
     return (
-      <div className={`flex items-center justify-center ${className}`} style={{ width, height }}>
+      <div className={`flex items-center justify-center text-gray-900 dark:text-white ${className}`} style={{ width, height }}>
         <p className="text-gray-500 dark:text-gray-400">No valid data to display</p>
       </div>
     );
   }
 
-  // Parse times and find min/max values
-  const parsedData = validData.map(point => ({
-    ...point,
-    timestamp: new Date(point.time).getTime()
-  }));
+  // Parse times and find min/max values. Filter out points with invalid timestamps.
+  const parsedData = validData
+    .map(point => ({
+      ...point,
+      timestamp: new Date(point.time).getTime()
+    }))
+    .filter(p => typeof p.timestamp === 'number' && !isNaN(p.timestamp) && isFinite(p.timestamp));
 
   const minTime = Math.min(...parsedData.map(d => d.timestamp));
   const maxTime = Math.max(...parsedData.map(d => d.timestamp));
@@ -106,13 +108,14 @@ export const LineChart: React.FC<LineChartProps> = ({
   }
 
   return (
-    <div className={className}>
+    // Provide a safe default text color so children using `currentColor` are readable
+    <div className={`text-gray-900 dark:text-white ${className}`}>
       {title && (
         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2 text-center">
           {title}
         </h3>
       )}
-      <svg width={width} height={height} className="border border-gray-200 dark:border-gray-700 rounded">
+  <svg width={width} height={height} className="border border-gray-200 dark:border-gray-700 rounded text-gray-600 dark:text-gray-400">
         {/* Grid lines */}
         {xTicks.map((tick, i) => (
           <line
@@ -121,7 +124,7 @@ export const LineChart: React.FC<LineChartProps> = ({
             y1={20}
             x2={tick.x}
             y2={height - 40}
-            stroke="#e5e7eb"
+            stroke="currentColor"
             strokeWidth="1"
             opacity="0.5"
           />
@@ -133,15 +136,15 @@ export const LineChart: React.FC<LineChartProps> = ({
             y1={tick.y}
             x2={width - 30}
             y2={tick.y}
-            stroke="#e5e7eb"
+            stroke="currentColor"
             strokeWidth="1"
             opacity="0.5"
           />
         ))}
 
         {/* Axes */}
-        <line x1="30" y1={height - 40} x2={width - 30} y2={height - 40} stroke="#6b7280" strokeWidth="1" />
-        <line x1="30" y1="20" x2="30" y2={height - 40} stroke="#6b7280" strokeWidth="1" />
+  <line x1="30" y1={height - 40} x2={width - 30} y2={height - 40} stroke="currentColor" strokeWidth="1" />
+  <line x1="30" y1="20" x2="30" y2={height - 40} stroke="currentColor" strokeWidth="1" />
 
         {/* X-axis labels */}
         {xTicks.map((tick, i) => (
@@ -151,7 +154,7 @@ export const LineChart: React.FC<LineChartProps> = ({
             y={height - 20}
             textAnchor="middle"
             fontSize="10"
-            fill="#6b7280"
+            fill="currentColor"
           >
             {tick.label}
           </text>
@@ -165,7 +168,7 @@ export const LineChart: React.FC<LineChartProps> = ({
             y={tick.y + 3}
             textAnchor="end"
             fontSize="10"
-            fill="#6b7280"
+            fill="currentColor"
           >
             {tick.label}
           </text>
@@ -189,7 +192,8 @@ export const LineChart: React.FC<LineChartProps> = ({
             cy={point.y}
             r="3"
             fill={color}
-            stroke="white"
+            // use background variable for the outline so it adapts to theme
+            stroke="var(--bg)"
             strokeWidth="1"
           />
         ))}

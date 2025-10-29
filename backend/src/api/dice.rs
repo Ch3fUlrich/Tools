@@ -80,9 +80,7 @@ pub async fn roll(
         let ip = "unknown".to_string();
         {
             let mut map = RATE_LIMIT.lock().unwrap();
-            let entry = map
-                .entry(ip)
-                .or_insert((0, std::time::Instant::now()));
+            let entry = map.entry(ip).or_insert((0, std::time::Instant::now()));
             let elapsed = entry.1.elapsed();
             if elapsed.as_secs() > 60 {
                 *entry = (0, std::time::Instant::now());

@@ -8,9 +8,8 @@ describe('ToolPage', () => {
         <div>Test content</div>
       </ToolPage>
     );
-
   expect(screen.getByText('Test Tool')).toBeInTheDocument();
-  expect(screen.getByText('This is a test tool description')).toBeInTheDocument();
+  // Page-level descriptions are intentionally not rendered; tool cards keep their descriptions.
   expect(screen.getByText('Test content')).toBeInTheDocument();
   });
 

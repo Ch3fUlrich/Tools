@@ -1,5 +1,11 @@
 {
   "extends": ["stylelint-config-standard"],
+  "ignoreFiles": [
+    "components/icons/**",
+    "node_modules/**",
+    ".next/**",
+    "coverage/**"
+  ],
   "rules": {
     "at-rule-no-unknown": null,
     "function-no-unknown": [

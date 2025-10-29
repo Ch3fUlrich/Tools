@@ -1,3 +1,6 @@
+// Backwards-compatible re-export to new module name
+pub use crate::tools::bloodlevel::*;
+
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
 

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::tools::n26_analyzer::{analyze_transactions, parse_n26_json, N26Data};
 use axum::{
     extract::Json,

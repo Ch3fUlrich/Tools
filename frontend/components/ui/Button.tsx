@@ -19,7 +19,8 @@ const VARIANT_CLASSES: Record<Variant, string> = {
 export default function Button({ variant = 'default', className = '', children, ...rest }: Props) {
   const variantClass = VARIANT_CLASSES[variant] || VARIANT_CLASSES.default;
   return (
-    <button className={`${variantClass} ${className}`} {...rest}>
+    // Provide a safe default text color as a low-risk fallback; variant classes may override it.
+    <button className={`text-gray-900 dark:text-white ${variantClass} ${className}`} {...rest}>
       {children}
     </button>
   );

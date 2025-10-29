@@ -9,7 +9,7 @@ describe('ThemeToggle integration', () => {
   it('toggles document html class between light and dark', () => {
     // Ensure a known starting state
     applyTheme('light');
-    const { container } = render(<ThemeToggle />);
+  render(<ThemeToggle />);
 
     const button = screen.getByRole('button', { name: /Toggle color theme/i });
     expect(document.documentElement.classList.contains('light')).toBe(true);

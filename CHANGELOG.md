@@ -91,3 +91,31 @@ Complete repository transformation from Jupyter notebooks to production-ready we
 - Code review passed
 
 [0.1.0]: https://github.com/Ch3fUlrich/Tools/releases/tag/v0.1.0
+
+## [Unreleased] - 2025-10-28
+
+### Added
+
+- Upgrade `redis` client integration to use the `redis` crate v0.32 and the
+	`ConnectionManager` feature for more robust async reconnection and shared
+	connection management.
+
+### Changed
+
+- Introduced a lightweight `RedisPool` wrapper around `ConnectionManager` in
+	`backend/src/tools/session.rs` and migrated session code to use the manager.
+- Bumped Docker images for the frontend to use Node 24 (Dockerfile) and added
+	an `engines.node` recommendation to `frontend/package.json`.
+- Updated top-level `docker-compose.yml` and `backend/docker-compose.test.yml`
+	images for Postgres and Redis majors (align test and production images).
+- Ran `cargo fmt` and `cargo clippy` fixes across the backend.
+
+- Added repository Node version files (`.nvmrc`, `.node-version`, `.tool-versions`) to
+  pin local development to Node 24 and make CI reproducible.
+
+### Notes
+
+- This change keeps runtime behavior the same while improving connection
+	stability (automatic reconnects) and making the Redis integration easier to
+	replace with a different pool/manager in the future.
+

@@ -175,11 +175,11 @@ const onRoll = async () => {
   };
 
   return (
-  <div className="max-w-screen-xl mx-auto p-4 sm:p-6">
+  <div className="max-w-6xl mx-auto p-4 sm:p-6 text-gray-900 dark:text-white">
       {/* Header */}
       <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <DiceIcon className="w-8 h-8 text-indigo-600" />
+        <div className="flex items-center justify-center gap-4 mb-2">
+          <DiceIcon className="w-9 h-9 text-indigo-600" />
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
             Dice Roller
           </h1>
@@ -189,9 +189,9 @@ const onRoll = async () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Controls Panel */}
-        <div className="xl:col-span-1">
+  <div className="xl:col-span-2">
           <div className="card">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <div className="w-2 h-8 bg-indigo-500 rounded-full mr-3"></div>
@@ -253,11 +253,11 @@ const onRoll = async () => {
                           <div className="flex items-center gap-2">
                             <div className="inline-flex items-center gap-2">
                               <div className="inline-flex items-center gap-2">
-                                <button type="button" onClick={() => updateDiceConfig(config.id, { advantage: config.advantage === 'adv' ? 'none' : 'adv' })} className={`op-btn ${config.advantage === 'adv' ? 'active success' : ''}`} aria-pressed={config.advantage === 'adv'}>
+                                <button type="button" onClick={() => updateDiceConfig(config.id, { advantage: config.advantage === 'adv' ? 'none' : 'adv' })} className={`text-gray-900 dark:text-white op-btn ${config.advantage === 'adv' ? 'active success' : ''}`} aria-pressed={config.advantage === 'adv'}>
                                   <span className="sr-only">Advantage</span>
                                   Adv
                                 </button>
-                                <button type="button" onClick={() => updateDiceConfig(config.id, { advantage: config.advantage === 'dis' ? 'none' : 'dis' })} className={`op-btn ${config.advantage === 'dis' ? 'active danger' : ''}`} aria-pressed={config.advantage === 'dis'}>
+                                <button type="button" onClick={() => updateDiceConfig(config.id, { advantage: config.advantage === 'dis' ? 'none' : 'dis' })} className={`text-gray-900 dark:text-white op-btn ${config.advantage === 'dis' ? 'active danger' : ''}`} aria-pressed={config.advantage === 'dis'}>
                                   <span className="sr-only">Disadvantage</span>
                                   Dis
                                 </button>
@@ -277,7 +277,7 @@ const onRoll = async () => {
                               <>
                                 <div className="inline-flex rounded-md overflow-hidden">
                                   {(['<','>','='] as ('<'|'>'|'=')[]).map((op) => (
-                                    <button key={op} type="button" onClick={() => updateDiceConfig(config.id, { rerollOperator: op })} className={`op-btn ${config.rerollOperator === op ? 'active' : ''}`} aria-pressed={config.rerollOperator === op}>{op}</button>
+                                    <button key={op} type="button" onClick={() => updateDiceConfig(config.id, { rerollOperator: op })} className={`text-gray-900 dark:text-white op-btn ${config.rerollOperator === op ? 'active' : ''}`} aria-pressed={config.rerollOperator === op}>{op}</button>
                                   ))}
                                 </div>
                                 <NumberInput placeholder="value" value={String(config.rerollValue ?? 0)} onChange={(v) => updateDiceConfig(config.id, { rerollValue: Number(v || 0) })} step={1} className="form-input--compact" />
@@ -291,7 +291,7 @@ const onRoll = async () => {
                             <button
                               type="button"
                               onClick={() => removeDiceConfig(config.id)}
-                              className="remove-btn"
+                              className="text-gray-900 dark:text-white remove-btn"
                               aria-label={`Remove dice config ${config.id}`}
                             >
                               <span aria-hidden>✖</span>
@@ -306,15 +306,15 @@ const onRoll = async () => {
               </div>
 
               <div className="dice-add-group mt-3 mb-3">
-                <button type="button" className="die-btn op-btn" onClick={() => addDiceConfigWithType('d2')} aria-label="Add D2">D2</button>
-                <button type="button" className="die-btn op-btn" onClick={() => addDiceConfigWithType('d3')} aria-label="Add D3">D3</button>
-                <button type="button" className="die-btn op-btn" onClick={() => addDiceConfigWithType('d4')} aria-label="Add D4">D4</button>
-                <button type="button" className="die-btn op-btn" onClick={() => addDiceConfigWithType('d6')} aria-label="Add D6">D6</button>
-                <button type="button" className="die-btn op-btn" onClick={() => addDiceConfigWithType('d8')} aria-label="Add D8">D8</button>
-                <button type="button" className="die-btn op-btn" onClick={() => addDiceConfigWithType('d10')} aria-label="Add D10">D10</button>
-                <button type="button" className="die-btn op-btn" onClick={() => addDiceConfigWithType('d12')} aria-label="Add D12">D12</button>
-                <button type="button" className="die-btn op-btn" onClick={() => addDiceConfigWithType('d20')} aria-label="Add D20">D20</button>
-                <button type="button" className="die-btn op-btn" onClick={() => addDiceConfigWithType('custom')} aria-label="Add Custom">Custom</button>
+                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d2')} aria-label="Add D2">D2</button>
+                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d3')} aria-label="Add D3">D3</button>
+                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d4')} aria-label="Add D4">D4</button>
+                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d6')} aria-label="Add D6">D6</button>
+                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d8')} aria-label="Add D8">D8</button>
+                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d10')} aria-label="Add D10">D10</button>
+                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d12')} aria-label="Add D12">D12</button>
+                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d20')} aria-label="Add D20">D20</button>
+                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('custom')} aria-label="Add Custom">Custom</button>
               </div>
 
               {/* Charts Toggle */}
@@ -326,12 +326,12 @@ const onRoll = async () => {
               <Button variant="primary" onClick={onRoll} disabled={loading} className="mt-6 w-full text-base">
                 {loading ? (
                   <div className="flex items-center justify-center">
-                    <span className="spinner animate-spin mr-2 text-white" />
+                    <span className="spinner animate-spin mr-2 text-current" />
                     Rolling...
                   </div>
                 ) : (
                   <div className="flex items-center justify-center">
-                    <DiceIcon className="w-5 h-5 mr-2" />
+                    <DiceIcon className="w-9 h-9 mr-3" />
                     Roll Dice
                   </div>
                 )}
@@ -365,7 +365,7 @@ const onRoll = async () => {
                     {/* Dice Results Table */}
                     <div className="mb-4">
                       <h4 className="font-medium text-gray-900 dark:text-white mb-3">Dice Results</h4>
-                      <div className="overflow-x-auto">
+                        <div className="overflow-x-auto">
                         <table className="w-full text-sm border border-gray-200 dark:border-gray-600 rounded-lg min-w-[760px]">
                           <thead>
                             <tr className="bg-gray-50 dark:bg-gray-700">
@@ -381,7 +381,7 @@ const onRoll = async () => {
                                 <td className="px-3 py-2 text-gray-900 dark:text-white">{idx + 1}</td>
                                 <td className="px-3 py-2 text-gray-600 dark:text-gray-400">
                                   {diceConfigs.length > 0 ? (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-3">
                                       <DieFaceIcon sides={diceConfigs[Math.min(idx, diceConfigs.length - 1)].sides} className="die-icon" />
                                       <span className="text-sm">
                                         {diceConfigs[Math.min(idx, diceConfigs.length - 1)].dieType.toUpperCase()}{diceConfigs[Math.min(idx, diceConfigs.length - 1)].dieType === 'custom' ? `(${diceConfigs[Math.min(idx, diceConfigs.length - 1)].sides})` : ''}
@@ -437,7 +437,7 @@ const onRoll = async () => {
             </div>
           ) : (
             <div className="card bg-gray-50 dark:bg-gray-800 text-center">
-              <DiceIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <DiceIcon className="!w-9 !h-9 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Ready to Roll</h3>
               <p className="text-gray-600 dark:text-gray-400">Configure your dice and click "Roll Dice" to get started!</p>
             </div>

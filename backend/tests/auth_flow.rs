@@ -1,4 +1,3 @@
-use serde_json;
 use sqlx::Executor;
 use sqlx::Row;
 use std::env;
@@ -144,10 +143,7 @@ async fn test_session_store_edge_cases() {
 
     // Test with empty session ID
     let result = store.get_session("").await;
-    assert!(
-        result.is_err() || result.unwrap().is_none(),
-        "Empty session ID should not work"
-    );
+    assert!(result.is_err() || result.unwrap().is_none(), "Empty session ID should not work");
 
     // Test with very long session ID - create a session and try to get it
     let test_uuid = uuid::Uuid::new_v4();

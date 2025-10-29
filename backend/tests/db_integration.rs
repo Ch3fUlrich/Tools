@@ -92,7 +92,7 @@ async fn test_postgres_and_redis_integration() {
         let client =
             redis::Client::open(redis_url.as_str()).expect("Failed to create redis client");
         let mut conn = client
-            .get_async_connection()
+            .get_multiplexed_async_connection()
             .await
             .expect("Failed to connect to redis");
 
@@ -110,10 +110,7 @@ async fn test_database_connection_failures() {
     // Test invalid database URL
     let invalid_url = "postgresql://invalid:invalid@invalid:5432/invalid";
     let result = PgPool::connect(invalid_url).await;
-    assert!(
-        result.is_err(),
-        "Should fail to connect to invalid database URL"
-    );
+    assert!(result.is_err(), "Should fail to connect to invalid database URL");
 
     // Test with valid URL but invalid credentials (if we can construct one)
     // This is harder to test reliably, but we can test the error handling
@@ -141,10 +138,7 @@ async fn test_database_query_error_handling() {
     let result = sqlx::query("SELECT * FROM nonexistent_table")
         .execute(&pool)
         .await;
-    assert!(
-        result.is_err(),
-        "Should fail when querying non-existent table"
-    );
+    assert!(result.is_err(), "Should fail when querying non-existent table");
 
     // Test constraint violation (if we can trigger one)
     // First ensure we have a table with constraints
@@ -165,10 +159,7 @@ async fn test_database_query_error_handling() {
         .bind("test@example.com")
         .execute(&pool)
         .await;
-    assert!(
-        result.is_err(),
-        "Should fail due to unique constraint violation"
-    );
+    assert!(result.is_err(), "Should fail due to unique constraint violation");
 
     // Clean up
     let _ = sqlx::query("DROP TABLE test_constraints")

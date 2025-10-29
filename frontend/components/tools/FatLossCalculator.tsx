@@ -59,18 +59,9 @@ export const FatLossCalculator: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-          Fat Loss Calculator
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 text-lg">
-          Estimate your body composition changes during weight loss
-        </p>
-      </div>
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 text-gray-900 dark:text-white">
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       {/* Input Form */}
       <div className="card">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
@@ -129,7 +120,7 @@ export const FatLossCalculator: React.FC = () => {
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
-                    <span className="spinner animate-spin mr-2 text-white" />
+                    <span className="spinner animate-spin mr-2 text-current" />
                     Calculating...
                   </div>
                 ) : (

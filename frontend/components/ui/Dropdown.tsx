@@ -18,7 +18,7 @@ interface Props {
 export default function Dropdown({ items, value, onChange, className = '', showCount = false }: Props) {
   const selected = items.find(i => i.value === value);
   return (
-    <div className={`inline-flex items-center ${className}`}>
+    <div className={`inline-flex items-center text-gray-900 dark:text-white ${className}`}>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}

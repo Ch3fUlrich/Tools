@@ -36,10 +36,7 @@ pub async fn register(
         Ok(id) => (StatusCode::CREATED, AxumJson(json!({"id": id.to_string()}))),
         Err(e) => {
             tracing::error!("register failed: {}", e);
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                AxumJson(json!({"error":"internal"})),
-            )
+            (StatusCode::INTERNAL_SERVER_ERROR, AxumJson(json!({"error":"internal"})))
         }
     }
 }
@@ -69,12 +66,39 @@ pub async fn login(
                 .unwrap_or(false)
             {
                 // create session
-                let uid: uuid::Uuid = rec.try_get("id").unwrap();
+                let uid: uuid::Uuid = match rec.try_get("id") {
+                    Ok(u) => u,
+                    Err(e) => {
+                        tracing::error!("failed to read id column: {}", e);
+                        return Response::builder()
+                            .status(StatusCode::INTERNAL_SERVER_ERROR)
+                            .body(
+                                serde_json::to_string(&json!({"error":"internal"}))
+                                    .unwrap_or_else(|_| "{\"error\":\"internal\"}".to_string()),
+                            )
+                            .unwrap();
+                    }
+                };
+
                 let mut guard = store.lock().await;
-                let sid = guard.create_session(uid, 60 * 60 * 24).await.unwrap();
+                let sid = match guard.create_session(uid, 60 * 60 * 24).await {
+                    Ok(s) => s,
+                    Err(e) => {
+                        tracing::error!("failed to create session: {}", e);
+                        return Response::builder()
+                            .status(StatusCode::INTERNAL_SERVER_ERROR)
+                            .body(
+                                serde_json::to_string(&json!({"error":"internal"}))
+                                    .unwrap_or_else(|_| "{\"error\":\"internal\"}".to_string()),
+                            )
+                            .unwrap();
+                    }
+                };
+
                 // set cookie
                 let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax; Secure");
-                let body = serde_json::to_string(&json!({"ok": true})).unwrap();
+                let body = serde_json::to_string(&json!({"ok": true}))
+                    .unwrap_or_else(|_| "{\"ok\":true}".to_string());
                 return Response::builder()
                     .status(StatusCode::OK)
                     .header(header::SET_COOKIE, cookie)
@@ -83,12 +107,18 @@ pub async fn login(
             }
             Response::builder()
                 .status(StatusCode::UNAUTHORIZED)
-                .body(serde_json::to_string(&json!({"error":"invalid credentials"})).unwrap())
+                .body(
+                    serde_json::to_string(&json!({"error":"invalid credentials"}))
+                        .unwrap_or_else(|_| "{\"error\":\"invalid credentials\"}".to_string()),
+                )
                 .unwrap()
         }
         _ => Response::builder()
             .status(StatusCode::UNAUTHORIZED)
-            .body(serde_json::to_string(&json!({"error":"invalid credentials"})).unwrap())
+            .body(
+                serde_json::to_string(&json!({"error":"invalid credentials"}))
+                    .unwrap_or_else(|_| "{\"error\":\"invalid credentials\"}".to_string()),
+            )
             .unwrap(),
     }
 }
@@ -117,6 +147,9 @@ pub async fn logout(
     Response::builder()
         .status(StatusCode::OK)
         .header(header::SET_COOKIE, cookie)
-        .body(serde_json::to_string(&json!({"ok":true})).unwrap())
+        .body(
+            serde_json::to_string(&json!({"ok":true}))
+                .unwrap_or_else(|_| "{\"ok\":true}".to_string()),
+        )
         .unwrap()
 }

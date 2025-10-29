@@ -57,7 +57,7 @@ export const FatLossVisualization: React.FC<FatLossVisualizationProps> = ({
   const scaleY = (kcalDeficit: number) => ((kcalDeficit - 200) / (1000 - 200)) * 100;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
         <div className="w-2 h-8 bg-purple-500 rounded-full mr-3"></div>
         Fat Loss Visualization
@@ -86,7 +86,7 @@ export const FatLossVisualization: React.FC<FatLossVisualizationProps> = ({
           </div>
 
           {/* Data points */}
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <svg className="absolute inset-0 w-full h-full text-gray-900 dark:text-white" viewBox="0 0 100 100" preserveAspectRatio="none">
             {dataPoints.map((point, index) => (
               <circle
                 key={index}
@@ -104,9 +104,9 @@ export const FatLossVisualization: React.FC<FatLossVisualizationProps> = ({
                 cx={scaleX(currentWeightLoss)}
                 cy={100 - scaleY(currentKcalDeficit)}
                 r="3"
-                fill="white"
-                stroke="#000"
-                strokeWidth="1"
+                fill="currentColor"
+                stroke="var(--bg)"
+                strokeWidth="0.6"
                 className="animate-pulse"
               />
             )}
@@ -115,7 +115,7 @@ export const FatLossVisualization: React.FC<FatLossVisualizationProps> = ({
           {/* Current point marker with value */}
           {currentFatLoss !== null && currentMuscleLoss !== null && (
             <div
-              className="absolute bg-black text-white text-xs px-2 py-1 rounded shadow-lg pointer-events-none z-10"
+              className="absolute bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-xs px-2 py-1 rounded shadow-lg border border-gray-200 dark:border-gray-700 pointer-events-none z-10"
               style={{
                 left: `${scaleX(currentWeightLoss)}%`,
                 top: `${100 - scaleY(currentKcalDeficit)}%`,

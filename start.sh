@@ -30,6 +30,11 @@ check_prerequisites() {
         exit 1
     fi
     echo "✅ npm found: $(npm --version)"
+    if ! command -v docker &> /dev/null; then
+        echo "⚠️  docker not found. Docker compose test services will not be available."
+    else
+        echo "✅ docker found: $(docker --version)"
+    fi
     echo ""
 }
 
@@ -59,6 +64,7 @@ setup_frontend() {
 run_backend() {
     echo "🚀 Starting backend on http://localhost:3001"
     cd backend
+    # Run backend in background; inherits terminal environment
     cargo run &
     BACKEND_PID=$!
     cd ..
@@ -75,6 +81,16 @@ run_frontend() {
     echo "Frontend PID: $FRONTEND_PID"
 }
 
+run_docker_compose() {
+    # Start the test services (Postgres + Redis) if docker is available
+    if command -v docker >/dev/null 2>&1; then
+        echo "🚢 Starting docker-compose test services..."
+        docker compose -f backend/docker-compose.test.yml up -d || true
+    else
+        echo "⚠️  docker not available; skipping docker-compose startup"
+    fi
+}
+
 # Cleanup function
 cleanup() {
     echo ""
@@ -84,6 +100,10 @@ cleanup() {
     fi
     if [ ! -z "$FRONTEND_PID" ]; then
         kill $FRONTEND_PID 2>/dev/null || true
+    fi
+    # Ensure docker compose stack is torn down if we brought it up
+    if command -v docker >/dev/null 2>&1; then
+        docker compose -f backend/docker-compose.test.yml down -v || true
     fi
     echo "👋 Goodbye!"
     exit 0
@@ -125,7 +145,8 @@ main() {
     
     echo "🎉 Starting both servers..."
     echo ""
-    
+    # Start the compose test services first so backend can connect if needed
+    run_docker_compose
     run_backend
     sleep 2
     run_frontend

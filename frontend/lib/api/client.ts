@@ -267,7 +267,7 @@ export interface ToleranceCalculationResponse {
 }
 
 export async function getToleranceSubstances(): Promise<Substance[]> {
-  const response = await fetch(`${API_BASE_URL}/api/tools/tolerance/substances`, {
+  const response = await fetch(`${API_BASE_URL}/api/tools/bloodlevel/substances`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -291,7 +291,7 @@ export async function getToleranceSubstances(): Promise<Substance[]> {
 export async function calculateTolerance(
   request: ToleranceCalculationRequest
 ): Promise<ToleranceCalculationResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/tools/tolerance/calculate`, {
+  const response = await fetch(`${API_BASE_URL}/api/tools/bloodlevel/calculate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -62,9 +62,8 @@ fn configure_cors() -> CorsLayer {
         .or_else(|| std::env::var("PORT").ok().and_then(|s| s.parse().ok()))
         .unwrap_or(3001);
 
-    let default_allowed = format!(
-        "http://localhost:{default_frontend_port},http://localhost:{default_backend_port}"
-    );
+    let default_allowed =
+        format!("http://localhost:{default_frontend_port},http://localhost:{default_backend_port}");
 
     let allowed_origins = std::env::var("ALLOWED_ORIGINS").unwrap_or(default_allowed);
 
@@ -73,10 +72,7 @@ fn configure_cors() -> CorsLayer {
         .take(MAX_LOG_ORIGIN_LENGTH)
         .filter(|c| !c.is_control())
         .collect();
-    tracing::info!(
-        "Configuring CORS with allowed origins: {}",
-        safe_allowed_origins
-    );
+    tracing::info!("Configuring CORS with allowed origins: {}", safe_allowed_origins);
 
     let origins: Vec<_> = allowed_origins
         .split(',')
@@ -189,8 +185,7 @@ async fn main() {
 
     let shared_pool = Arc::new(pool);
 
-    let app = app::build_app(shared_pool.clone(), session_store_opt)
-        .layer(cors);
+    let app = app::build_app(shared_pool.clone(), session_store_opt).layer(cors);
 
     // Run the server. Honor PORT env var if set (fallback to 3001).
     let port: u16 = std::env::var("PORT")
@@ -269,14 +264,10 @@ fn test_configure_cors_with_empty_origins() {
 #[serial(env)]
 fn test_configure_cors_with_invalid_origins() {
     // Test that CORS handles invalid origin strings gracefully
-    temp_env::with_var(
-        "ALLOWED_ORIGINS",
-        Some("not-a-valid-url,another-invalid"),
-        || {
-            let cors_layer = configure_cors();
-            assert!(std::mem::size_of_val(&cors_layer) > 0);
-        },
-    );
+    temp_env::with_var("ALLOWED_ORIGINS", Some("not-a-valid-url,another-invalid"), || {
+        let cors_layer = configure_cors();
+        assert!(std::mem::size_of_val(&cors_layer) > 0);
+    });
 }
 
 #[test]

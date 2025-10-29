@@ -1,5 +1,7 @@
 # Tools Collection
 
+[![CI](https://github.com/Ch3fUlrich/Tools/actions/workflows/integration-tests.yml/badge.svg)](https://github.com/Ch3fUlrich/Tools/actions/workflows/integration-tests.yml)
+
 A modern, high-performance web application providing a collection of useful tools. Built with a Rust backend (Axum) for speed and security, and a Next.js frontend (React + TypeScript + Tailwind CSS) for a beautiful, responsive user experience.
 
 ## 🚀 Features
@@ -66,8 +68,26 @@ Tools/
 ### Prerequisites
 
 - **Backend**: Rust 1.75+ ([Install Rust](https://rustup.rs/))
-- **Frontend**: Node.js 18+ and npm 11.6.2+
+- **Frontend**: Node.js 24+ and npm (compatible with Node 24)
 - Git
+
+Recommended local Node setup
+
+We provide a `.nvmrc` / `.node-version` / `.tool-versions` in the repo root set to Node 24 to help developers pin the correct Node version.
+
+If you use `nvm`:
+
+```bash
+# from the project root
+nvm use
+```
+
+If you use `asdf`:
+
+```bash
+asdf install
+asdf local nodejs 24.0.0
+```
 
 ### Installation
 
@@ -84,10 +104,10 @@ Tools/
    ```
    The backend will start on `http://localhost:3001`
 
-3. **Start the frontend (in a new terminal):**
+2. **Start the frontend (in a new terminal):**
    ```bash
    cd frontend
-   npm install
+   npm ci
    npm run dev
    ```
    The frontend will start on `http://localhost:3000`
