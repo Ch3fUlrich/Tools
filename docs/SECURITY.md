@@ -77,7 +77,7 @@ This document outlines the security practices and guidelines for the Tools proje
    - Implement HSTS headers
 
 4. **Dependencies**
-   - Run `npm audit` regularly
+   - Run `pnpm audit` regularly
    - Keep dependencies up to date
    - Review security advisories
 
@@ -142,7 +142,7 @@ If you discover a security vulnerability, please email the maintainer directly r
 - `cargo deny` - Check dependencies for security advisories
 
 **Frontend:**
-- `npm audit` - Security vulnerability scanner
+- `pnpm audit` - Security vulnerability scanner
 - ESLint with security plugins
 - Snyk - Automated security scanning
 

@@ -5,25 +5,28 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: '@', replacement: path.resolve(__dirname) },
-      // Ensure relative imports to app globals resolve to the stub during tests
-      { find: './globals.css', replacement: path.resolve(__dirname, 'vitest_css_stub.js') },
-      { find: 'app/globals.css', replacement: path.resolve(__dirname, 'vitest_css_stub.js') },
-      // Redirect any .css imports to a test stub to avoid PostCSS/Vite CSS pipeline in tests
-      { find: /\.css$/, replacement: path.resolve(__dirname, 'vitest_css_stub.js') },
     ],
   },
+  // Optimize Vite server for testing
+  server: {
+    hmr: false, // Disable HMR for tests
+  },
   test: {
-    environment: 'jsdom',
+    environment: 'node', // Use Node for speed, mock DOM APIs as needed
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
+    // Optimize worker count for Node environment
+    pool: 'threads',
+    maxWorkers: 16, // Higher worker count works better with Node
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
       // include all key frontend source folders
       include: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}', 'lib/**/*.{ts,tsx}'],
-  // exclude test-only helpers and type-only files from coverage calculations
-  exclude: ['lib/types/**', '**/*.testable.*'],
-  // V8 provider doesn't support numeric threshold fields here.
+      // exclude test-only helpers and type-only files from coverage calculations
+      exclude: ['lib/types/**', '**/*.testable.*'],
+      // Ensure coverage directory exists
+      reportsDirectory: './coverage',
     },
   },
 });

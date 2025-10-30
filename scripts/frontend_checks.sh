@@ -7,22 +7,22 @@ FRONTEND_DIR="$ROOT_DIR/frontend"
 
 echo "==> Frontend checks: install dependencies"
 cd "$FRONTEND_DIR"
-npm ci
+pnpm install
 
 echo "==> Frontend lint (eslint)"
-npm run lint
+pnpm run lint
 
 echo "==> Frontend style lint (stylelint)"
-if npm run | grep -q "lint:css"; then
-  npm run lint:css || true
+if pnpm run | grep -q "lint:css"; then
+  pnpm run lint:css || true
 fi
 
 echo "==> Frontend format (prettier)"
-if npm run | grep -q "format"; then
-  npm run format || true
+if pnpm run | grep -q "format"; then
+  pnpm run format || true
 fi
 
 echo "==> Frontend tests (vitest)"
-npm test
+pnpm test
 
 echo "Frontend checks completed."

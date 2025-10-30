@@ -3,7 +3,7 @@ set -euo pipefail
 
 # env_setup.sh
 # Idempotent environment setup for the Tools project (WSL / Ubuntu focused)
-# Installs: build-essential, curl, rustup (stable), rustfmt, clippy, nvm, Node LTS, npm packages
+# Installs: build-essential, curl, rustup (stable), rustfmt, clippy, nvm, Node LTS, pnpm packages
 # Then builds backend and frontend so ./start.sh can be used.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
@@ -88,16 +88,16 @@ build_backend() {
 
 build_frontend() {
   if [ -d "$FRONTEND_DIR" ]; then
-    echo "Building frontend (installing npm deps)"
+    echo "Building frontend (installing pnpm deps)"
     pushd "$FRONTEND_DIR" >/dev/null
-    if [ -f package-lock.json ]; then
-      npm ci
+    if [ -f pnpm-lock.yaml ]; then
+      pnpm install --frozen-lockfile
     else
-      npm install
+      pnpm install
     fi
     # Pre-build to catch issues early (if project uses next.js build)
     if grep -q "next" package.json 2>/dev/null; then
-      npm run build --if-present || echo "Frontend build failed; you can still run dev with 'npm run dev'"
+      pnpm run build --if-present || echo "Frontend build failed; you can still run dev with 'pnpm run dev'"
     fi
     popd >/dev/null
   else

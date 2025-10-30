@@ -59,8 +59,8 @@ From project root:
 ```bash
 # frontend
 cd frontend
-npm install
-npm test
+pnpm install
+pnpm test
 
 # backend
 cd backend
@@ -95,7 +95,7 @@ Notes:
 
 ## Linting and CI
 
-- Frontend lint: `npm run lint` (configured to use ESLint)
+- Frontend lint: `pnpm run lint` (configured to use ESLint)
 - Backend lint: `cargo clippy`
 - CI runs both frontend and backend tests and checks coverage thresholds.
 

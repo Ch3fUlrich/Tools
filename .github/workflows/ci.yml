@@ -44,14 +44,10 @@ jobs:
           node-version: '24'
 
       - name: Install frontend deps
-        run: |
-          cd frontend
-          npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Run frontend tests
-        run: |
-          cd frontend
-          npm test
+        run: pnpm --filter frontend test
 
   build-artifacts:
     name: Build artifacts
@@ -67,9 +63,8 @@ jobs:
 
       - name: Build frontend (production)
         run: |
-          cd frontend
-          npm ci
-          npm run build
+          pnpm install --frozen-lockfile
+          pnpm --filter frontend run build
 
       - name: Package build artifacts (zip)
         run: |
@@ -119,9 +114,8 @@ jobs:
 
       - name: Quick frontend unit tests
         run: |
-          cd frontend
-          npm ci --no-audit --no-fund
-          npm test --silent || true
+          pnpm install --frozen-lockfile
+          pnpm --filter frontend test --silent || true
 
   test:
     name: Run backend tests (Postgres + Redis)
@@ -203,10 +197,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Quick frontend unit tests
         run: |
-          cd frontend
-          npm ci --no-audit --no-fund
-          npm test --silent || true
+          pnpm install --frozen-lockfile
+          pnpm --filter frontend test --silent || true

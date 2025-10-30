@@ -1,22 +1,28 @@
 # ------------------------------
 # Stage 1: Dependencies
 # ------------------------------
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 
 WORKDIR /app
 
+# Install pnpm
+RUN npm install -g pnpm
+
 # Copy only package files to leverage Docker layer caching
-COPY frontend/package*.json ./
+COPY frontend/package*.json frontend/pnpm-lock.yaml ./
 
 # Install dependencies in clean mode (faster + reproducible)
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 
 # ------------------------------
 # Stage 2: Build
 # ------------------------------
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
@@ -29,7 +35,7 @@ ARG NEXT_PUBLIC_API_URL=http://localhost:3001
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 # Build Next.js app (using standalone mode for smaller runtime image)
-RUN npm run build
+RUN pnpm run build
 
 # ------------------------------
 # Build a tiny, static healthcheck binary

@@ -25,11 +25,11 @@ check_prerequisites() {
     fi
     echo "✅ Node.js found: $(node --version)"
     
-    if ! command -v npm &> /dev/null; then
-        echo "❌ npm not found. Please install npm"
+    if ! command -v pnpm &> /dev/null; then
+        echo "❌ pnpm not found. Please install pnpm"
         exit 1
     fi
-    echo "✅ npm found: $(npm --version)"
+    echo "✅ pnpm found: $(pnpm --version)"
     if ! command -v docker &> /dev/null; then
         echo "⚠️  docker not found. Docker compose test services will not be available."
     else
@@ -53,7 +53,7 @@ setup_frontend() {
     echo "⚛️  Setting up Next.js frontend..."
     cd frontend
     if [ ! -d "node_modules" ]; then
-        npm install
+        pnpm install
     fi
     echo "✅ Frontend dependencies installed"
     cd ..
@@ -75,7 +75,7 @@ run_backend() {
 run_frontend() {
     echo "🚀 Starting frontend on http://localhost:3000"
     cd frontend
-    npm run dev &
+    pnpm run dev &
     FRONTEND_PID=$!
     cd ..
     echo "Frontend PID: $FRONTEND_PID"

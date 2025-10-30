@@ -7,7 +7,7 @@ Describe the change and why it is needed.
 ## Checklist
 - [ ] My PR follows Conventional Commits (e.g. `feat:`, `fix:`, `chore:`)
 - [ ] All tests pass locally and in CI
-- [ ] I have run `npm ci && npm run prepare` locally to install commit hooks (if applicable)
+- [ ] I have run `pnpm install && pnpm run prepare` locally to install commit hooks (if applicable)
 - [ ] I have updated relevant documentation (if applicable)
 - [ ] I have added/update any required changelog entry (if applicable)
 

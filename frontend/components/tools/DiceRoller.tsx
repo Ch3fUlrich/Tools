@@ -156,7 +156,17 @@ const onRoll = async () => {
   const addDiceConfigWithType = (dieType: DieOption) => {
     const newId = Date.now().toString();
     const sides = dieType === 'custom' ? 6 : (dieType === 'd2' ? 2 : dieType === 'd3' ? 3 : dieType === 'd4' ? 4 : dieType === 'd6' ? 6 : dieType === 'd8' ? 8 : dieType === 'd10' ? 10 : dieType === 'd12' ? 12 : 20);
-    setDiceConfigs(prev => [...prev, { id: newId, dieType, sides, count: 1 }]);
+    setDiceConfigs(prev => [...prev, {
+      id: newId,
+      dieType,
+      sides,
+      count: 1,
+      numericModifier: 0,
+      advantage: 'none',
+      rerollEnabled: false,
+      rerollOperator: '<',
+      rerollValue: 0
+    }]);
   };
 
   const removeDiceConfig = (id: string) => {

@@ -175,7 +175,7 @@ Tools/
 
 # Or manually
 cd backend && cargo run
-cd frontend && npm run dev
+cd frontend && pnpm run dev
 ```
 
 ### 2. Docker
@@ -185,7 +185,7 @@ docker-compose up -d
 
 ### 3. Production
 - Backend: `cargo build --release`
-- Frontend: `npm run build && npm start`
+- Frontend: `pnpm run build && pnpm start`
 - Deploy to cloud provider (AWS, GCP, Azure, etc.)
 
 ## Security

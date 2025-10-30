@@ -23,20 +23,17 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '24'
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
+        cache: 'pnpm'
+        cache-dependency-path: pnpm-lock.yaml
     
     - name: Install dependencies
-      working-directory: ./frontend
-      run: npm ci
+      run: pnpm install --frozen-lockfile
 
     - name: Security audit
-      working-directory: ./frontend
-      run: npm audit --audit-level moderate
+      run: pnpm audit --audit-level moderate
 
     - name: Run frontend tests
-      working-directory: ./frontend
-      run: npm test
+      run: pnpm --filter frontend test
 
     - name: Upload frontend coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -54,12 +51,10 @@ jobs:
         path: frontend/coverage/lcov.info
     
     - name: Run ESLint
-      working-directory: ./frontend
-      run: npm run lint
+      run: pnpm --filter frontend run lint
     
     - name: Build
-      working-directory: ./frontend
-      run: npm run build
+      run: pnpm --filter frontend run build
     
     - name: Check for build artifacts
       run: test -d frontend/.next
@@ -74,15 +69,13 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '24'
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
+        cache: 'pnpm'
+        cache-dependency-path: pnpm-lock.yaml
     
     - name: Install dependencies
-      working-directory: ./frontend
-      run: npm ci
+      run: pnpm install --frozen-lockfile
     
     - name: Build for production
-      working-directory: ./frontend
-      run: npm run build
+      run: pnpm --filter frontend run build
       env:
         NODE_ENV: production

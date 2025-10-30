@@ -68,7 +68,7 @@ Tools/
 ### Prerequisites
 
 - **Backend**: Rust 1.75+ ([Install Rust](https://rustup.rs/))
-- **Frontend**: Node.js 24+ and npm (compatible with Node 24)
+- **Frontend**: Node.js 24+ and pnpm (compatible with Node 24)
 - Git
 
 Recommended local Node setup
@@ -107,8 +107,8 @@ asdf local nodejs 24.0.0
 2. **Start the frontend (in a new terminal):**
    ```bash
    cd frontend
-   npm ci
-   npm run dev
+   pnpm install
+   pnpm run dev
    ```
    The frontend will start on `http://localhost:3000`
 
@@ -156,8 +156,8 @@ cargo fmt --check   # Check formatting
 
 ```bash
 cd frontend
-npm run lint        # Run ESLint
-npm run build       # Test production build
+pnpm run lint        # Run ESLint
+pnpm run build       # Test production build
 ```
 
 ## 🔒 Security
@@ -311,12 +311,12 @@ NEXT_PUBLIC_API_URL=http://localhost:YOUR_PORT
 1. Build for production:
    ```bash
    cd frontend
-   npm run build
+   pnpm run build
    ```
 
 2. Start production server:
    ```bash
-   npm start
+   pnpm start
    ```
 
 3. Or deploy to Vercel/Netlify for automatic deployment

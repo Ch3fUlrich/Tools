@@ -9,8 +9,8 @@ FRONTEND_DIR="$ROOT_DIR/frontend"
 
 cd "$FRONTEND_DIR"
 
-echo "Ensuring frontend devDependencies are installed (npm ci)..."
-npm ci
+echo "Ensuring frontend devDependencies are installed (pnpm install)..."
+pnpm install
 
 echo "Running eslint $*"
 npx eslint "$@"

@@ -81,6 +81,9 @@ describe('AuthModal and AuthContext', () => {
   });
 
   it('AuthProvider login/logout persists to localStorage', async () => {
+    // Mock logoutUser to avoid API call
+    const logoutSpy = vi.spyOn(apiClient, 'logoutUser').mockResolvedValue({ ok: true } as any);
+
     // ensure no leftover auth state from other tests
     try {
       localStorage.clear();

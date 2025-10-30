@@ -1,25 +1,31 @@
 # Multi-stage Dockerfile for Next.js server mode
 # Stage 1: Builder - build the Next.js app
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm
 
 # Copy package manifests and install dependencies (builder needs dev deps)
-COPY frontend/package*.json ./
+COPY frontend/package*.json frontend/pnpm-lock.yaml ./
 COPY frontend/ ./
 
-RUN npm ci --silent
+RUN pnpm install --frozen-lockfile
 
 # Build Next.js app
-RUN npm run build
+RUN pnpm run build
 
 # Stage 2: Runner - production image that runs the Next.js server
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 
 WORKDIR /app
 
+# Install pnpm for production
+RUN npm install -g pnpm
+
 # Copy package.json and production node_modules from builder
-COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/package*.json /app/pnpm-lock.yaml ./
 COPY --from=builder /app/node_modules ./node_modules
 
 # Copy the built app and static assets

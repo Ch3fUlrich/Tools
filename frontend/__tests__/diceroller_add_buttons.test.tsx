@@ -14,7 +14,7 @@ vi.mock('@/components/charts/Histogram', () => ({ default: () => <div data-testi
 import DiceRoller from '@/components/tools/DiceRoller';
 
 describe('DiceRoller add buttons coverage', () => {
-  it('renders and clicks all add-die buttons to exercise addDiceConfigWithType branches', () => {
+  it('renders and clicks all add-die buttons to exercise addDiceConfigWithType branches', async () => {
     render(<DiceRoller />);
 
     const addLabels = ['Add D2','Add D3','Add D4','Add D6','Add D8','Add D10','Add D12','Add D20','Add Custom'];
@@ -22,13 +22,16 @@ describe('DiceRoller add buttons coverage', () => {
     const configTable = screen.getByRole('table');
     const beforeRows = within(configTable).getAllByRole('row').length;
 
-    addLabels.forEach((label) => {
+    // Click all buttons with small delays to prevent cascading re-renders
+    for (const label of addLabels) {
       const btn = screen.getByRole('button', { name: label });
       fireEvent.click(btn);
-    });
+      // Small delay to allow React to process the state update
+      await new Promise(resolve => setTimeout(resolve, 1));
+    }
 
+    // Check final result - should have added all configs
     const afterRows = within(configTable).getAllByRole('row').length;
-    // we added 9 buttons, so rows should have increased by at least 9
     expect(afterRows).toBeGreaterThanOrEqual(beforeRows + addLabels.length);
   });
 });
