@@ -27,7 +27,7 @@ anyhow = "1.0"
 rust-embed = "6.4.0"
 
 [dev-dependencies]
-axum-test = "14.0"
+axum-test = "18.2"
 serial_test = "3.2"
 temp-env = "0.3.6"
 http = "0.2"
