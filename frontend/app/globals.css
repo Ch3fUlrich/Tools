@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Enhanced base styles with modern design tokens */
 :root, html, body {
   /* Include a generic fallback to satisfy stylelint and ensure predictable rendering */
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -26,7 +27,7 @@ html { scrollbar-gutter: stable; }
 
 /* Page background & text colors: make the whole page use the theme variables */
 html, body, #__next {
-  background-color: var(--bg);
+  background: var(--bg);
   color: var(--fg);
   --checkbox-border: rgba(255,255,255,0.14);
   --checkbox-checked-border: rgba(255,255,255,0.24);
@@ -37,56 +38,83 @@ html, body, #__next {
   -webkit-tap-highlight-color: transparent;
   margin: 0; /* remove default browser margin so background spans full viewport */
   padding: 0;
+  /* Smooth transitions for theme changes */
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-/* Color Variables */
+
+/* Enhanced Color Variables with modern gradients */
 :root {
-  --bg: #ffffff;
+  --bg: #fafafa;
+  --bg-secondary: #ffffff;
   --fg: #1f2937;
-  --input-bg: rgba(15,23,42,0.04); /* subtle translucent dark tint on light theme */
+  --fg-secondary: #374151;
+  --input-bg: rgba(15,23,42,0.04);
   --input-border: rgba(15,23,42,0.08);
+  --input-focus: rgba(79,70,229,0.12);
   /* Checkbox border colors for light theme (stronger contrast on light) */
   --checkbox-border: rgba(15,23,42,0.18);
   --checkbox-checked-border: rgba(15,23,42,0.32);
   --muted: #6b7280;
   --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --card-bg: #ffffff;
+  --card-border: rgba(0,0,0,0.06);
+  --shadow-soft: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   border-color: var(--checkbox-checked-border);
   --success: #10b981;
   --error: #ef4444;
+  --warning: #f59e0b;
 }
-/* Dark mode variables (class-based). We keep the media query fallback for older browsers and
-   for users who prefer automatic theme via OS settings. The `.dark` class on <html>
-   will take precedence and allow an explicit user choice. */
+
+/* Enhanced dark mode variables with modern aesthetics */
 .dark {
-  --bg: #111827;
+  --bg: #0f0f0f;
+  --bg-secondary: #1a1a1a;
   --fg: #e5e7eb;
-  --input-bg: #0b1220; /* dark input background */
-  --input-border: rgba(255,255,255,0.06);
+  --fg-secondary: #d1d5db;
+  --input-bg: rgba(255,255,255,0.04);
+  --input-border: rgba(255,255,255,0.08);
+  --input-focus: rgba(139,92,246,0.18);
   /* Lighter checkbox borders in dark mode for correct contrast */
-  /* make checkbox border more distinct/white in dark mode */
   --checkbox-border: rgba(255,255,255,0.36);
   --checkbox-checked-border: rgba(255,255,255,0.48);
   --muted: #9ca3af;
   --accent: #8b5cf6;
   --accent-hover: #7c3aed;
+  --card-bg: rgba(255,255,255,0.02);
+  --card-border: rgba(255,255,255,0.06);
+  --shadow-soft: 0 4px 20px -4px rgba(0, 0, 0, 0.4);
+  --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  --gradient-secondary: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
   --success: #34d399;
   --error: #f87171;
+  --warning: #fbbf24;
 }
 
 /* Optional explicit light class so we can force light when needed */
 .light {
-  /* Only set theme variables when forcing light mode. Do NOT apply layout or visual
-     properties on the root element here — that previously caused width and padding
-     changes when toggling themes. */
-  --bg: #ffffff;
+  --bg: #fafafa;
+  --bg-secondary: #ffffff;
   --fg: #1f2937;
+  --fg-secondary: #374151;
   --input-bg: rgba(15,23,42,0.04);
   --input-border: rgba(15,23,42,0.08);
+  --input-focus: rgba(79,70,229,0.12);
   --muted: #6b7280;
   --accent: #4f46e5;
   --accent-hover: #4338ca;
+  --card-bg: #ffffff;
+  --card-border: rgba(0,0,0,0.06);
+  --shadow-soft: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   --success: #10b981;
   --error: #ef4444;
+  --warning: #f59e0b;
 }
+
 @media (prefers-color-scheme: dark) {
   :root {
     /* Keep media-query preference limited to variables only so rendering/layout
@@ -98,79 +126,101 @@ html, body, #__next {
   }
 }
 
-/* Base Typography */
+/* Enhanced Typography with modern scale */
 .text-content {
-  font-size: 1rem; /* text-base */
+  font-size: 1rem;
   color: var(--muted);
-  line-height: 1.6; /* leading-relaxed */
-  letter-spacing: 0.01em; /* tracking-wide approximation */
+  line-height: 1.7;
+  letter-spacing: 0.01em;
 }
 
-/* Layout Containers */
+/* Modern Layout Containers */
 .site-container {
-  max-width: 64rem; /* approx. max-w-5xl */
+  max-width: 72rem;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1rem; /* px-4 */
-  padding-right: 1rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  /* make the main container fill the viewport height (minus header) so backgrounds extend to the bottom
-     we subtract ~64px to account for header height; this keeps footer placement stable while ensuring
-     the page background fills the viewport on short pages. */
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  /* make the main container fill the viewport height (minus header) so backgrounds extend to the bottom */
   min-height: calc(100vh - 64px);
 }
+
 .header-container {
-  max-width: 64rem; /* approx. max-w-5xl */
+  max-width: 72rem;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1rem; /* px-4 */
-  padding-right: 1rem;
-  /* no padding-top/bottom, no min-height for concise header */
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
+
 .content-box {
-  /* make content boxes frameless by default: keep padding and rounded corners but remove heavy border/shadow
-     — pages can still opt into stronger card visuals if needed */
-  background: transparent;
-  border-radius: 0.75rem; /* rounded-xl */
-  padding: 1.5rem;
-  /* ensure text inside content boxes inherits the theme foreground color */
+  background: var(--card-bg);
+  border-radius: 1rem;
+  padding: 2rem;
   color: var(--fg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-soft);
   /* only transition non-layout properties to avoid page "zoom" when theme changes */
-  transition: background-color 0.3s, color 0.3s, box-shadow 0.3s, border-color 0.3s;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Card utility: heavier visual weight for important panels */
+/* Enhanced Card utility with modern glassmorphism */
 .card {
-  /* reduced padding so boxes and inputs fit better inside cards */
-  background-color: var(--bg);
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 15px rgba(2,6,23,0.06);
-  padding: 1rem;
-  /* ensure card text uses theme foreground color */
+  background: var(--card-bg);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-soft);
+  padding: 1.5rem;
   color: var(--fg);
-  border: 1px solid var(--input-border);
+  border: 1px solid var(--card-border);
   min-width: 0;
   overflow: hidden;
-}
-.tool-card {
-  padding: 1rem;
-  background-color: var(--bg);
-  border-radius: 0.75rem;
-  box-shadow: 0 6px 10px rgba(2,6,23,0.04);
-  /* avoid animating layout/transform on theme toggle */
-  transition: background-color 0.3s, color 0.3s, box-shadow 0.3s, border-color 0.3s;
-  text-align: left;
-  /* ensure tool cards also inherit foreground color */
-  color: var(--fg);
-  border: 1px solid var(--input-border);
-  min-width: 0;
-  overflow: hidden;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Buttons */
-/* Modern button base used across the app. Grouped with existing variants so legacy
-   classes continue to work while providing a single place for shared visual rules. */
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px -8px rgba(0, 0, 0, 0.15);
+}
+
+.tool-card {
+  padding: 1.5rem;
+  background: var(--card-bg);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-soft);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  color: var(--fg);
+  border: 1px solid var(--card-border);
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.tool-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  transform: scaleX(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tool-card:hover::before {
+  transform: scaleX(1);
+}
+
+.tool-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px -8px rgba(139, 92, 246, 0.2);
+}
+
+/* Enhanced Buttons with modern design */
 .btn,
 .btn-primary,
 .btn-ghost,
@@ -182,142 +232,171 @@ html, body, #__next {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   font-weight: 600;
-  transition: transform 150ms, background-color 150ms, color 150ms, box-shadow 150ms;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Icon button variant for small square controls (theme toggle, small avatars, etc.) */
+.btn::before,
+.btn-primary::before,
+.btn-ghost::before,
+.btn-success::before,
+.btn-danger::before,
+.btn-signin::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn:hover::before,
+.btn-primary:hover::before,
+.btn-ghost::before,
+.btn-success:hover::before,
+.btn-danger:hover::before,
+.btn-signin:hover::before {
+  left: 100%;
+}
+
+/* Icon button variant */
 .btn-icon {
   padding: 0 !important;
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 40px;
+  min-height: 40px;
   width: auto;
   height: auto;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   background: transparent;
   border: 1px solid transparent;
 }
+
 .btn-icon:hover {
-  /* Avoid adding an extra transform so it doesn't conflict with existing
-     utility transforms like hover:scale-105. Prefer a subtle shadow change. */
-  box-shadow: 0 6px 18px rgba(2,6,23,0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
 }
 
-/* Theme toggle specific styling: keep a visible border in both themes, white
-   background in light mode, and a darker inset background in dark mode. The
-   icon inside uses currentColor so we set the button color to a yellow tone
-   so the moon/sun icons render as yellow in both themes. */
+/* Theme toggle specific styling */
 .btn-theme-toggle {
   border: 1px solid var(--input-border);
-  background: #ffffff;
-  color: #f59e0b; /* yellow-500 */
-  box-shadow: 0 2px 6px rgba(2,6,23,0.04);
+  background: var(--card-bg);
+  color: #f59e0b;
+  box-shadow: var(--shadow-soft);
 }
+
 .dark .btn-theme-toggle {
   background: var(--input-bg);
-  /* slightly warmer yellow for moon on dark so it reads well */
-  color: #fbbf24; /* yellow-300 */
+  color: #fbbf24;
   border-color: var(--input-border);
-}
-
-/* Profile button variant: circular avatar-like control matching the .btn base */
-.btn-profile {
-  border: 1px solid var(--input-border);
-  background: #f3f4f6; /* gray-100 */
-  color: var(--fg);
-  min-width: 40px;
-  min-height: 40px;
-  padding: 0.25rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px; /* circular */
-  transition: box-shadow 160ms, transform 160ms, background-color 160ms;
-  box-shadow: 0 2px 6px rgba(2,6,23,0.04);
-}
-.dark .btn-profile {
-  background: var(--input-bg);
-  color: var(--muted);
-  border-color: var(--input-border);
-}
-
-/* Brand / main page tile button: fixed square with gradient, ring and subtle hover
-   lift. Keep consistent size so it doesn't overlap adjacent nav elements. */
-.btn-brand {
-  width: 40px;
-  height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-  color: #fff;
-  font-weight: 700;
-  box-shadow: 0 6px 12px rgba(2,6,23,0.06);
-  border: 1px solid rgba(0,0,0,0.04);
-  transition: transform 160ms, box-shadow 160ms, filter 160ms;
-  transform-origin: center;
-}
-.btn-brand:hover {
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 10px 22px rgba(2,6,23,0.08);
-}
-.btn-brand:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.08);
 }
 
 .btn-theme-toggle:hover {
-  transform: translateY(-1px) scale(1.03);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
 }
 
-/* Header navigation button variant: more visible border for better definition */
+/* Profile button variant */
+.btn-profile {
+  border: 1px solid var(--input-border);
+  background: var(--card-bg);
+  color: var(--fg);
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-profile:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+}
+
+/* Brand / main page tile button */
+.btn-brand {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: var(--gradient-primary);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(0,0,0,0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.btn-brand:hover {
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 12px 35px -8px rgba(139, 92, 246, 0.3);
+}
+
+.btn-brand:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* Header navigation button variant */
 .btn-nav {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   font-weight: 600;
-  transition: transform 150ms, background-color 150ms, color 150ms, box-shadow 150ms, border-color 150ms;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid var(--input-border);
   background: transparent;
   color: var(--fg);
-  padding: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
+  position: relative;
 }
+
+.btn-nav::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: inherit;
+}
+
 .btn-nav:hover {
-  box-shadow: 0 4px 12px rgba(2,6,23,0.08);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
   border-color: var(--accent);
+  transform: translateY(-2px);
 }
 
-/* Responsive nav label behavior:
-   - On large screens (>=1024px) show full text labels (.nav-label).
-   - On medium screens (>=768px and <1024px) hide labels and show emoji-only (.nav-emoji).
-   - On small screens (<768px) the nav is hidden by existing Tailwind rules (mobile dropdown).
-   This provides progressive reduction of content: full labels -> emojis -> dropdown.
-*/
-/* Per-button responsive behavior using container queries.
-   Each nav link becomes a container. When the container has enough inline
-   size (min-width), we show the textual label; otherwise we show the emoji
-   only. This avoids globally switching all buttons when a single button
-   runs out of space. */
+.btn-nav:hover::before {
+  opacity: 0.1;
+}
 
+/* Responsive nav behavior */
 .nav-item {
   container-type: inline-size;
-  /* allow per-button tuning if needed; default fallback is to show labels so
-     older browsers (without container-query support) still display full labels. */
-  --label-threshold: 90px; /* lower threshold so emoji shows earlier when space is tight */
+  --label-threshold: 90px;
   padding-left: 0.75rem;
   padding-right: 0.75rem;
   box-sizing: border-box;
-  /* ensure a modest min-width so items don't collapse completely */
-  min-width: 56px;
-  transition: transform 160ms, box-shadow 160ms;
+  min-width: 60px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Progressive enhancement: labels are visible by default (good for older browsers).
-   When the nav-item container is narrower than the threshold, switch to emoji-only. */
 .nav-label { display: inline; }
 .nav-emoji { display: inline; }
 
@@ -326,21 +405,18 @@ html, body, #__next {
   .nav-emoji { display: inline; }
 }
 
-/* Override global scale-based hover for nav items so they don't grow and overlap
-   neighboring buttons. Use a subtle translate lift instead. Use !important to
-   ensure this wins over utility classes applied on elements. */
 .nav-item:hover {
-  box-shadow: 0 8px 20px rgba(2,6,23,0.06) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
 }
-.nav-item:active { transform: translateY(0) !important; }
 
-/* When JS sets data-collapse on a nav-item, hide its text label and show emoji only. */
+.nav-item:active { 
+  transform: translateY(0); 
+}
+
 .nav-item[data-collapse="true"] .nav-label { display: none !important; }
 .nav-item[data-collapse="true"] .nav-emoji { display: inline !important; }
 
-/* Fallback for browsers that don't support container queries: switch to emoji-only
-   at small viewport widths (conservative). This keeps behavior consistent.
-   You can tweak 760px to a value that matches your desired mobile cutoff. */
 @supports not (container-type: inline-size) {
   @media (max-width: 760px) {
     .nav-label { display: none; }
@@ -348,24 +424,16 @@ html, body, #__next {
   }
 }
 
-/* Computed collapse threshold: determine when even emoji-only buttons won't fit.
-   We set several CSS variables (brand width, emoji width, right-side controls width,
-   and gaps) and compute a conservative threshold. When viewport is narrower than
-   that threshold the nav collapses into the mobile dropdown. */
 :root {
-  --brand-w: 44px; /* .btn-brand width */
-  --emoji-w: 56px; /* approximate min width required per emoji button */
-  --nav-count: 4; /* number of tool buttons */
-  --right-w: 96px; /* approximate width for theme toggle + profile + internal gaps */
-  --nav-gaps: 72px; /* total horizontal gaps in the nav (3 * 24px) */
-  --nav-extra: 48px; /* padding and breathing room */
+  --brand-w: 48px;
+  --emoji-w: 60px;
+  --nav-count: 4;
+  --right-w: 104px;
+  --nav-gaps: 80px;
+  --nav-extra: 56px;
   --collapse-threshold: calc(var(--brand-w) + (var(--nav-count) * var(--emoji-w)) + var(--right-w) + var(--nav-gaps) + var(--nav-extra));
 }
 
-/* Default behavior: show the responsive nav and hide the mobile dropdown.
-   When the viewport is narrower than the computed --collapse-threshold we
-   switch to the mobile dropdown. This avoids hiding desktop navs when the
-   threshold is miscomputed or very large. */
 .nav-responsive { display: flex; }
 .mobile-dropdown { display: none; }
 
@@ -374,438 +442,680 @@ html, body, #__next {
   .mobile-dropdown { display: block !important; }
 }
 
-/* Label animation: smooth fade/slide when labels hide/show. */
 .nav-label {
   display: inline;
-  transition: opacity 180ms ease, transform 180ms ease;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center;
 }
+
 .nav-emoji {
   display: inline;
-  transition: opacity 180ms ease;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* When data-collapse is set, animate the label out (fade + slight up) */
 .nav-item[data-collapse="true"] .nav-label {
   opacity: 0;
-  transform: translateY(-6px);
+  transform: translateY(-8px);
   pointer-events: none;
 }
+
 .nav-item[data-collapse="true"] .nav-emoji {
   opacity: 1;
 }
 
+/* Enhanced button variants */
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem; /* py-3 px-6 */
-  border-radius: 0.5rem; /* rounded-lg */
-  background-color: var(--accent);
+  padding: 0.875rem 1.75rem;
+  border-radius: 0.75rem;
+  background: var(--gradient-primary);
   color: #fff;
-  font-size: 0.875rem; /* text-sm */
+  font-size: 0.875rem;
   font-weight: 600;
-  box-shadow: 0 6px 12px rgba(79,70,229,0.12);
-  transition: transform 150ms, background-color 150ms;
+  box-shadow: 0 6px 20px -6px rgba(79,70,229,0.3);
+  border: 1px solid rgba(0,0,0,0.1);
 }
+
 .btn-primary:hover {
   transform: translateY(-2px);
+  box-shadow: 0 10px 30px -8px rgba(79,70,229,0.4);
 }
 
 .btn-ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.625rem 1.25rem; /* py-2.5 px-5 */
-  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
   background: transparent;
   border: 1px solid var(--input-border);
   color: var(--fg);
-  transition: transform 150ms, background-color 150ms;
 }
+
 .btn-ghost:hover {
   transform: translateY(-2px);
+  background: var(--input-bg);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.1);
 }
 
 .btn-success {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  background-color: var(--success);
+  padding: 0.875rem 1.75rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
-  box-shadow: 0 4px 8px rgba(16,185,129,0.12);
-  transition: transform 150ms, background-color 150ms;
-}
-.btn-success:hover {
-  transform: translateY(-2px);
+  box-shadow: 0 6px 20px -6px rgba(16,185,129,0.3);
+  border: 1px solid rgba(0,0,0,0.1);
 }
 
-/* Danger (destructive) button */
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -8px rgba(16,185,129,0.4);
+}
+
 .btn-danger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  background-color: var(--error);
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: #fff;
   font-size: 0.875rem;
-  font-weight: 500;
-  box-shadow: 0 2px 6px rgba(239,68,68,0.12);
-  transition: transform 150ms, background-color 150ms;
-}
-.btn-danger:hover {
-  transform: translateY(-2px);
+  font-weight: 600;
+  box-shadow: 0 6px 20px -6px rgba(239,68,68,0.3);
+  border: 1px solid rgba(0,0,0,0.1);
 }
 
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -8px rgba(239,68,68,0.4);
+}
+
+/* Enhanced form inputs */
 .form-input {
   display: block;
   width: 100%;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   border: 1px solid var(--input-border);
-  background-color: var(--input-bg);
-  padding: 0.5rem 1rem;
+  background: var(--input-bg);
+  padding: 0.75rem 1rem;
   font-size: 0.875rem;
-  /* Force inputs to follow the theme foreground color so toggling light/dark
-     updates input text color predictably. Using var(--fg) avoids relying on
-     inheritance from parent elements which may be inconsistent. */
   color: var(--fg);
-  height: 44px;
+  height: 48px;
   box-sizing: border-box;
-  /* only transition non-layout properties to avoid page "zoom"/layout shifts */
-  transition: box-shadow 200ms, border-color 200ms, background-color 200ms, color 200ms;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
 }
 
-/* remove layout/transform scaling on focus - prefer box-shadow / border highlight */
 .form-input:focus {
-  transform: none;
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--input-focus);
+  outline: none;
 }
 
-/* Hover/focus purple border for inputs to match the requested style */
-.form-input:hover, .form-input:focus {
-  border-color: rgba(79,70,229,0.32);
-  box-shadow: 0 6px 12px rgba(79,70,229,0.04);
+.form-input:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 20px -4px rgba(139, 92, 246, 0.1);
 }
 
-/* Ensure placeholders are readable and theme-aware. --muted is defined per-theme above. */
 .form-input::placeholder,
 input::placeholder,
 textarea::placeholder {
   color: var(--muted);
-  opacity: 1; /* make sure browsers don't faintly dim placeholders */
+  opacity: 0.8;
 }
 
 /* Modern checkbox styles */
 .modern-checkbox {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   cursor: pointer;
 }
+
 .modern-checkbox input[type="checkbox"] {
   position: absolute;
   opacity: 0;
   width: 0;
   height: 0;
 }
+
 .modern-checkbox .box {
-  width: 18px;
-  height: 18px;
-  border-radius: 6px;
-  /* use dedicated checkbox border variables so we can tune contrast per-theme */
+  width: 20px;
+  height: 20px;
+  border-radius: 0.5rem;
   border: 1px solid var(--checkbox-border);
-  background: transparent;
+  background: var(--input-bg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* Only transition color/visuals, not layout/transform */
-  transition: background-color 150ms, border-color 150ms, box-shadow 150ms, color 150ms;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.modern-checkbox .box svg { width: 12px; height: 12px; color: #fff; }
+
+.modern-checkbox .box svg { 
+  width: 12px; 
+  height: 12px; 
+  color: #fff; 
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .modern-checkbox input:checked + .box {
-  background: linear-gradient(90deg, rgba(139,92,246,0.18), rgba(79,70,229,0.12));
-  /* checked border should also follow the theme variable */
-  border-color: var(--checkbox-checked-border);
+  background: var(--gradient-primary);
+  border-color: var(--accent);
+  transform: scale(1.1);
 }
 
-/* ensure the check-mark is visible in dark & light themes */
-.modern-checkbox input + .box svg { color: transparent; }
-.modern-checkbox input:checked + .box svg { color: #fff; }
+.modern-checkbox input + .box svg { 
+  color: transparent; 
+  transform: scale(0);
+}
 
-/* die type badge in results table */
+.modern-checkbox input:checked + .box svg { 
+  color: #fff; 
+  transform: scale(1);
+}
+
+.modern-checkbox:hover .box {
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+/* Enhanced number input styles */
+.number-input {
+  position: relative;
+}
+
+.number-input .number-stepper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 14px;
+  padding: 0;
+  border-radius: 0.375rem;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 600;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.number-input .number-stepper:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
+
+.number-input .number-stepper + .number-stepper {
+  margin-top: 0;
+}
+
+.number-input .stepper-wrap {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.number-input .form-input {
+  padding-right: 40px;
+}
+
+.form-input--compact {
+  max-width: 4.5rem;
+  width: 100%;
+  text-align: center;
+  border: 1px solid var(--input-border);
+  padding: 0.5rem;
+}
+
+/* Enhanced remove button */
+.remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 0.75rem;
+  background: transparent;
+  border: 1px solid rgba(239,68,68,0.2);
+  color: rgba(239,68,68,0.8);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.remove-btn:hover {
+  background: rgba(239,68,68,0.1);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(239,68,68,0.2);
+}
+
+/* Enhanced dice button group */
+.dice-add-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.dice-add-group .btn-ghost {
+  padding: 0.625rem 0.875rem;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.die-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--input-border);
+  background: var(--card-bg);
+  color: var(--fg);
+  font-size: 0.9rem;
+  min-width: 48px;
+  text-align: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+}
+
+.die-btn:hover { 
+  transform: translateY(-2px) scale(1.05); 
+  box-shadow: 0 12px 30px -8px rgba(139, 92, 246, 0.25); 
+  border-color: var(--accent); 
+  background: var(--gradient-primary);
+  color: #fff;
+}
+
+/* Enhanced sign-in button */
+.btn-signin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  background: var(--card-bg);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-signin:hover {
+  background: var(--gradient-primary);
+  color: #fff;
+  box-shadow: 0 10px 30px -8px rgba(139, 92, 246, 0.3);
+  transform: translateY(-2px);
+  border-color: transparent;
+}
+
+/* Enhanced operator buttons */
+.op-btn {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.op-btn:hover { 
+  background: var(--input-bg);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px -4px rgba(139, 92, 246, 0.1);
+}
+
+.op-btn.active { 
+  background: var(--gradient-primary); 
+  color: #fff; 
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px -4px rgba(139, 92, 246, 0.3);
+}
+
+.op-btn.active.danger { 
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); 
+  color: #fff; 
+  border-color: #ef4444;
+}
+
+.op-btn.active.success { 
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+  color: #fff; 
+  border-color: #10b981;
+}
+
+/* Enhanced spinner */
+.spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  border: 2.5px solid currentColor;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Enhanced file browse label */
+.file-browse-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  background: var(--gradient-primary);
+  color: #fff;
+  border: 1px solid rgba(0,0,0,0.1);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 6px 20px -6px rgba(139, 92, 246, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.file-browse-label:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -8px rgba(139, 92, 246, 0.4);
+}
+
+/* Enhanced checkbox styling */
+.form-checkbox {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--accent);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-checkbox:checked {
+  background: var(--gradient-primary);
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
+
+.form-checkbox:hover {
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+/* Enhanced textarea styling */
+.form-textarea {
+  display: block;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: var(--fg);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--input-focus);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.form-textarea:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 20px -4px rgba(139, 92, 246, 0.1);
+}
+
+/* Ensure native inputs follow theme */
+input, textarea, select, .form-input, .form-textarea {
+  color: var(--fg);
+}
+
+/* Enhanced table styling */
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-soft);
+}
+
+.styled-table thead tr th {
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  background: var(--input-bg);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.styled-table tbody tr td {
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  color: var(--fg);
+  border-top: 1px solid var(--card-border);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.styled-table tbody tr:hover td {
+  background: var(--input-bg);
+}
+
+/* Enhanced die type badge */
 .die-type-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--input-bg);
+  border-radius: 0.5rem;
+  border: 1px solid var(--card-border);
 }
+
 .die-type-badge .die-icon {
-  min-width: 36px;
-  min-height: 36px;
-  border-radius: 8px;
-  background: linear-gradient(180deg, rgba(79,70,229,0.06), rgba(139,92,246,0.03));
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 0.5rem;
+  background: var(--gradient-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
+  color: #fff;
+  box-shadow: 0 4px 15px -4px rgba(139, 92, 246, 0.3);
 }
 
-/* Hide native number input spinners for a clean cross-browser look */
-/* Chrome, Safari, Edge, Opera */
+/* Hide number input spinners */
 input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-/* Firefox */
+
 input[type=number] {
   appearance: textfield;
   -moz-appearance: textfield;
 }
 
-/* Custom number input wrapper with small steppers to the right */
-.number-input {
-  position: relative;
-}
-.number-input .number-stepper {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px; /* slightly narrower */
-  height: 12px; /* slightly shorter */
-  padding: 0;
-  border-radius: 4px;
-  background: transparent;
-  border: 1px solid var(--input-border);
-  color: inherit;
-  font-size: 9px;
-}
-.number-input .number-stepper + .number-stepper {
-  margin-top: 0; /* steppers nearly touching */
-}
-.number-input .stepper-wrap {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 0; /* remove gap so steppers visually touch */
-}
-
-.number-input .form-input {
-  padding-right: 36px; /* reduced to match narrower steppers */
-}
-
-/* Compact variant for table cells where inputs must be narrow */
-.form-input--compact {
-  max-width: 4rem; /* slimmer counters */
-  width: 100%;
-  text-align: center;
-  border: 1px solid rgba(0,0,0,0.06);
-  padding: 0.28rem 0.45rem;
-}
-
-/* Remove button variant: visible border and light red tone */
-.remove-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: transparent;
-  border: 1px solid rgba(239,68,68,0.18);
-  color: rgba(239,68,68,0.9);
-  transition: background-color 150ms, transform 120ms, color 150ms;
-}
-.remove-btn:hover {
-  background: rgba(239,68,68,0.06);
-  transform: translateY(-2px);
-}
-
-/* Button group for adding specific dice types */
-.dice-add-group {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
-  gap: 0.5rem;
-  align-items: center;
-}
-.dice-add-group .btn-ghost {
-  padding: 0.45rem 0.6rem;
-  font-size: 0.9rem;
-  width: 100%;
-}
-
-/* Die button: boxed appearance for quick-add die types */
-.die-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.45rem 0.6rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(0,0,0,0.06);
-  background: var(--bg);
-  color: var(--fg);
-  font-size: 0.9rem;
-  min-width: 44px;
-  text-align: center;
-}
-.die-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(79,70,229,0.18); border-color: var(--accent); border-width: 1.5px; }
-
-/* Sign-in button visual used in header and auth modal */
-.btn-signin {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.6rem 1rem;
-  border-radius: 0.5rem;
-  background: transparent;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  font-weight: 600;
-  transition: background-color 150ms, transform 120ms, color 150ms, box-shadow 150ms;
-}
-.btn-signin:hover {
-  background: linear-gradient(90deg, rgba(139,92,246,0.06), rgba(79,70,229,0.04));
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(79,70,229,0.12);
-  transform: translateY(-2px);
-}
-
-/* Small operator button used in tables for advantage/reroll operators */
-.op-btn {
-  padding: 0.35rem 0.5rem;
-  border-radius: 6px;
-  background: var(--input-bg);
-  border: 1px solid var(--input-border);
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-.op-btn:hover { background: rgba(0,0,0,0.02); }
-.op-btn.active { background: rgba(79,70,229,0.08); color: var(--accent-hover); border-color: rgba(79,70,229,0.12); }
-.op-btn.active.danger { background: rgba(239,68,68,0.08); color: #b91c1c; border-color: rgba(239,68,68,0.12); }
-/* Success variant used for advantage buttons (green instead of purple) */
-.op-btn.active.success { background: rgba(16,185,129,0.08); color: var(--success); border-color: rgba(16,185,129,0.12); }
-
-/* Spinner utility: adapts color via currentColor (parent should set text color) */
-.spinner {
-  width: 1rem;
-  height: 1rem;
-  border-radius: 9999px;
-  border: 2px solid currentColor;
-  border-top-color: transparent;
-}
-
-.file-browse-label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  background: linear-gradient(90deg, rgba(139,92,246,0.12), rgba(79,70,229,0.06));
-  color: var(--accent-hover);
-  border: 1px solid rgba(139,92,246,0.18);
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
-  box-shadow: 0 6px 12px rgba(79,70,229,0.06);
-}
-
-
-/* Checkbox styling */
-.form-checkbox {
-  width: 1rem;
-  height: 1rem;
-  border-radius: 0.25rem;
-  border: 1px solid var(--input-border);
-  background-color: transparent;
-  color: var(--accent);
-  transition: color 150ms, background-color 150ms, border-color 150ms;
-}
-.form-checkbox:checked {
-  background: linear-gradient(90deg, rgba(79,70,229,0.18), rgba(139,92,246,0.08));
-  border-color: rgba(79,70,229,0.28);
-}
-
-/* Textarea styling */
-.form-textarea {
-  display: block;
-  width: 100%;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(0,0,0,0.06);
-  background-color: #fff;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  /* Make textarea text follow the theme foreground explicitly */
-  color: var(--fg);
-  transition: background-color 200ms, color 200ms, border-color 200ms, box-shadow 200ms;
-}
-
-/* Ensure native inputs/selects/textarea follow theme foreground as a last resort
-   for elements that don't use the .form-input/.form-textarea classes. */
-input, textarea, select, .form-input, .form-textarea {
-  color: var(--fg);
-}
-
-.styled-table {
-  width: 100%;
-  border-collapse: collapse;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.06);
-}
-.styled-table thead tr th {
-  text-align: left;
-  font-size: 0.75rem; /* text-xs */
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-  background: #f8fafc;
-  padding: 0.875rem 1.25rem;
-}
-.styled-table tbody tr td {
-  padding: 0.875rem 1.25rem;
-  font-size: 0.875rem;
-  color: var(--fg);
-  border-top: 1px solid rgba(0,0,0,0.04);
-  transition: background-color 200ms, color 200ms, border-color 200ms;
-}
-
 /* Utilities */
 .section-divider {
-  border-top: 1px solid rgba(0,0,0,0.06);
-  margin: 2rem 0;
+  border-top: 1px solid var(--card-border);
+  margin: 3rem 0;
+  position: relative;
 }
 
-/* Animations */
+.section-divider::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2rem;
+  height: 2px;
+  background: var(--gradient-primary);
+  border-radius: 1px;
+}
+
+/* Enhanced animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  50% { transform: translateY(-8px); }
 }
 
-/*
-  Responsive fallbacks
-  These helper classes are small, defensive fallbacks in case Tailwind's
-  responsive utilities are not available (dev build issues, missing CSS
-  chunks, or during rapid local edits). They ensure the mobile dropdown
-  / desktop controls show/hide appropriately.
-*/
+@keyframes slideInFromLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInFromRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Responsive fallbacks */
 .mobile-only { display: none; }
 .desktop-only { display: flex; }
-/* Use the computed collapse threshold so mobile/desktop toggles match the
-   header collapse behavior. When viewport is narrower than the calculated
-   --collapse-threshold, show mobile controls and hide desktop controls. */
+
 @media (max-width: calc(var(--collapse-threshold) - 1px)) {
   .mobile-only { display: block !important; }
   .desktop-only { display: none !important; }
+}
+
+/* Enhanced scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--input-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted) var(--input-bg);
+}
+
+/* Enhanced focus styles for accessibility */
+.btn:focus-visible,
+.btn-primary:focus-visible,
+.btn-ghost:focus-visible,
+.btn-success:focus-visible,
+.btn-danger:focus-visible,
+.btn-signin:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.form-input:focus-visible,
+.form-textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+/* Enhanced mobile responsiveness */
+@media (max-width: 640px) {
+  .site-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .header-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .content-box {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+  }
+  
+  .card {
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+  }
+  
+  .tool-card {
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .btn,
+  .btn-primary,
+  .btn-ghost,
+  .btn-success,
+  .btn-danger,
+  .btn-signin {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+  
+  .card,
+  .tool-card {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
 }

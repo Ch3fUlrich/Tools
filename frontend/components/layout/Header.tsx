@@ -81,32 +81,48 @@ export default function Header() {
       window.removeEventListener('resize', compute);
     };
   }, []);
+
   return (
-    <header className="w-full bg-gradient-to-r from-purple-100/50 to-purple-200/50 dark:from-purple-900/50 dark:to-purple-800/50 backdrop-blur-sm text-gray-900 dark:text-white">
-  <div ref={siteRef} className="header-container flex items-center justify-between gap-4 py-0 h-11">
+    <header className="w-full bg-gradient-to-r from-purple-100/60 via-purple-50/60 to-pink-100/60 dark:from-purple-900/60 dark:via-purple-800/60 dark:to-pink-900/60 backdrop-blur-md border-b border-purple-200/40 dark:border-purple-700/40 animate-fade-in-down">
+      <div ref={siteRef} className="header-container flex items-center justify-between gap-4 py-0 h-14">
         <div ref={leftRef} className="flex items-center gap-4 flex-1 min-w-0">
-          <Link href="/" className="flex items-center gap-3 no-underline hover:shadow-sm transition-shadow h-full">
-            <div ref={brandRef} className="btn-brand" aria-hidden>
-              {/* Larger glyph so it nearly touches the box border; ensure perfect centering */}
+          <Link href="/" className="flex items-center gap-3 no-underline hover:shadow-lg transition-all duration-300 h-full group">
+            <div ref={brandRef} className="btn-brand group-hover:rotate-12 transition-transform duration-300" aria-hidden>
               <span className="inline-block text-2xl leading-none align-middle -tracking-tighter">🧰</span>
             </div>
           </Link>
 
           <nav ref={navRef} className="nav-responsive desktop-only flex-1 items-stretch gap-4 min-w-0 h-full">
-            <Link href="/tools/dice" className={`nav-item inline-flex items-center justify-center flex-1 h-full px-3 btn-nav text-sm no-underline`} aria-label="Dice">
-              <span className="nav-emoji">🎲</span>
+            <Link 
+              href="/tools/dice" 
+              className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`} 
+              aria-label="Dice"
+            >
+              <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🎲</span>
               <span className="nav-label truncate">Dice</span>
             </Link>
-            <Link href="/tools/fat-loss" className={`nav-item inline-flex items-center justify-center flex-1 h-full px-3 btn-nav text-sm no-underline`} aria-label="Fat">
-              <span className="nav-emoji">🏋️</span>
+            <Link 
+              href="/tools/fat-loss" 
+              className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`} 
+              aria-label="Fat"
+            >
+              <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🏋️</span>
               <span className="nav-label truncate">Fat</span>
             </Link>
-            <Link href="/tools/n26" className={`nav-item inline-flex items-center justify-center flex-1 h-full px-3 btn-nav text-sm no-underline`} aria-label="N26">
-              <span className="nav-emoji">🏦</span>
+            <Link 
+              href="/tools/n26" 
+              className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`} 
+              aria-label="N26"
+            >
+              <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🏦</span>
               <span className="nav-label truncate">N26</span>
             </Link>
-            <Link href="/tools/bloodlevel" className={`nav-item inline-flex items-center justify-center flex-1 h-full px-3 btn-nav text-sm no-underline`} aria-label="Blood Level">
-              <span className="nav-emoji">🧪</span>
+            <Link 
+              href="/tools/bloodlevel" 
+              className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`} 
+              aria-label="Blood Level"
+            >
+              <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🧪</span>
               <span className="nav-label truncate">Blood Level</span>
             </Link>
           </nav>
@@ -116,21 +132,57 @@ export default function Header() {
           {/* UserControls handles theme toggle and sign-in/profile swapping on the client */}
           <UserControls />
 
-          {/* mobile overflow: dropdown placeholder */}
+          {/* Enhanced mobile overflow: dropdown */}
           <div className="mobile-dropdown mobile-only">
             <details className="relative" open={false}>
               <summary
-                className="list-none px-2 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="list-none px-3 py-2 rounded-lg hover:bg-purple-100/50 dark:hover:bg-purple-800/50 transition-colors duration-200 cursor-pointer"
                 aria-haspopup="true"
               >
-                ☰
+                <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
               </summary>
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-100 dark:border-gray-700 p-2">
-                <Link href="/tools/dice" className={`btn-ghost block w-full text-left px-2 py-2 text-sm text-gray-700 dark:text-gray-300 no-underline`}>🎲 Dice</Link>
-                <Link href="/tools/fat-loss" className={`btn-ghost block w-full text-left px-2 py-2 text-sm text-gray-700 dark:text-gray-300 no-underline`}>🏋️ Fat Loss</Link>
-                <Link href="/tools/n26" className={`btn-ghost block w-full text-left px-2 py-2 text-sm text-gray-700 dark:text-gray-300 no-underline`}>🏦 N26</Link>
-                <Link href="/tools/bloodlevel" className={`btn-ghost block w-full text-left px-2 py-2 text-sm text-gray-700 dark:text-gray-300 no-underline`}>🧪 Blood Level</Link>
-                <Link href="/auth" className={`btn-ghost block w-full text-left px-2 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-md no-underline`}>Sign in</Link>
+              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-soft-lg border border-slate-200/60 dark:border-slate-700/60 p-2 animate-scale-in">
+                <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  Tools
+                </div>
+                <Link 
+                  href="/tools/dice" 
+                  className={`btn-ghost block w-full text-left px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 no-underline rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/50 transition-colors duration-200`}
+                >
+                  <span className="mr-3">🎲</span>
+                  Dice Roller
+                </Link>
+                <Link 
+                  href="/tools/fat-loss" 
+                  className={`btn-ghost block w-full text-left px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 no-underline rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/50 transition-colors duration-200`}
+                >
+                  <span className="mr-3">🏋️</span>
+                  Fat Loss Calculator
+                </Link>
+                <Link 
+                  href="/tools/n26" 
+                  className={`btn-ghost block w-full text-left px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 no-underline rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/50 transition-colors duration-200`}
+                >
+                  <span className="mr-3">🏦</span>
+                  N26 Transaction Analyzer
+                </Link>
+                <Link 
+                  href="/tools/bloodlevel" 
+                  className={`btn-ghost block w-full text-left px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 no-underline rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/50 transition-colors duration-200`}
+                >
+                  <span className="mr-3">🧪</span>
+                  Blood Level Calculator
+                </Link>
+                <div className="my-2 border-t border-slate-200 dark:border-slate-700"></div>
+                <Link 
+                  href="/auth" 
+                  className={`btn-ghost block w-full text-left px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 no-underline rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/50 transition-colors duration-200`}
+                >
+                  <span className="mr-3">🔐</span>
+                  Sign In
+                </Link>
               </div>
             </details>
           </div>

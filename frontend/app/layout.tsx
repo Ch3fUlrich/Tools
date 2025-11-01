@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="antialiased vsc-initialized text-gray-900 dark:text-white">
+      <body className="antialiased vsc-initialized text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900">
         <AuthProviderClient>
           <ThemeInitializer />
           <Header />

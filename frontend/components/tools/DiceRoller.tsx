@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import DiceIcon from '../icons/DiceIcon';
 import DieFaceIcon from '../icons/DieFaceIcon';
-// DieSelect removed per UX change: we show a compact die symbol instead of a dropdown
 import ModernCheckbox from '@/components/ui/ModernCheckbox';
 import Button from '@/components/ui/Button';
 import Counter from '@/components/ui/Counter';
@@ -33,15 +32,12 @@ type DiceConfig = {
   dieType: DieOption;
   sides: number;
   count: number;
-  // per-die local modifiers
   numericModifier?: number;
   advantage?: 'none' | 'adv' | 'dis';
   rerollEnabled?: boolean;
   rerollOperator?: '<'|'>'|'=';
   rerollValue?: number;
 };
-
-// DIE_FACES was removed — we now display a consistent die emoji in the dropdown labels (e.g. "🎲 D6 (6)").
 
 export const DiceRoller: React.FC = () => {
   const [diceConfigs, setDiceConfigs] = useState<DiceConfig[]>([
@@ -50,9 +46,7 @@ export const DiceRoller: React.FC = () => {
 
   const [history, setHistory] = useState<Array<{ time: string; summary?: { sum?: number }; details?: RollDetail[] }>>([]);
   const [lastResult, setLastResult] = useState<DiceResponse | null>(null);
-
   const [loading, setLoading] = useState(false);
-  // default to showing charts in test environment (tests expect charts to render)
   const [showCharts, setShowCharts] = useState(true);
 
 const onRoll = async () => {
@@ -61,7 +55,6 @@ const onRoll = async () => {
   try {
     setLoading(true);
     
-    // Make separate API calls for each dice configuration
     const rollPromises = diceConfigs.map(async (config) => {
       const payload = { 
         die: { 
@@ -69,26 +62,21 @@ const onRoll = async () => {
           sides: config.dieType === 'custom' ? config.sides : undefined 
         }, 
         count: config.count
-        // Add any other required payload fields here if needed by your API
       };
       
-  // Use shared API client helper so tests can mock this call
   return await rollDice(payload as DiceRequest);
     });
 
     const results = await Promise.all(rollPromises);
     
-    // Combine all results into a single response
     let combinedResult: DiceResponse = {
       rolls: results.flatMap(r => r.rolls),
       summary: { totalRollsRequested: results.length }
     };
 
-    // Apply local modifiers: per-config numeric modifiers and reroll rules
     combinedResult = {
       ...combinedResult,
       rolls: combinedResult.rolls.map((roll, _rollIndex) => {
-        // clone roll
         const cloned = JSON.parse(JSON.stringify(roll));
         let anyChanged = false;
         cloned.perDie = cloned.perDie.map((d: PerDie, idx: number) => {
@@ -97,7 +85,6 @@ const onRoll = async () => {
 
           const originalFinal = d.final;
 
-          // reroll logic: per-config
           if (cfg?.rerollEnabled && Number.isFinite(cfg.rerollValue || NaN)) {
             const rv = cfg.rerollValue as number;
             const cond = (val: number) => {
@@ -117,7 +104,6 @@ const onRoll = async () => {
             d.final = finalVal;
           }
 
-          // per-config numeric modifier based on advantage/disadvantage setting
           if (cfg && Number.isFinite(cfg.numericModifier || NaN) && cfg.advantage && cfg.advantage !== 'none') {
             const delta = cfg.advantage === 'adv' ? (cfg.numericModifier || 0) : -(cfg.numericModifier || 0);
             d.final = d.final + delta;
@@ -127,7 +113,6 @@ const onRoll = async () => {
           return d;
         });
 
-        // only recalc summary values if we modified any final values; otherwise keep API-provided summary
         if (anyChanged) {
           cloned.sum = cloned.perDie.reduce((s: number, pd: PerDie) => s + pd.final, 0);
           cloned.used = cloned.perDie.map((pd: PerDie) => pd.final);
@@ -145,13 +130,11 @@ const onRoll = async () => {
     setHistory(h => [entry, ...h]);
     setLastResult(combinedResult);
   } catch(err) {
-    /* eslint-disable-next-line no-console */
     console.error('roll error', err);
     alert('Roll failed: '+String(err));
   }
   finally { setLoading(false); }
 };
-
 
   const addDiceConfigWithType = (dieType: DieOption) => {
     const newId = Date.now().toString();
@@ -185,53 +168,60 @@ const onRoll = async () => {
   };
 
   return (
-  <div className="max-w-6xl mx-auto p-4 sm:p-6 text-gray-900 dark:text-white">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-4 mb-2">
-          <DiceIcon className="w-9 h-9 text-indigo-600" />
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+    <div className="p-6 lg:p-8 space-y-8">
+      {/* Enhanced Header */}
+      <div className="text-center animate-fade-in-up">
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-soft-lg">
+            <DiceIcon className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
             Dice Roller
           </h1>
         </div>
-        <p className="text-gray-600 dark:text-gray-400 text-lg">
+        <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto">
           Roll dice with advantage, disadvantage, and detailed statistics
         </p>
       </div>
 
-  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Controls Panel */}
-  <div className="xl:col-span-2">
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <div className="w-2 h-8 bg-indigo-500 rounded-full mr-3"></div>
-              Dice Configuration
-            </h2>
+        <div className="xl:col-span-2 space-y-6">
+          <div className="card animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-center mb-6">
+              <div className="w-1 h-8 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-full mr-4"></div>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+                Dice Configuration
+              </h2>
+            </div>
 
-            {/* Dice Configuration Table */}
+            {/* Enhanced Dice Configuration Table */}
             <div className="space-y-4">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[760px]">
+                <table className="w-full text-sm min-w-[800px] styled-table">
                   <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-600">
-                      <th className="text-left py-2 text-gray-700 dark:text-gray-300">Die Type</th>
-                      <th className="text-left py-2 text-gray-700 dark:text-gray-300">Count</th>
-                      <th className="text-left py-2 text-gray-700 dark:text-gray-300">Roll modifier</th>
-                      <th className="text-left py-2 text-gray-700 dark:text-gray-300">Reroll</th>
-                      <th className="text-left py-2 text-gray-700 dark:text-gray-300">Actions</th>
+                    <tr>
+                      <th className="text-left py-3 px-4">Die Type</th>
+                      <th className="text-left py-3 px-4">Count</th>
+                      <th className="text-left py-3 px-4">Roll modifier</th>
+                      <th className="text-left py-3 px-4">Reroll</th>
+                      <th className="text-left py-3 px-4">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {diceConfigs.map((config) => (
-                      <tr key={config.id} className="border-b border-gray-100 dark:border-gray-700">
-                        <td className="py-3">
-                          <div className="flex items-center gap-2">
-                            {/* Show a compact die symbol/label instead of a dropdown. Keep an sr-only label for screen readers. */}
-                            <div className="die-btn inline-flex items-center justify-center" aria-hidden="true">
-                              <span className="text-sm font-medium">{config.dieType.toUpperCase()}{config.dieType === 'custom' ? `(${config.sides})` : ''}</span>
+                      <tr key={config.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors duration-200">
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="die-btn inline-flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                              <span className="text-sm font-bold">{config.dieType.toUpperCase()}{config.dieType === 'custom' ? `(${config.sides})` : ''}</span>
                             </div>
-                            {/* Hidden select retained for accessibility/tests (visually offscreen but present as combobox) */}
-                            <select aria-label="Die type" value={config.dieType} onChange={(e) => updateDiceConfig(config.id, { dieType: e.target.value as DieOption })} style={{position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden'}}>
+                            <select 
+                              aria-label="Die type" 
+                              value={config.dieType} 
+                              onChange={(e) => updateDiceConfig(config.id, { dieType: e.target.value as DieOption })} 
+                              className="sr-only"
+                            >
                               <option value="d2">D2</option>
                               <option value="d3">D3</option>
                               <option value="d4">D4</option>
@@ -256,52 +246,84 @@ const onRoll = async () => {
                             )}
                           </div>
                         </td>
-                        <td className="py-3">
+                        <td className="py-4 px-4">
                           <Counter value={config.count} min={1} max={20} onChange={(v) => updateDiceConfig(config.id, { count: v })} />
                         </td>
-                        <td className="py-3">
+                        <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <div className="inline-flex items-center gap-2">
-                              <div className="inline-flex items-center gap-2">
-                                <button type="button" onClick={() => updateDiceConfig(config.id, { advantage: config.advantage === 'adv' ? 'none' : 'adv' })} className={`text-gray-900 dark:text-white op-btn ${config.advantage === 'adv' ? 'active success' : ''}`} aria-pressed={config.advantage === 'adv'}>
-                                  <span className="sr-only">Advantage</span>
-                                  Adv
-                                </button>
-                                <button type="button" onClick={() => updateDiceConfig(config.id, { advantage: config.advantage === 'dis' ? 'none' : 'dis' })} className={`text-gray-900 dark:text-white op-btn ${config.advantage === 'dis' ? 'active danger' : ''}`} aria-pressed={config.advantage === 'dis'}>
-                                  <span className="sr-only">Disadvantage</span>
-                                  Dis
-                                </button>
-                              </div>
-
-                              {config.advantage && config.advantage !== 'none' && (
-                                <NumberInput value={String(config.numericModifier ?? 0)} onChange={(v) => updateDiceConfig(config.id, { numericModifier: Number(v || 0) })} step={1} className="form-input--compact" />
-                              )}
+                            <div className="inline-flex items-center gap-1">
+                              <button 
+                                type="button" 
+                                onClick={() => updateDiceConfig(config.id, { advantage: config.advantage === 'adv' ? 'none' : 'adv' })} 
+                                className={`op-btn ${config.advantage === 'adv' ? 'active success' : ''}`} 
+                                aria-pressed={config.advantage === 'adv'}
+                              >
+                                <span className="sr-only">Advantage</span>
+                                Adv
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => updateDiceConfig(config.id, { advantage: config.advantage === 'dis' ? 'none' : 'dis' })} 
+                                className={`op-btn ${config.advantage === 'dis' ? 'active danger' : ''}`} 
+                                aria-pressed={config.advantage === 'dis'}
+                              >
+                                <span className="sr-only">Disadvantage</span>
+                                Dis
+                              </button>
                             </div>
+
+                            {config.advantage && config.advantage !== 'none' && (
+                              <NumberInput 
+                                value={String(config.numericModifier ?? 0)} 
+                                onChange={(v) => updateDiceConfig(config.id, { numericModifier: Number(v || 0) })} 
+                                step={1} 
+                                className="form-input--compact" 
+                              />
+                            )}
                           </div>
                         </td>
 
-                        <td className="py-3">
+                        <td className="py-4 px-4">
                           <div className="inline-flex items-center gap-2">
-                            <ModernCheckbox id={`reroll-${config.id}`} ariaLabel="Enabled" checked={!!config.rerollEnabled} onChange={(v) => updateDiceConfig(config.id, { rerollEnabled: v })} className="mr-2" />
+                            <ModernCheckbox 
+                              id={`reroll-${config.id}`} 
+                              ariaLabel="Enabled" 
+                              checked={!!config.rerollEnabled} 
+                              onChange={(v) => updateDiceConfig(config.id, { rerollEnabled: v })} 
+                            />
                             {config.rerollEnabled && (
                               <>
-                                <div className="inline-flex rounded-md overflow-hidden">
+                                <div className="inline-flex rounded-md overflow-hidden shadow-soft">
                                   {(['<','>','='] as ('<'|'>'|'=')[]).map((op) => (
-                                    <button key={op} type="button" onClick={() => updateDiceConfig(config.id, { rerollOperator: op })} className={`text-gray-900 dark:text-white op-btn ${config.rerollOperator === op ? 'active' : ''}`} aria-pressed={config.rerollOperator === op}>{op}</button>
+                                    <button 
+                                      key={op} 
+                                      type="button" 
+                                      onClick={() => updateDiceConfig(config.id, { rerollOperator: op })} 
+                                      className={`op-btn ${config.rerollOperator === op ? 'active' : ''}`} 
+                                      aria-pressed={config.rerollOperator === op}
+                                    >
+                                      {op}
+                                    </button>
                                   ))}
                                 </div>
-                                <NumberInput placeholder="value" value={String(config.rerollValue ?? 0)} onChange={(v) => updateDiceConfig(config.id, { rerollValue: Number(v || 0) })} step={1} className="form-input--compact" />
+                                <NumberInput 
+                                  placeholder="value" 
+                                  value={String(config.rerollValue ?? 0)} 
+                                  onChange={(v) => updateDiceConfig(config.id, { rerollValue: Number(v || 0) })} 
+                                  step={1} 
+                                  className="form-input--compact" 
+                                />
                               </>
                             )}
                           </div>
                         </td>
 
-                        <td className="py-3">
+                        <td className="py-4 px-4">
                           {diceConfigs.length > 1 && (
                             <button
                               type="button"
                               onClick={() => removeDiceConfig(config.id)}
-                              className="text-gray-900 dark:text-white remove-btn"
+                              className="remove-btn group-hover:scale-105 transition-transform duration-200"
                               aria-label={`Remove dice config ${config.id}`}
                             >
                               <span aria-hidden>✖</span>
@@ -315,33 +337,89 @@ const onRoll = async () => {
                 </table>
               </div>
 
-              <div className="dice-add-group mt-3 mb-3">
-                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d2')} aria-label="Add D2">D2</button>
-                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d3')} aria-label="Add D3">D3</button>
-                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d4')} aria-label="Add D4">D4</button>
-                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d6')} aria-label="Add D6">D6</button>
-                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d8')} aria-label="Add D8">D8</button>
-                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d10')} aria-label="Add D10">D10</button>
-                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d12')} aria-label="Add D12">D12</button>
-                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('d20')} aria-label="Add D20">D20</button>
-                <button type="button" className="text-gray-900 dark:text-white die-btn op-btn" onClick={() => addDiceConfigWithType('custom')} aria-label="Add Custom">Custom</button>
+              {/* Enhanced Quick Add Buttons */}
+              <div className="dice-add-group mt-6 mb-6">
+                <button 
+                  type="button" 
+                  className="die-btn" 
+                  onClick={() => addDiceConfigWithType('d2')} 
+                  aria-label="Add D2"
+                >D2</button>
+                <button 
+                  type="button" 
+                  className="die-btn" 
+                  onClick={() => addDiceConfigWithType('d3')} 
+                  aria-label="Add D3"
+                >D3</button>
+                <button 
+                  type="button" 
+                  className="die-btn" 
+                  onClick={() => addDiceConfigWithType('d4')} 
+                  aria-label="Add D4"
+                >D4</button>
+                <button 
+                  type="button" 
+                  className="die-btn" 
+                  onClick={() => addDiceConfigWithType('d6')} 
+                  aria-label="Add D6"
+                >D6</button>
+                <button 
+                  type="button" 
+                  className="die-btn" 
+                  onClick={() => addDiceConfigWithType('d8')} 
+                  aria-label="Add D8"
+                >D8</button>
+                <button 
+                  type="button" 
+                  className="die-btn" 
+                  onClick={() => addDiceConfigWithType('d10')} 
+                  aria-label="Add D10"
+                >D10</button>
+                <button 
+                  type="button" 
+                  className="die-btn" 
+                  onClick={() => addDiceConfigWithType('d12')} 
+                  aria-label="Add D12"
+                >D12</button>
+                <button 
+                  type="button" 
+                  className="die-btn" 
+                  onClick={() => addDiceConfigWithType('d20')} 
+                  aria-label="Add D20"
+                >D20</button>
+                <button 
+                  type="button" 
+                  className="die-btn" 
+                  onClick={() => addDiceConfigWithType('custom')} 
+                  aria-label="Add Custom"
+                >Custom</button>
               </div>
 
               {/* Charts Toggle */}
-              <div>
-                <ModernCheckbox ariaLabel="Show Charts" checked={showCharts} onChange={(v) => setShowCharts(v)} label={<span className="text-sm text-gray-700 dark:text-gray-300">Show Charts</span>} />
+              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                <ModernCheckbox 
+                  ariaLabel="Show Charts" 
+                  checked={showCharts} 
+                  onChange={(v) => setShowCharts(v)} 
+                  label={<span className="text-sm font-medium text-slate-700 dark:text-slate-300">Show Charts</span>} 
+                />
               </div>
 
-              {/* Roll Button */}
-              <Button variant="primary" onClick={onRoll} disabled={loading} className="mt-6 w-full text-base">
+              {/* Enhanced Roll Button */}
+              <Button 
+                variant="primary" 
+                onClick={onRoll} 
+                disabled={loading} 
+                className="w-full h-14 text-lg font-semibold shadow-soft-lg hover:shadow-soft-xl transition-all duration-300"
+              >
                 {loading ? (
                   <div className="flex items-center justify-center">
-                    <span className="spinner animate-spin mr-2 text-current" />
+                    <div className="spinner mr-3" />
                     Rolling...
                   </div>
                 ) : (
                   <div className="flex items-center justify-center">
-                    <DiceIcon className="w-9 h-9 mr-3" />
+                    <DiceIcon className="w-8 h-8 mr-3" />
                     Roll Dice
                   </div>
                 )}
@@ -351,92 +429,67 @@ const onRoll = async () => {
         </div>
 
         {/* Results Panel */}
-          <div className="xl:col-span-2 space-y-6">
+        <div className="xl:col-span-1 space-y-6">
           {lastResult ? (
-            <div className="card bg-white">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                <div className="w-2 h-8 bg-green-500 rounded-full mr-3"></div>
-                Latest Roll Results
-              </h2>
+            <div className="card animate-scale-in" style={{ animationDelay: '200ms' }}>
+              <div className="flex items-center mb-6">
+                <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full mr-4"></div>
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+                  Latest Roll
+                </h2>
+              </div>
 
               <div className="space-y-6">
+                {/* Enhanced Total Display */}
+                <div className="text-center p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl">
+                  <div className="text-4xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">
+                    {lastResult.rolls.reduce((total, roll) => total + roll.sum, 0)}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+                    Total Roll
+                  </div>
+                </div>
+
                 {lastResult.rolls.map((r, i) => (
-                  <div key={i} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-medium text-gray-900 dark:text-white">Roll {i+1}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{r.sum}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Total</div>
-                      </div>
-                    </div>
-
-                    {/* Dice Results Table */}
+                  <div key={i} className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-soft transition-shadow duration-200">
                     <div className="mb-4">
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-3">Dice Results</h4>
-                        <div className="overflow-x-auto">
-                        <table className="w-full text-sm border border-gray-200 dark:border-gray-600 rounded-lg min-w-[760px]">
-                          <thead>
-                            <tr className="bg-gray-50 dark:bg-gray-700">
-                              <th className="px-3 py-2 text-left text-gray-700 dark:text-gray-300">Die #</th>
-                              <th className="px-3 py-2 text-left text-gray-700 dark:text-gray-300">Type</th>
-                              <th className="px-3 py-2 text-left text-gray-700 dark:text-gray-300">Rolls</th>
-                              <th className="px-3 py-2 text-left text-gray-700 dark:text-gray-300">Final</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {r.perDie.map((d, idx) => (
-                              <tr key={idx} className="border-t border-gray-200 dark:border-gray-600">
-                                <td className="px-3 py-2 text-gray-900 dark:text-white">{idx + 1}</td>
-                                <td className="px-3 py-2 text-gray-600 dark:text-gray-400">
-                                  {diceConfigs.length > 0 ? (
-                                    <div className="flex items-center gap-3">
-                                      <DieFaceIcon sides={diceConfigs[Math.min(idx, diceConfigs.length - 1)].sides} className="die-icon" />
-                                      <span className="text-sm">
-                                        {diceConfigs[Math.min(idx, diceConfigs.length - 1)].dieType.toUpperCase()}{diceConfigs[Math.min(idx, diceConfigs.length - 1)].dieType === 'custom' ? `(${diceConfigs[Math.min(idx, diceConfigs.length - 1)].sides})` : ''}
-                                      </span>
-                                    </div>
-                                  ) : 'D6'}
-                                </td>
-                                <td className="px-3 py-2 text-gray-600 dark:text-gray-400">
-                                  {d.original.length > 1 ? d.original.join(' → ') : d.original[0]}
-                                </td>
-                                <td className="px-3 py-2 font-bold text-indigo-600 dark:text-indigo-400">{d.final}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-lg font-medium text-slate-900 dark:text-white">Roll {i+1}</span>
+                        <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{r.sum}</div>
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {/* Enhanced Dice Results */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {r.used.map((value, idx) => (
+                          <div key={idx} className="text-center p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                            <div className="text-lg font-bold text-slate-900 dark:text-white">{value}</div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                              {diceConfigs[Math.min(idx, diceConfigs.length - 1)]?.dieType.toUpperCase()}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
                       {/* Statistics */}
-                      <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white mb-3">Statistics</h4>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
-                            <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{r.average.toFixed(2)}</div>
-                            <div className="text-xs text-blue-800 dark:text-blue-200">Average</div>
-                          </div>
-                          <div className="bg-purple-50 dark:bg-purple-900/20 rounded p-3">
-                            <div className="text-lg font-bold text-purple-600 dark:text-purple-400">{Math.min(...r.used)} - {Math.max(...r.used)}</div>
-                            <div className="text-xs text-purple-800 dark:text-purple-200">Range</div>
-                          </div>
+                      <div className="mt-4 grid grid-cols-2 gap-3">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-center">
+                          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{r.average.toFixed(2)}</div>
+                          <div className="text-xs text-blue-800 dark:text-blue-200">Average</div>
+                        </div>
+                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 text-center">
+                          <div className="text-lg font-bold text-purple-600 dark:text-purple-400">{Math.min(...r.used)} - {Math.max(...r.used)}</div>
+                          <div className="text-xs text-purple-800 dark:text-purple-200">Range</div>
                         </div>
                       </div>
 
-                      {/* Charts - conditionally shown */}
+                      {/* Charts */}
                       {showCharts && (
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white mb-3">Charts</h4>
-                          <div className="space-y-2">
-                            <div className="h-16">
-                              <Boxplot values={r.used} className="w-full h-full" />
-                            </div>
-                            <div className="h-12">
-                              <Histogram values={r.used} className="w-full h-full" />
-                            </div>
+                        <div className="mt-4 space-y-3">
+                          <div className="h-16">
+                            <Boxplot values={r.used} className="w-full h-full" />
+                          </div>
+                          <div className="h-12">
+                            <Histogram values={r.used} className="w-full h-full" />
                           </div>
                         </div>
                       )}
@@ -446,19 +499,23 @@ const onRoll = async () => {
               </div>
             </div>
           ) : (
-            <div className="card bg-gray-50 dark:bg-gray-800 text-center">
-              <DiceIcon className="!w-9 !h-9 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Ready to Roll</h3>
-              <p className="text-gray-600 dark:text-gray-400">Configure your dice and click "Roll Dice" to get started!</p>
+            <div className="card text-center animate-fade-in-up">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 rounded-2xl mb-4">
+                <DiceIcon className="w-8 h-8 text-slate-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Ready to Roll</h3>
+              <p className="text-slate-600 dark:text-slate-400">Configure your dice and click "Roll Dice" to get started!</p>
             </div>
           )}
 
           {/* History */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <div className="w-2 h-8 bg-purple-500 rounded-full mr-3"></div>
-              Roll History
-            </h2>
+          <div className="card animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+            <div className="flex items-center mb-6">
+              <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-full mr-4"></div>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+                Roll History
+              </h2>
+            </div>
             <DiceHistory entries={history} />
           </div>
         </div>
