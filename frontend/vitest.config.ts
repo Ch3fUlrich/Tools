@@ -7,26 +7,43 @@ export default defineConfig({
       { find: '@', replacement: path.resolve(__dirname) },
     ],
   },
-  // Optimize Vite server for testing
   server: {
-    hmr: false, // Disable HMR for tests
+    hmr: false,
   },
   test: {
-    environment: 'node', // Use Node for speed, mock DOM APIs as needed
+    environment: 'happy-dom',
+    //environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
-    // Optimize worker count for Node environment
+        // Maximize CPU usage with threads pool and reasonable worker count
     pool: 'threads',
-    maxWorkers: 16, // Higher worker count works better with Node
+    maxWorkers: 16, // Reduced from 32 to prevent thread pool timeouts
+    // Run independent files in parallel, keep tests inside a file sequential
+    fileParallelism: true,
+    // Share VM context between files → no per-file startup overhead
+    isolate: false,
+    watch: false,
+    sequence: {
+      hooks: 'stack', // Faster hook execution
+      concurrent: false,
+    },
+    cache: {
+      dir: './node_modules/.vitest-cache',
+    },
+    reporters: ['default'],
+    // Global timeouts – fail-fast on hangs
+    testTimeout: 10_000,  // 10s per test
+    hookTimeout: 5_000,   // 5s per hook
+    // suiteTimeout: 60_000, // Uncomment if you have huge files
     coverage: {
+      enabled: true,
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      // include all key frontend source folders
       include: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}', 'lib/**/*.{ts,tsx}'],
-      // exclude test-only helpers and type-only files from coverage calculations
       exclude: ['lib/types/**', '**/*.testable.*'],
-      // Ensure coverage directory exists
       reportsDirectory: './coverage',
+      // Parallelize coverage post-processing
+      processingConcurrency: 32,
     },
   },
 });

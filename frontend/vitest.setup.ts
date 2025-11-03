@@ -1,51 +1,39 @@
-// Setup for vitest: provide a global fetch mock if needed
 import '@testing-library/jest-dom';
 
-// Mock DOM APIs for Node environment
-(globalThis as any).window = globalThis;
-// Create a proper classList mock
-const createClassList = () => {
-  const classes = new Set<string>();
-  return {
-    add: vi.fn((...classNames: string[]) => {
-      classNames.forEach(name => classes.add(name));
-    }),
-    remove: vi.fn((...classNames: string[]) => {
-      classNames.forEach(name => classes.delete(name));
-    }),
-    contains: vi.fn((className: string) => classes.has(className)),
-    toggle: vi.fn((className: string) => {
-      if (classes.has(className)) {
-        classes.delete(className);
-        return false;
-      } else {
-        classes.add(className);
-        return true;
-      }
-    }),
-  };
+import '@testing-library/jest-dom';
+
+// Add global types for jsdom environment
+declare global {
+  var Headers: typeof Headers;
+}
+
+// Mock ResizeObserver – jsdom implements it natively since v20+
+// Keep a lightweight mock for safety (e.g., older jsdom or edge cases)
+global.ResizeObserver = class ResizeObserver {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
 };
 
-(globalThis as any).document = {
-  documentElement: {
-    classList: createClassList(),
-    style: {},
-  },
-  createElement: vi.fn(() => ({
-    classList: createClassList(),
-    style: {},
+// Mock getComputedStyle for Header component
+Object.defineProperty(window, 'getComputedStyle', {
+  value: vi.fn(() => ({
+    gap: '16px',
+    columnGap: '16px',
+    // Add other common properties as needed
+    getPropertyValue: vi.fn((prop) => {
+      if (prop === 'gap') return '16px';
+      if (prop === 'column-gap') return '16px';
+      return '';
+    }),
   })),
-  body: {
-    classList: createClassList(),
-    style: {},
-  },
-};
+});
 
-// Create a proper localStorage mock
+// Proper localStorage/sessionStorage mocks (in-memory, spyable)
 const createStorage = () => {
   const store: Record<string, string> = {};
   return {
-    getItem: vi.fn((key: string) => store[key] || null),
+    getItem: vi.fn((key: string) => store[key] ?? null),
     setItem: vi.fn((key: string, value: string) => {
       store[key] = value;
     }),
@@ -53,20 +41,76 @@ const createStorage = () => {
       delete store[key];
     }),
     clear: vi.fn(() => {
-      Object.keys(store).forEach(key => delete store[key]);
+      for (const key in store) {
+        delete store[key];
+      }
     }),
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: vi.fn((index: number) => Object.keys(store)[index] ?? null),
   };
 };
 
-(globalThis as any).localStorage = createStorage();
-(globalThis as any).sessionStorage = createStorage();
+Object.defineProperty(globalThis, 'localStorage', { value: createStorage(), writable: true });
+Object.defineProperty(globalThis, 'sessionStorage', { value: createStorage(), writable: true });
 
-// Always mock global fetch in the test environment so tests can assert on
-// call arguments (for example some tests expect '/api/...' as the first arg).
-// This prevents Node's native fetch/undici from rejecting relative URLs.
-(globalThis as any).fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+// Global fetch mock – resolves relative URLs, spyable, default happy response
+globalThis.fetch = vi.fn().mockImplementation((url: string | URL | Request) => {
+  const urlString = typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
+  
+  // Mock responses based on URL patterns
+  if (urlString.includes('/api/tools/bloodlevel/substances')) {
+    return Promise.resolve({
+      ok: true,
+      json: async () => [
+        {
+          id: 'sub1',
+          name: 'Sub',
+          halfLifeHours: 24,
+          description: 'Test substance',
+          category: 'Test',
+          commonDosageMg: 10,
+          maxDailyDoseMg: 100,
+          eliminationRoute: 'liver',
+          bioavailabilityPercent: 80
+        }
+      ],
+      text: async () => JSON.stringify([
+        {
+          id: 'sub1',
+          name: 'Sub',
+          halfLifeHours: 24,
+          description: 'Test substance',
+          category: 'Test',
+          commonDosageMg: 10,
+          maxDailyDoseMg: 100,
+          eliminationRoute: 'liver',
+          bioavailabilityPercent: 80
+        }
+      ]),
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      redirected: false,
+      url: urlString,
+      clone: function () { return this; },
+    });
+  }
+  
+  // Default response for other URLs
+  return Promise.resolve({
+    ok: true,
+    json: async () => ({}),
+    text: async () => '',
+    status: 200,
+    statusText: 'OK',
+    headers: new Headers(),
+    redirected: false,
+    url: urlString,
+    clone: function () { return this; },
+  });
+});
 
-// Mock CSS imports to avoid PostCSS/Next global CSS errors when importing layout in tests.
-// This will return an empty object for any import ending with .css
-// Use the two-argument overload to avoid a typing error in the Next build.
-vi.mock('*.css', () => ({} as any));
+// Mock ALL CSS imports globally (plain .css, .module.css, .scss, etc.)
+// Returns empty object → no side-effects, no PostCSS/Next.js errors
