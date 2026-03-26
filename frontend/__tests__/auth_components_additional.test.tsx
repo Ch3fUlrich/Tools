@@ -117,9 +117,9 @@ describe('AuthModal and AuthContext', () => {
   });
 
   it('handles localStorage errors gracefully', async () => {
-    // Mock localStorage to throw errors
-    const originalSetItem = Storage.prototype.setItem;
-    Storage.prototype.setItem = vi.fn(() => {
+    // Make the custom localStorage mock throw on setItem
+    const originalImpl = localStorage.setItem;
+    localStorage.setItem.mockImplementationOnce(() => {
       throw new Error('Storage quota exceeded');
     });
 
@@ -148,7 +148,7 @@ describe('AuthModal and AuthContext', () => {
     expect(consoleWarnSpy).toHaveBeenCalledWith('Could not persist auth_user:', expect.any(Error));
 
     // Restore mocks
-    Storage.prototype.setItem = originalSetItem;
+    localStorage.setItem.mockImplementation(originalImpl);
     consoleWarnSpy.mockRestore();
   });
 

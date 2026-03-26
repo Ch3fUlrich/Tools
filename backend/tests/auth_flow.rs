@@ -107,6 +107,22 @@ async fn test_register_user_validation() {
         .await
         .expect("connect test db");
 
+    // Ensure schema exists (idempotent setup so this test can run in any order)
+    let _ = pool
+        .execute(
+            r#"
+        CREATE EXTENSION IF NOT EXISTS pgcrypto;
+        CREATE TABLE IF NOT EXISTS users (
+            id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+            email text UNIQUE NOT NULL,
+            password_hash text,
+            display_name text,
+            created_at timestamptz DEFAULT now()
+        );
+    "#,
+        )
+        .await;
+
     // Test invalid email (empty)
     let result = auth_tools::register_user(&pool, "", "password123", Some("Test")).await;
     assert!(result.is_err(), "Should reject empty email");

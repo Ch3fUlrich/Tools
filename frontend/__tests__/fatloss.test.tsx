@@ -19,7 +19,7 @@ import { TestWrapper } from '@/lib/test-utils';
 
 describe('FatLossCalculator', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
   });
 
   it('shows results on successful calculation', async () => {

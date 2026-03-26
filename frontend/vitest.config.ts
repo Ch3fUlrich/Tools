@@ -20,8 +20,8 @@ export default defineConfig({
     maxWorkers: 16, // Reduced from 32 to prevent thread pool timeouts
     // Run independent files in parallel, keep tests inside a file sequential
     fileParallelism: true,
-    // Share VM context between files → no per-file startup overhead
-    isolate: false,
+    // Isolate module registry per file to prevent mock pollution between tests
+    isolate: true,
     watch: false,
     sequence: {
       hooks: 'stack', // Faster hook execution

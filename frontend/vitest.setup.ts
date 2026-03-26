@@ -5,6 +5,14 @@ declare global {
   var Headers: typeof Headers;
 }
 
+// ✅ Mock alert/confirm/prompt (not defined in happy-dom/jsdom)
+if (typeof global.alert === 'undefined') {
+  global.alert = vi.fn();
+}
+if (typeof global.confirm === 'undefined') {
+  global.confirm = vi.fn(() => true);
+}
+
 // ✅ Conditionally mock ResizeObserver (for happy-dom safety)
 if (!global.ResizeObserver) {
   global.ResizeObserver = class ResizeObserver {

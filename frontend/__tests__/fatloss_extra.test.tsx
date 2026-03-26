@@ -14,7 +14,7 @@ import FatLossCalculator from '@/components/tools/FatLossCalculator';
 
 describe('FatLossCalculator extra flows', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
   });
 
   it('opens info tooltip and closes when clicking outside', async () => {
