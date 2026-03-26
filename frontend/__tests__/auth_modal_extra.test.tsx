@@ -8,7 +8,7 @@ describe('AuthModal extra behaviors', () => {
     const onClose = vi.fn();
     render(<AuthModal isOpen={true} onClose={onClose} />);
 
-    const overlay = document.querySelector('.fixed.inset-0.bg-gray-500');
+    const overlay = document.querySelector('.fixed.inset-0.backdrop-blur-sm');
     if (!overlay) throw new Error('overlay not found');
     fireEvent.click(overlay);
 

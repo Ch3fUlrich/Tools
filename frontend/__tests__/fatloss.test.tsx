@@ -5,7 +5,7 @@ import FatLossCalculator from '@/components/tools/FatLossCalculator';
 
 import { vi } from 'vitest';
 
-vi.mock('@/lib/api/client', async () => ({
+vi.mock('@/lib/api/client', () => ({
   calculateFatLoss: vi.fn(),
 }));
 

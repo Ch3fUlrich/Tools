@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
 // Mock the API client to focus on FatLossCalculator behavior
-vi.mock('@/lib/api/client', async () => ({
+vi.mock('@/lib/api/client', () => ({
   calculateFatLoss: vi.fn(),
 }));
 
