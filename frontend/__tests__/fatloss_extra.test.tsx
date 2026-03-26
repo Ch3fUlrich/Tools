@@ -3,12 +3,10 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
-// Mock the API client and the visualization component to focus on FatLossCalculator behavior
+// Mock the API client to focus on FatLossCalculator behavior
 vi.mock('@/lib/api/client', async () => ({
   calculateFatLoss: vi.fn(),
 }));
-
-vi.mock('@/components/tools/FatLossVisualization', () => ({ __esModule: true, default: () => <div>MockViz</div> }));
 
 import FatLossCalculator from '@/components/tools/FatLossCalculator';
 
@@ -63,7 +61,7 @@ describe('FatLossCalculator extra flows', () => {
     await waitFor(() => expect(screen.getByText(/Invalid calculation/i)).toBeInTheDocument());
   });
 
-  it('shows visualization component when result is valid', async () => {
+  it('shows results and correct summary when fat loss is between 50-70%', async () => {
     const { calculateFatLoss } = await import('@/lib/api/client');
     (calculateFatLoss as any).mockResolvedValueOnce({ fat_loss_percentage: 60, muscle_loss_percentage: 40, is_valid: true });
 
@@ -73,10 +71,9 @@ describe('FatLossCalculator extra flows', () => {
     fireEvent.change(screen.getByLabelText(/Weekly Weight Loss/i), { target: { value: '0.7' } });
     fireEvent.click(screen.getByRole('button', { name: /Calculate Composition/i }));
 
-    // Visualization is mocked to a simple div labeled MockViz
-    await waitFor(() => expect(screen.getByText('MockViz')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Body Composition Results/i)).toBeInTheDocument());
 
-    // Also check the summary branch for >50% fat_loss
+    // Verify the >50% fat_loss summary branch
     expect(screen.getByText(/Good progress! Focus on maintaining muscle mass/i)).toBeInTheDocument();
   });
 });
