@@ -1,6 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import { TestWrapper } from '@/lib/test-utils';
 
 // simple matchMedia mock
 function mockMatchMedia(matches = false) {
@@ -29,14 +30,14 @@ describe('ThemeToggle', () => {
   });
 
   it('renders the toggle button', () => {
-    render(<ThemeToggle />);
-    const btn = screen.getByRole('button', { name: /toggle color theme/i });
+    render(<TestWrapper>{null}</TestWrapper>);
+    const btn = screen.getByTestId('theme-toggle');
     expect(btn).toBeInTheDocument();
   });
 
   it('toggles theme and persists preference', () => {
-    render(<ThemeToggle />);
-    const btn = screen.getByRole('button', { name: /toggle color theme/i });
+    render(<TestWrapper>{null}</TestWrapper>);
+    const btn = screen.getByTestId('theme-toggle');
     // initial -> light by default in test
     fireEvent.click(btn);
     // after clicking we expect localStorage to have "dark" or "light"

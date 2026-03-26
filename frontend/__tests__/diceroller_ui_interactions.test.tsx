@@ -8,6 +8,7 @@ const mockRoll = vi.fn();
 vi.mock('@/lib/api/client', () => ({ rollDice: (...args: any[]) => mockRoll(...args) }));
 
 import DiceRoller from '@/components/tools/DiceRoller';
+import { TestWrapper } from '@/lib/test-utils';
 
 describe('DiceRoller UI interactions (additional coverage)', () => {
   beforeEach(() => {
@@ -15,7 +16,7 @@ describe('DiceRoller UI interactions (additional coverage)', () => {
   });
 
   it('adds and removes a dice configuration using add/remove controls', () => {
-    render(<DiceRoller />);
+    render(<TestWrapper><DiceRoller /></TestWrapper>);
 
   // initially there are no remove buttons (only one default config)
   expect(screen.queryAllByLabelText(/Remove dice config/i).length).toBe(0);
@@ -37,7 +38,7 @@ describe('DiceRoller UI interactions (additional coverage)', () => {
   });
 
   it('shows reroll controls when enabling reroll and allows operator/value interactions', () => {
-    render(<DiceRoller />);
+    render(<TestWrapper><DiceRoller /></TestWrapper>);
 
     // enable reroll for the first config via the checkbox with aria-label 'Enabled'
     const enabledCheckbox = screen.getByLabelText('Enabled');
@@ -57,7 +58,7 @@ describe('DiceRoller UI interactions (additional coverage)', () => {
     // mock a simple roll response
     mockRoll.mockResolvedValueOnce({ summary: { totalRollsRequested: 1 }, rolls: [ { sum: 4, average: 4, perDie: [{ original: [4], final: 4 }], used: [4] } ] });
 
-    render(<DiceRoller />);
+    render(<TestWrapper><DiceRoller /></TestWrapper>);
 
     // uncheck show charts
     const showCharts = screen.getByLabelText('Show Charts');

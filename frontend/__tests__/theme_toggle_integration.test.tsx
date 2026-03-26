@@ -4,12 +4,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import { applyTheme } from '@/lib/theme';
+import { TestWrapper } from '@/lib/test-utils';
 
 describe('ThemeToggle integration', () => {
   it('toggles document html class between light and dark', () => {
     // Ensure a known starting state
     applyTheme('light');
-  render(<ThemeToggle />);
+  render(<TestWrapper>{null}</TestWrapper>);
 
     const button = screen.getByRole('button', { name: /Toggle color theme/i });
     expect(document.documentElement.classList.contains('light')).toBe(true);

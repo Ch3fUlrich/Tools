@@ -8,6 +8,14 @@ vi.mock('@/lib/api/client', async () => ({
   rollDice: vi.fn(),
 }));
 
+// Mock AuthContext
+vi.mock('@/components/auth/AuthContext', () => ({
+  useAuth: () => ({ isAuthenticated: true, isLoading: false }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+}));
+
+import { TestWrapper } from '@/lib/test-utils';
+
 describe('DiceRoller', () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -27,7 +35,7 @@ describe('DiceRoller', () => {
       ],
     });
 
-    render(<DiceRoller />);
+    render(<TestWrapper><DiceRoller /></TestWrapper>);
 
     // The default configuration should work (1 d6)
     // Click roll button
@@ -44,7 +52,7 @@ describe('DiceRoller', () => {
     (rollDice as any).mockRejectedValueOnce(new Error('fail'));
     const alertSpy = vi.spyOn(global, 'alert').mockImplementation(() => {});
 
-    render(<DiceRoller />);
+    render(<TestWrapper><DiceRoller /></TestWrapper>);
 
     // Set count to 1
     const spinbuttons = screen.getAllByRole('spinbutton');

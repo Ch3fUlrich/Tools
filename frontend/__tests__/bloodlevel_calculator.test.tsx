@@ -16,6 +16,7 @@ vi.mock('@/lib/api/client', async () => {
 
 import * as api from '@/lib/api/client';
 import BloodLevelCalculator from '@/components/tools/BloodLevelCalculator';
+import { TestWrapper } from '@/lib/test-utils';
 
 describe('BloodLevelCalculator (consolidated)', () => {
   beforeEach(() => {
@@ -28,7 +29,7 @@ describe('BloodLevelCalculator (consolidated)', () => {
     ] as any);
     const calc = vi.spyOn(api, 'calculateTolerance').mockResolvedValue({ blood_levels: [{ time: new Date().toISOString(), substance: 'TestSub', amountMg: 2 }] } as any);
 
-  const { container } = render(<BloodLevelCalculator />);
+  const { container } = render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
 
   // wait for substance options to load
   await waitFor(() => expect(getSub).toHaveBeenCalled());
@@ -56,7 +57,7 @@ describe('BloodLevelCalculator (consolidated)', () => {
     const getSub = vi.spyOn(api, 'getToleranceSubstances').mockResolvedValueOnce([{ id: 's1', name: 'Sub', halfLifeHours: 2 }]);
     const calc = vi.spyOn(api, 'calculateTolerance').mockResolvedValueOnce({ blood_levels: [{ time: 't', substance: 'Sub', amountMg: 5 }] });
 
-    const { container: c1 } = render(<BloodLevelCalculator />);
+    const { container: c1 } = render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
 
     await waitFor(() => expect(within(c1).getByText('Sub')).toBeInTheDocument());
 
@@ -77,7 +78,7 @@ describe('BloodLevelCalculator (consolidated)', () => {
     (getSub as any).mockResolvedValueOnce([]);
     (calc as any).mockRejectedValueOnce(new Error('boom'));
 
-    const { container: c2 } = render(<BloodLevelCalculator />);
+    const { container: c2 } = render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
     const dosages2 = await within(c2).findAllByPlaceholderText('mg');
     const dosage2 = dosages2[0] as HTMLInputElement;
     fireEvent.change(dosage2, { target: { value: '1' } });
@@ -92,7 +93,7 @@ describe('BloodLevelCalculator (consolidated)', () => {
   (vi.spyOn(api, 'getToleranceSubstances') as any).mockResolvedValueOnce([]);
   (vi.spyOn(api, 'calculateTolerance') as any).mockResolvedValueOnce({ blood_levels: [] });
 
-  const { container } = render(<BloodLevelCalculator />);
+  const { container } = render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
 
   const addBtn = within(container).getByText(/\+ Add Intake/);
   const table = within(container).getByRole('table');

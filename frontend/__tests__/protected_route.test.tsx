@@ -4,12 +4,16 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));
 
 // Provide a mutable mock object for AuthContext's useAuth
 const authState = { isAuthenticated: false, isLoading: false } as any;
-vi.mock('@/components/auth/AuthContext', () => ({ useAuth: () => authState }));
+vi.mock('@/components/auth/AuthContext', () => ({
+  useAuth: () => authState,
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+}));
 
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { TestWrapper } from '@/lib/test-utils';
 
 describe('ProtectedRoute', () => {
   beforeEach(() => {
@@ -22,7 +26,7 @@ describe('ProtectedRoute', () => {
     authState.isAuthenticated = false;
     authState.isLoading = false;
 
-    render(<ProtectedRoute><div>Secret</div></ProtectedRoute>);
+    render(<TestWrapper><ProtectedRoute><div>Secret</div></ProtectedRoute></TestWrapper>);
 
     await waitFor(() => expect(mockPush).toHaveBeenCalled());
   });
@@ -31,7 +35,7 @@ describe('ProtectedRoute', () => {
     authState.isAuthenticated = true;
     authState.isLoading = false;
 
-    render(<ProtectedRoute><div>Secret</div></ProtectedRoute>);
+    render(<TestWrapper><ProtectedRoute><div>Secret</div></ProtectedRoute></TestWrapper>);
     expect(screen.getByText('Secret')).toBeInTheDocument();
   });
 });

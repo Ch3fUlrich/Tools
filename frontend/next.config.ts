@@ -8,14 +8,8 @@ const nextConfig: NextConfig = {
   // Turbopack can run without conflict. Set a turbopack.root to silence the
   // workspace-root inference warning when multiple lockfiles are present.
   turbopack: {
-    // Use an absolute path for the turbopack root to avoid any ambiguity
-    // about the package root when Next resolves the project path. This
-    // prevents Turbopack from inferring a distDir that navigates outside
-    // the intended projectPath (which triggers the "Invalid distDirRoot"
-    // panic).
-    // __dirname is the directory where this config file lives (the
-    // `frontend` package root when this file is evaluated by Next).
-    root: __dirname,
+    // Set root to workspace root to avoid inference issues
+    root: require('path').resolve(__dirname, '..'),
   },
 };
 

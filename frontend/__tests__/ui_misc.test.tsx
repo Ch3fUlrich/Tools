@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ThemeInitializer from '@/components/ThemeInitializer';
 import AdvantageIcon from '@/components/icons/AdvantageIcon';
 import DieSelect from '@/components/ui/DieSelect';
+import { TestWrapper } from '@/lib/test-utils';
 
 beforeEach(() => {
   // ensure clean DOM classes
@@ -52,7 +53,7 @@ describe('Icons and UI helpers', () => {
       { value: 'd20', label: 'D20', sides: 20 },
     ];
     const handleChange = vi.fn();
-    render(<DieSelect options={options} value="d6" onChange={handleChange} />);
+    render(<TestWrapper><DieSelect options={options} value="d6" onChange={handleChange} /></TestWrapper>);
 
   // button shows current label (use role+name to avoid matching hidden native option)
   const btn = screen.getByRole('button', { name: /D6/ });

@@ -9,8 +9,15 @@ vi.mock('../lib/api/client', () => ({
   calculateTolerance: vi.fn(),
 }));
 
+// Mock AuthContext
+vi.mock('../components/auth/AuthContext', () => ({
+  useAuth: () => ({ isAuthenticated: true, isLoading: false }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+}));
+
 import { getToleranceSubstances, calculateTolerance } from '../lib/api/client';
 import BloodLevelCalculator from '../components/tools/BloodLevelCalculator';
+import { TestWrapper } from '../lib/test-utils';
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -21,7 +28,7 @@ describe('ToleranceCalculator additional interactions', () => {
     (getToleranceSubstances as any).mockResolvedValueOnce([]);
     (calculateTolerance as any).mockResolvedValueOnce({ blood_levels: [] });
 
-  render(<BloodLevelCalculator />);
+  render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
 
     // Wait for initial render and find the Add Intake button
     const addBtn = screen.getByText('+ Add Intake');
@@ -54,7 +61,7 @@ describe('ToleranceCalculator additional interactions', () => {
     (getToleranceSubstances as any).mockRejectedValueOnce(new Error('nope'));
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-  render(<BloodLevelCalculator />);
+  render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
 
     // wait a tick for the effect to run
     await waitFor(() => expect(spy).toHaveBeenCalled());

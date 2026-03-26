@@ -127,7 +127,7 @@ export default function Home() {
                 <p className="text-slate-600 dark:text-slate-400">Try adjusting your search terms</p>
               </div>
             ) : (
-              filtered.map((tool, index) => (
+              filtered.map((tool, _index) => (
                 <Link
                   key={tool.href}
                   href={tool.href}

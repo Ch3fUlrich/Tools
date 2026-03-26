@@ -10,12 +10,13 @@ import { LoginForm } from '@/components/auth/LoginForm';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { AuthProvider, useAuth } from '@/components/auth/AuthContext';
 import * as apiClient from '@/lib/api/client';
+import { TestWrapper } from '@/lib/test-utils';
 
 describe('RegisterForm', () => {
   beforeEach(() => vi.resetAllMocks());
 
   it('shows validation error for mismatched passwords', async () => {
-    render(<RegisterForm />);
+    render(<TestWrapper><RegisterForm /></TestWrapper>);
     await userEvent.type(screen.getByLabelText('Email'), 'a@b.com');
     await userEvent.type(screen.getByLabelText('Password'), 'password1');
     await userEvent.type(screen.getByLabelText('Confirm Password'), 'password2');
@@ -24,7 +25,7 @@ describe('RegisterForm', () => {
   });
 
   it('shows validation error for short password', async () => {
-    render(<RegisterForm />);
+    render(<TestWrapper><RegisterForm /></TestWrapper>);
     await userEvent.type(screen.getByLabelText('Email'), 'a@b.com');
     await userEvent.type(screen.getByLabelText('Password'), 'short');
     await userEvent.type(screen.getByLabelText('Confirm Password'), 'short');
@@ -35,7 +36,7 @@ describe('RegisterForm', () => {
   it('calls registerUser on success', async () => {
     const spy = vi.spyOn(apiClient, 'registerUser').mockResolvedValue({ ok: true } as any);
     const onSuccess = vi.fn();
-    render(<RegisterForm onSuccess={onSuccess} />);
+    render(<TestWrapper><RegisterForm onSuccess={onSuccess} /></TestWrapper>);
     await userEvent.type(screen.getByLabelText('Email'), 'a@b.com');
     await userEvent.type(screen.getByLabelText('Password'), 'longpassword');
     await userEvent.type(screen.getByLabelText('Confirm Password'), 'longpassword');
@@ -52,7 +53,7 @@ describe('LoginForm', () => {
     const spy = vi.spyOn(apiClient, 'loginUser').mockResolvedValue({ ok: true } as any);
     const onSuccess = vi.fn();
     render(<LoginForm onSuccess={onSuccess} />);
-    await userEvent.type(screen.getByLabelText('Email'), 'a@b.com');
+    await userEvent.type(screen.getByLabelText('Email Address'), 'a@b.com');
     await userEvent.type(screen.getByLabelText('Password'), 'password');
     fireEvent.submit(screen.getByRole('button', { name: /Sign In/i }).closest('form')!);
     await waitFor(() => expect(spy).toHaveBeenCalled());
@@ -62,7 +63,7 @@ describe('LoginForm', () => {
   it('shows error when login fails', async () => {
     vi.spyOn(apiClient, 'loginUser').mockRejectedValue(new Error('bad creds'));
     render(<LoginForm />);
-    await userEvent.type(screen.getByLabelText('Email'), 'a@b.com');
+    await userEvent.type(screen.getByLabelText('Email Address'), 'a@b.com');
     await userEvent.type(screen.getByLabelText('Password'), 'password');
     fireEvent.submit(screen.getByRole('button', { name: /Sign In/i }).closest('form')!);
     expect(await screen.findByText(/bad creds/i)).toBeInTheDocument();
@@ -81,9 +82,6 @@ describe('AuthModal and AuthContext', () => {
   });
 
   it('AuthProvider login/logout persists to localStorage', async () => {
-    // Mock logoutUser to avoid API call
-    const logoutSpy = vi.spyOn(apiClient, 'logoutUser').mockResolvedValue({ ok: true } as any);
-
     // ensure no leftover auth state from other tests
     try {
       localStorage.clear();
