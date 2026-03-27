@@ -1,3 +1,4 @@
+use axum::extract::DefaultBodyLimit;
 use axum::http::StatusCode;
 use axum::{
     routing::{get, post, put},
@@ -41,6 +42,8 @@ pub fn build_app(
         .route("/api/auth/profile", put(crate::api::auth::update_profile))
         .route("/api/auth/oidc/start", get(crate::api::oidc::start))
         .route("/api/auth/oidc/callback", get(crate::api::oidc::callback))
+        // Limit request body to 1 MB to prevent abuse
+        .layer(DefaultBodyLimit::max(1024 * 1024))
         .layer(tower_http::cors::CorsLayer::new())
         .layer(axum::extract::Extension(shared_pool));
 

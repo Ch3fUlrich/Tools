@@ -29,14 +29,17 @@ The frontend uses **Next.js 16 App Router** with `output: 'export'` (fully stati
 RootLayout (app/layout.tsx)
 ├── AuthProviderClient        — auth context (user, login, logout)
 ├── ThemeInitializer          — applies saved theme before first paint
+├── Skip-to-content link      — accessibility (keyboard / screen reader)
 ├── Header                    — navigation, user controls, theme toggle
 ├── BackendBanner             — shows warning when API is unreachable
-└── <page>                    — one of:
-    └── ToolPage              — owns the <h1>, emoji, gradient, description
-        └── <ToolComponent>   — FatLossCalculator, DiceRoller, etc.
-            ├── CardSection   — titled section with colored bar
-            ├── ErrorAlert    — error display
-            └── ...           — tool-specific UI
+├── ErrorBoundary             — catches render errors, shows fallback UI
+├── <page>                    — one of:
+│   └── ToolPage              — owns the <h1>, emoji, gradient, description
+│       └── <ToolComponent>   — FatLossCalculator, DiceRoller, etc.
+│           ├── CardSection   — titled section with colored bar
+│           ├── ErrorAlert    — error display
+│           └── ...           — tool-specific UI
+└── Footer                    — shared footer with tech stack badges
 ```
 
 ### Key Architectural Rules
@@ -145,7 +148,7 @@ Tools/
 │   │   ├── auth/                      Auth context, login/register forms, user profile, protected routes
 │   │   ├── charts/                    Recharts wrappers — LineChart, Boxplot, Histogram
 │   │   ├── icons/                     SVG icon components (Dice, Die faces, Sun/Moon, etc.)
-│   │   ├── layout/                    Header, UserControls
+│   │   ├── layout/                    Header, Footer, UserControls
 │   │   ├── tools/
 │   │   │   ├── ToolPage.tsx           Page layout wrapper — owns the sole <h1>
 │   │   │   ├── DiceRoller.tsx         Dice roller with multi-config, modifiers, charts
@@ -159,6 +162,7 @@ Tools/
 │   │       ├── Card.tsx               Card container
 │   │       ├── CardSection.tsx        Section with gradient colored-bar heading
 │   │       ├── ErrorAlert.tsx         Styled error banner
+│   │       ├── ErrorBoundary.tsx     React error boundary (class component)
 │   │       ├── BackendBanner.tsx      Amber banner when backend is unreachable
 │   │       ├── Counter.tsx            +/– numeric counter
 │   │       ├── NumberInput.tsx        Validated numeric input

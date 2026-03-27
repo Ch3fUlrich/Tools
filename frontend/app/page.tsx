@@ -55,15 +55,15 @@ export default function Home() {
     },
   ];
 
-  const filtered = tools.filter(t => 
-    t.title.toLowerCase().includes(query.toLowerCase()) || 
+  const filtered = tools.filter(t =>
+    t.title.toLowerCase().includes(query.toLowerCase()) ||
     t.description.toLowerCase().includes(query.toLowerCase())
   );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Enhanced Header with backdrop blur */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-700/60">
+      {/* Hero section */}
+      <section className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-700/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           <div className="flex items-center justify-between">
             <div className="animate-fade-in-left">
@@ -81,9 +81,9 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </header>
+      </section>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         <div className="space-y-8">
           {/* Enhanced Search Bar */}
           <div className="animate-fade-in-up" style={{ animationDelay: '0ms' }}>
@@ -105,6 +105,7 @@ export default function Home() {
                 <button
                   onClick={() => setQuery('')}
                   className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                  aria-label="Clear search"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -114,7 +115,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Enhanced Tools Grid */}
+          {/* Tools Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
             {filtered.length === 0 ? (
               <div className="col-span-full text-center py-16 animate-fade-in-up">
@@ -127,36 +128,36 @@ export default function Home() {
                 <p className="text-slate-600 dark:text-slate-400">Try adjusting your search terms</p>
               </div>
             ) : (
-              filtered.map((tool, _index) => (
+              filtered.map((tool) => (
                 <Link
                   key={tool.href}
                   href={tool.href}
                   className={`group relative block p-6 lg:p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-soft hover:shadow-soft-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in-up border border-slate-200/60 dark:border-slate-700/60 overflow-hidden`}
-                  style={{ 
+                  style={{
                     animationDelay: isLoaded ? tool.animationDelay : '0ms',
                     animationFillMode: 'both'
                   }}
                 >
                   {/* Gradient overlay on hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${tool.bg} dark:${tool.darkBg} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-                  
+
                   {/* Content */}
                   <div className="relative z-10">
                     {/* Icon */}
                     <div className={`inline-flex items-center justify-center w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-gradient-to-br ${tool.bg} dark:${tool.darkBg} text-white mb-4 group-hover:scale-110 transition-transform duration-300`}>
                       <span className="text-2xl lg:text-3xl">{tool.emoji}</span>
                     </div>
-                    
+
                     {/* Title */}
                     <h3 className="text-lg lg:text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-accent dark:group-hover:text-accent transition-colors duration-300">
                       {tool.title}
                     </h3>
-                    
+
                     {/* Description */}
                     <p className="text-sm lg:text-base text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3">
                       {tool.description}
                     </p>
-                    
+
                     {/* Hover indicator */}
                     <div className="mt-4 flex items-center text-accent dark:text-accent text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
                       <span>Open tool</span>
@@ -165,7 +166,7 @@ export default function Home() {
                       </svg>
                     </div>
                   </div>
-                  
+
                   {/* Decorative corner accent */}
                   <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${tool.bg} dark:${tool.darkBg} opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-bl-full`} />
                 </Link>
@@ -179,7 +180,7 @@ export default function Home() {
               { label: `${tools.length} Tools`, detail: 'Growing collection', icon: '🛠️' },
               { label: 'Dark Mode', detail: 'Light & dark themes', icon: '🌙' },
               { label: 'Open Source', detail: 'MIT licensed', icon: '💻' },
-              { label: 'Privacy First', detail: 'No data stored', icon: '🔒' },
+              { label: 'Privacy First', detail: 'No tracking', icon: '🔒' },
             ].map((feat, index) => (
               <div
                 key={feat.label}
@@ -194,41 +195,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-
-      {/* Enhanced Footer */}
-      <footer className="bg-white dark:bg-slate-900 border-t border-slate-200/60 dark:border-slate-700/60 mt-16 lg:mt-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">About</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Open Source Tools Collection built with modern web technologies to make everyday tasks easier.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Technologies</h3>
-              <div className="flex flex-wrap gap-2">
-                {['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Rust'].map((tech) => (
-                  <span key={tech} className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-xs font-medium">
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Connect</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Contributing to open source, one tool at a time.
-              </p>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
-            <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-              © 2025 Tools Collection • Built with ❤️ using Next.js & Rust
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -276,6 +276,8 @@ Codecov token is optional — `fail_ci_if_error: false` is set so missing token 
 | `frontend/components/tools/ToolPage.tsx` | Single page layout + h1 header for all tools |
 | `frontend/components/ui/CardSection.tsx` | Reusable card with colored-bar heading |
 | `frontend/components/ui/ErrorAlert.tsx` | Reusable error display |
+| `frontend/components/ui/ErrorBoundary.tsx` | React error boundary (class component) |
+| `frontend/components/layout/Footer.tsx` | Shared footer component |
 | `frontend/components/ui/Button.tsx` | Typed button with variants |
 | `frontend/lib/animations.ts` | Reusable Tailwind animation class strings |
 | `frontend/vitest.setup.ts` | Global test setup — mocks fetch, storage, ResizeObserver |

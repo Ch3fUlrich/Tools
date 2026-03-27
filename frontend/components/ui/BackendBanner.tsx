@@ -15,6 +15,7 @@ export default function BackendBanner() {
     fetch(`${API_BASE_URL}/api/health`, { signal: controller.signal })
       .then((r) => { clearTimeout(timer); if (!r.ok) setOffline(true); })
       .catch(() => setOffline(true));
+    return () => { controller.abort(); clearTimeout(timer); };
   }, []);
 
   if (!offline || dismissed) return null;

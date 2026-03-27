@@ -94,7 +94,9 @@ async function buildConfig() {
     URLSearchParams: "readonly",
     URL: "readonly",
     Request: "readonly",
+    RequestInit: "readonly",
     Headers: "readonly",
+    CustomEvent: "readonly",
   };
 
   const testGlobals = {

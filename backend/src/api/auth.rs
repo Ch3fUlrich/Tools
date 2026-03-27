@@ -107,8 +107,12 @@ pub async fn login(
                     }
                 };
 
-                // set cookie
-                let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax; Secure");
+                // set cookie — only add Secure flag when not running on localhost
+                let secure_flag = match std::env::var("ALLOWED_ORIGINS") {
+                    Ok(origins) if origins.contains("localhost") || origins.contains("127.0.0.1") => "",
+                    _ => "; Secure",
+                };
+                let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax{secure_flag}");
                 let body = serde_json::to_string(&json!({"ok": true}))
                     .unwrap_or_else(|_| "{\"ok\":true}".to_string());
                 return Response::builder()

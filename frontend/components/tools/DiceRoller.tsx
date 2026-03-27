@@ -124,8 +124,8 @@ const onRoll = async () => {
   return await rollDice(payload as DiceRequest);
     });
 
-    const results = await Promise.all(rollPromises);
-    
+    const results = (await Promise.all(rollPromises)) as DiceResponse[];
+
     // Combine all results into a single response
     let combinedResult: DiceResponse = {
       rolls: results.flatMap(r => r.rolls),
