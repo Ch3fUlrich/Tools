@@ -1,5 +1,5 @@
-use tools_backend::session::SessionStore;
 use tools_backend::session::SessionData;
+use tools_backend::session::SessionStore;
 use uuid::Uuid;
 
 #[test]
