@@ -3,10 +3,11 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 
 import LineChart from '@/components/charts/LineChart';
+import { TestWrapper } from '@/lib/test-utils';
 
 describe('LineChart', () => {
   it('shows empty state when no data provided', () => {
-    render(<LineChart data={[]} />);
+    render(<TestWrapper><LineChart data={[]} /></TestWrapper>);
     expect(screen.getByText(/No data to display/i)).toBeInTheDocument();
   });
 
@@ -17,7 +18,7 @@ describe('LineChart', () => {
       { time: new Date(now.getTime() + 60 * 60 * 1000).toISOString(), value: 20 },
     ];
 
-    render(<LineChart data={data} title="Test Chart" width={300} height={100} />);
+    render(<TestWrapper><LineChart data={data} title="Test Chart" width={300} height={100} /></TestWrapper>);
 
     expect(screen.getByText(/Test Chart/i)).toBeInTheDocument();
     // ensure an svg exists

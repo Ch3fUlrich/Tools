@@ -1,72 +1,98 @@
-// Setup for vitest: provide a global fetch mock if needed
 import '@testing-library/jest-dom';
 
-// Mock DOM APIs for Node environment
-(globalThis as any).window = globalThis;
-// Create a proper classList mock
-const createClassList = () => {
-  const classes = new Set<string>();
-  return {
-    add: vi.fn((...classNames: string[]) => {
-      classNames.forEach(name => classes.add(name));
-    }),
-    remove: vi.fn((...classNames: string[]) => {
-      classNames.forEach(name => classes.delete(name));
-    }),
-    contains: vi.fn((className: string) => classes.has(className)),
-    toggle: vi.fn((className: string) => {
-      if (classes.has(className)) {
-        classes.delete(className);
-        return false;
-      } else {
-        classes.add(className);
-        return true;
-      }
-    }),
+// Add global types for jsdom/happy-dom environments
+declare global {
+  var Headers: typeof Headers;
+}
+
+// ✅ Mock alert/confirm/prompt (not defined in happy-dom/jsdom)
+if (typeof global.alert === 'undefined') {
+  global.alert = vi.fn();
+}
+if (typeof global.confirm === 'undefined') {
+  global.confirm = vi.fn(() => true);
+}
+
+// ✅ Conditionally mock ResizeObserver (for happy-dom safety)
+if (!global.ResizeObserver) {
+  global.ResizeObserver = class ResizeObserver {
+    observe = vi.fn();
+    unobserve = vi.fn();
+    disconnect = vi.fn();
   };
-};
+}
 
-(globalThis as any).document = {
-  documentElement: {
-    classList: createClassList(),
-    style: {},
-  },
-  createElement: vi.fn(() => ({
-    classList: createClassList(),
-    style: {},
+// ✅ Mock getComputedStyle for layout-dependent components
+Object.defineProperty(window, 'getComputedStyle', {
+  value: vi.fn(() => ({
+    gap: '16px',
+    columnGap: '16px',
+    getPropertyValue: vi.fn((prop) => {
+      if (prop === 'gap') return '16px';
+      if (prop === 'column-gap') return '16px';
+      return '';
+    }),
   })),
-  body: {
-    classList: createClassList(),
-    style: {},
-  },
-};
+});
 
-// Create a proper localStorage mock
+// ✅ In-memory, spyable storage mocks
 const createStorage = () => {
   const store: Record<string, string> = {};
   return {
-    getItem: vi.fn((key: string) => store[key] || null),
-    setItem: vi.fn((key: string, value: string) => {
-      store[key] = value;
-    }),
-    removeItem: vi.fn((key: string) => {
-      delete store[key];
-    }),
-    clear: vi.fn(() => {
-      Object.keys(store).forEach(key => delete store[key]);
-    }),
+    getItem: vi.fn((key: string) => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string) => { store[key] = value; }),
+    removeItem: vi.fn((key: string) => { delete store[key]; }),
+    clear: vi.fn(() => { for (const k in store) delete store[k]; }),
+    get length() { return Object.keys(store).length; },
+    key: vi.fn((index: number) => Object.keys(store)[index] ?? null),
   };
 };
 
-(globalThis as any).localStorage = createStorage();
-(globalThis as any).sessionStorage = createStorage();
+Object.defineProperty(globalThis, 'localStorage', { value: createStorage(), writable: true });
+Object.defineProperty(globalThis, 'sessionStorage', { value: createStorage(), writable: true });
 
-// Always mock global fetch in the test environment so tests can assert on
-// call arguments (for example some tests expect '/api/...' as the first arg).
-// This prevents Node's native fetch/undici from rejecting relative URLs.
-(globalThis as any).fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+// ✅ Fetch mock (custom responses)
+globalThis.fetch = vi.fn().mockImplementation((url: string | URL | Request) => {
+  const urlString = typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
 
-// Mock CSS imports to avoid PostCSS/Next global CSS errors when importing layout in tests.
-// This will return an empty object for any import ending with .css
-// Use the two-argument overload to avoid a typing error in the Next build.
-vi.mock('*.css', () => ({} as any));
+  if (urlString.includes('/api/tools/bloodlevel/substances')) {
+    const mockData = [{
+      id: 'sub1',
+      name: 'Sub',
+      halfLifeHours: 24,
+      description: 'Test substance',
+      category: 'Test',
+      commonDosageMg: 10,
+      maxDailyDoseMg: 100,
+      eliminationRoute: 'liver',
+      bioavailabilityPercent: 80,
+    }];
+    return Promise.resolve({
+      ok: true,
+      json: async () => mockData,
+      text: async () => JSON.stringify(mockData),
+      status: 200,
+      headers: new Headers({ 'content-type': 'application/json' }),
+      redirected: false,
+      url: urlString,
+      clone() { return this; },
+    });
+  }
+
+  return Promise.resolve({
+    ok: true,
+    json: async () => ({}),
+    text: async () => '',
+    status: 200,
+    headers: new Headers(),
+    redirected: false,
+    url: urlString,
+    clone() { return this; },
+  });
+});
+
+// ✅ Mock CSS imports
+vi.mock('*.css', () => ({}));
+vi.mock('*.scss', () => ({}));
+vi.mock('*.module.css', () => ({}));
+vi.mock('*.module.scss', () => ({}));

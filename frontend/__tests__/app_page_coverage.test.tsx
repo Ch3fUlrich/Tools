@@ -6,16 +6,14 @@ import { describe, test, expect, vi } from 'vitest';
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 import Home from '@/app/page';
-import { AuthProvider } from '@/components/auth';
-import Header from '@/components/layout/Header';
+import { TestWrapper } from '@/lib/test-utils';
 
 describe('app page coverage', () => {
   test('renders main heading and auth button when unauthenticated', () => {
     render(
-      <AuthProvider>
-        <Header />
+      <TestWrapper>
         <Home />
-      </AuthProvider>
+      </TestWrapper>
     );
 
     expect(screen.getByRole('heading', { name: /Tools Collection/i })).toBeInTheDocument();

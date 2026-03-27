@@ -2,6 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import DieSelect from '@/components/ui/DieSelect';
+import { TestWrapper } from '@/lib/test-utils';
 import { vi } from 'vitest';
 
 describe('DieSelect', () => {
@@ -12,7 +13,7 @@ describe('DieSelect', () => {
     ];
     const onChange = vi.fn();
 
-    render(<DieSelect options={options} value="d6" onChange={onChange} />);
+    render(<TestWrapper><DieSelect options={options} value="d6" onChange={onChange} /></TestWrapper>);
 
     const select = screen.getByRole('combobox');
     expect(select).toBeInTheDocument();

@@ -8,7 +8,7 @@ import DiceRoller from '@/components/tools/DiceRoller';
 describe('DiceRoller component', () => {
   test('renders title and Roll button', () => {
     render(<DiceRoller />);
-    expect(screen.getByText('Dice Roller')).toBeInTheDocument();
+    expect(screen.getByText('Dice Configuration')).toBeInTheDocument();
     // Use aria-label to uniquely identify the Roll button (avoids matching Reroll Low)
     expect(screen.getByText('Roll Dice')).toBeInTheDocument();
   });

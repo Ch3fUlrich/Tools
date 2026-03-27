@@ -6,7 +6,7 @@ vi.mock('next/navigation', () => ({
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { AuthProvider, useAuth } from '@/components/auth/AuthContext';
+import { useAuth } from '@/components/auth/AuthContext';
 import { UserProfile } from '@/components/auth/UserProfile';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LoginForm } from '@/components/auth/LoginForm';
@@ -17,12 +17,12 @@ vi.mock('@/lib/api/client', async () => {
     loginUser: vi.fn().mockResolvedValue({ ok: true, id: 'u1' }),
     startOIDCLogin: vi.fn(),
     logoutUser: vi.fn().mockResolvedValue({ ok: true }),
+    getUserProfile: vi.fn().mockResolvedValue({ id: '1', email: 'u@u.com', display_name: undefined, created_at: new Date().toISOString() }),
+    updateUserProfile: vi.fn().mockResolvedValue(undefined),
   };
 });
 
-function Wrapper({ children }: { children: React.ReactNode }) {
-  return <AuthProvider>{children}</AuthProvider>;
-}
+import { TestWrapper } from '@/lib/test-utils';
 
 describe('Auth components', () => {
   beforeEach(() => {
@@ -34,7 +34,10 @@ describe('Auth components', () => {
     } catch (_) {
       // Ignore if storage is unavailable in environment
     }
-    vi.resetAllMocks();
+    // clearAllMocks preserves mock implementations (mockResolvedValue etc.)
+    // while resetting call history — resetAllMocks would strip implementations
+    // and cause getUserProfile() to return undefined, crashing the UserProfile mount.
+    vi.clearAllMocks();
   });
 
   it('AuthProvider persists and restores user via localStorage', async () => {
@@ -49,9 +52,9 @@ describe('Auth components', () => {
     };
 
     const { unmount } = render(
-      <Wrapper>
+      <TestWrapper>
         <TestComp />
-      </Wrapper>
+      </TestWrapper>
     );
 
     fireEvent.click(screen.getByText('Login'));
@@ -61,9 +64,9 @@ describe('Auth components', () => {
     unmount();
 
     render(
-      <Wrapper>
+      <TestWrapper>
         <TestComp />
-      </Wrapper>
+      </TestWrapper>
     );
 
     await waitFor(() => expect(screen.getByTestId('email').textContent).toBe('a@b.com'));
@@ -74,9 +77,9 @@ describe('Auth components', () => {
     localStorage.setItem('auth_user', JSON.stringify({ id: '1', email: 'u@u.com', created_at: new Date().toISOString() }));
 
     render(
-      <Wrapper>
+      <TestWrapper>
         <UserProfile />
-      </Wrapper>
+      </TestWrapper>
     );
 
     expect(screen.getByText('u@u.com')).toBeInTheDocument();
@@ -88,11 +91,11 @@ describe('Auth components', () => {
   it('ProtectedRoute redirects when unauthenticated', async () => {
     // render ProtectedRoute while mocked push is in scope
     render(
-      <Wrapper>
+      <TestWrapper>
         <ProtectedRoute>
           <div>Protected</div>
         </ProtectedRoute>
-      </Wrapper>
+      </TestWrapper>
     );
 
     // wait for effect: shared push mock should be called
@@ -103,14 +106,14 @@ describe('Auth components', () => {
     const { loginUser, startOIDCLogin } = await import('@/lib/api/client');
 
     render(
-      <Wrapper>
-        <LoginForm />
-      </Wrapper>
+      <TestWrapper>
+        <LoginForm onSuccess={() => {}} onSwitchMode={() => {}} onClose={() => {}} />
+      </TestWrapper>
     );
 
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'a@b.com' } });
+    fireEvent.change(screen.getByLabelText('Email Address'), { target: { value: 'a@b.com' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'p' } });
-    fireEvent.click(screen.getByText('Sign In'));
+    fireEvent.click(screen.getByRole('button', { name: 'Sign In' }));
 
     await waitFor(() => expect(loginUser).toHaveBeenCalled());
 

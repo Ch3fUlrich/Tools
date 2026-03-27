@@ -4,32 +4,43 @@ on:
   workflow_run:
     workflows: ["CI"]
     types: [completed]
+    branches: [main]
 
 permissions:
   contents: write
   packages: write
+  issues: write
+  pull-requests: write
 
 jobs:
   semantic-release:
-    name: Run semantic-release
+    name: Create semantic release
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # Only release when CI passes on the main branch
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # Persist credentials so the release commit can be pushed
+          persist-credentials: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
-      - name: Install semantic-release
+      - name: Install semantic-release plugins
         run: |
-          npm install -g semantic-release @semantic-release/git @semantic-release/changelog @semantic-release/github || true
+          npm install --save-dev \
+            semantic-release \
+            @semantic-release/git \
+            @semantic-release/changelog \
+            @semantic-release/github
 
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx semantic-release --no-ci || true
+        run: npx semantic-release

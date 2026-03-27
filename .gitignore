@@ -49,3 +49,11 @@ next-env.d.ts
 
 # Old notebooks (archived)
 *.ipynb
+
+# Runtime logs
+*.log
+
+# Generated CI/build artifacts
+backend-deps.txt
+backend-metadata.json
+cargo-audit.json

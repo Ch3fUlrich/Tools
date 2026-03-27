@@ -1,0 +1,40 @@
+# Dependencies — never needed in build context
+node_modules
+frontend/node_modules
+**/node_modules
+
+# Rust build artifacts
+backend/target
+target
+
+# Next.js build output (rebuilt inside Docker)
+frontend/.next
+frontend/out
+
+# Test coverage
+frontend/coverage
+
+# Local environment files
+.env
+.env.local
+.env*.local
+**/.env.local
+
+# Git
+.git
+.gitignore
+
+# Docker files (avoid context loop)
+.dockerignore
+docker-compose*.yml
+docker/docker-compose*.yml
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

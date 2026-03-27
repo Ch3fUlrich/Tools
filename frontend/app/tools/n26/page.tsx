@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function N26Page() {
   return (
-    <ToolPage title="N26 Transaction Analyzer" description="Analyze your N26 bank transactions and get insights into your spending patterns.">
+    <ToolPage title="N26 Transaction Analyzer" description="Analyze your N26 bank transactions and get insights into your spending patterns." emoji="🏦" gradientFrom="from-blue-500" gradientTo="to-cyan-600">
       <N26Analyzer />
     </ToolPage>
   );

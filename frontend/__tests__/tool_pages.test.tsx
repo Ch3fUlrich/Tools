@@ -2,11 +2,12 @@ import { render, screen } from '@testing-library/react';
 import DicePage from '@/app/tools/dice/page';
 import FatLossPage from '@/app/tools/fat-loss/page';
 import N26Page from '@/app/tools/n26/page';
+import { TestWrapper } from '@/lib/test-utils';
 
 describe('Tool Pages', () => {
   describe('DicePage', () => {
     it('renders the dice roller page with correct title and description', () => {
-      render(<DicePage />);
+      render(<TestWrapper><DicePage /></TestWrapper>);
 
       // Check for the main h1 title (first one in the page layout)
       const headings = screen.getAllByRole('heading', { level: 1, name: 'Dice Roller' });
@@ -17,7 +18,7 @@ describe('Tool Pages', () => {
 
   describe('FatLossPage', () => {
     it('renders the fat loss calculator page with correct title and description', () => {
-      render(<FatLossPage />);
+      render(<TestWrapper><FatLossPage /></TestWrapper>);
 
       // Check for the main h1 title (first one in the page layout)
       const headings = screen.getAllByRole('heading', { level: 1, name: 'Fat Loss Calculator' });
@@ -28,7 +29,7 @@ describe('Tool Pages', () => {
 
   describe('N26Page', () => {
     it('renders the N26 analyzer page with correct title and description', () => {
-      render(<N26Page />);
+      render(<TestWrapper><N26Page /></TestWrapper>);
 
       // Check for the main h1 title
       expect(screen.getByRole('heading', { level: 1, name: 'N26 Transaction Analyzer' })).toBeInTheDocument();

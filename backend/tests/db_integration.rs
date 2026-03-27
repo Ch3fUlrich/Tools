@@ -49,6 +49,7 @@ async fn test_postgres_and_redis_integration() {
         r#"CREATE TABLE IF NOT EXISTS dice_rolls (
             id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
             user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+            session_id text NULL,
             payload jsonb NOT NULL,
             created_at timestamptz NOT NULL DEFAULT now()
         );"#,

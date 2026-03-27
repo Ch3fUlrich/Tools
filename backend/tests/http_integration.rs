@@ -21,7 +21,7 @@ async fn test_http_endpoints() {
         .execute(&pool)
         .await;
     let _ = sqlx::query("CREATE TABLE IF NOT EXISTS users (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), email TEXT UNIQUE NOT NULL);").execute(&pool).await;
-    let _ = sqlx::query("CREATE TABLE IF NOT EXISTS dice_rolls (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid REFERENCES users(id) ON DELETE SET NULL, payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now());").execute(&pool).await;
+    let _ = sqlx::query("CREATE TABLE IF NOT EXISTS dice_rolls (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid REFERENCES users(id) ON DELETE SET NULL, session_id text NULL, payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now());").execute(&pool).await;
 
     let pool = Arc::new(pool);
 

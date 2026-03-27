@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { logoutUser } from '@/lib/api/client';
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { logoutUser, getUserProfile } from '@/lib/api/client';
 
 interface User {
   id: string;
@@ -47,6 +47,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const clearUser = useCallback(() => {
+    setUser(null);
+    try {
+      localStorage.removeItem('auth_user');
+      sessionStorage.removeItem('auth_user');
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_) {
+      // ignore
+    }
+  }, []);
+
   const logout = async () => {
     try {
       await logoutUser();
@@ -54,39 +65,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
       /* eslint-disable-next-line no-console */
       console.error('Logout error:', error);
     } finally {
-      setUser(null);
-      try {
-        localStorage.removeItem('auth_user');
-        sessionStorage.removeItem('auth_user');
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (_) {
-        // ignore
-      }
+      clearUser();
     }
   };
 
   const refreshAuth = async () => {
-    // This would typically make an API call to verify the current session
-    // For now, we'll just check localStorage
     try {
       // Prefer sessionStorage (session-limited). If not present, fall back to localStorage.
       const s = sessionStorage.getItem('auth_user');
       const l = localStorage.getItem('auth_user');
       const stored = s ?? l;
+
       if (stored) {
         const userData = JSON.parse(stored);
         setUser(userData);
+
+        // Validate the session against the backend (best-effort).
+        // If the backend rejects (401), clear the stale local data.
+        try {
+          const profile = await getUserProfile();
+          if (profile?.id) {
+            // Update with authoritative backend data
+            const verified: User = {
+              id: profile.id,
+              email: profile.email,
+              created_at: profile.created_at,
+            };
+            setUser(verified);
+            // Re-persist the verified data
+            if (s) sessionStorage.setItem('auth_user', JSON.stringify(verified));
+            if (l) localStorage.setItem('auth_user', JSON.stringify(verified));
+          }
+        } catch {
+          // Backend unreachable or session invalid — keep showing stored user
+          // but don't clear it (the backend may just be offline in static mode)
+        }
       }
     } catch (error) {
       /* eslint-disable-next-line no-console */
       console.error('Error refreshing auth:', error);
-      try {
-        localStorage.removeItem('auth_user');
-        sessionStorage.removeItem('auth_user');
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (_) {
-        // ignore
-      }
+      clearUser();
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +112,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     refreshAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Listen for 401 events from the API client to auto-clear stale sessions
+  useEffect(() => {
+    const handleSessionExpired = () => clearUser();
+    window.addEventListener('auth:session-expired', handleSessionExpired);
+    return () => window.removeEventListener('auth:session-expired', handleSessionExpired);
+  }, [clearUser]);
 
   const value: AuthContextType = {
     user,

@@ -5,13 +5,19 @@ import FatLossCalculator from '@/components/tools/FatLossCalculator';
 
 import { vi } from 'vitest';
 
-vi.mock('@/lib/api/client', async () => ({
+vi.mock('@/lib/api/client', () => ({
   calculateFatLoss: vi.fn(),
+}));
+
+// Mock visualization to avoid expensive 960-point SVG render in CI
+vi.mock('@/components/tools/FatLossVisualization', () => ({
+  default: () => null,
+  FatLossVisualization: () => null,
 }));
 
 describe('FatLossCalculator', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
   });
 
   it('shows results on successful calculation', async () => {
@@ -20,14 +26,18 @@ describe('FatLossCalculator', () => {
 
     render(<FatLossCalculator />);
 
-  fireEvent.change(screen.getByLabelText(/Daily Calorie Deficit/i), { target: { value: '3500' } });
-  fireEvent.change(screen.getByLabelText(/Weekly Weight Loss/i), { target: { value: '1' } });
-  fireEvent.click(screen.getByRole('button', { name: /Calculate Composition/i }));
+    fireEvent.change(screen.getByLabelText(/Daily Calorie Deficit/i), { target: { value: '3500' } });
+    fireEvent.change(screen.getByLabelText(/Weekly Weight Loss/i), { target: { value: '1' } });
+    const form = screen.getByRole('button', { name: /Calculate Composition/i }).closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
 
-  await waitFor(() => expect(screen.getByText(/Body Composition Results/)).toBeInTheDocument());
-  // Check that the fat loss percentage appears in the results (should be unique in context)
-  const resultsSection = screen.getByText(/Body Composition Results/).parentElement;
-  expect(resultsSection).toHaveTextContent('80.0%');
+    await waitFor(() => expect(calculateFatLoss).toHaveBeenCalledWith({
+      kcal_deficit: 3500,
+      weight_loss_kg: 1,
+    }));
+
+    await waitFor(() => expect(screen.getByText(/Body Composition Results/)).toBeInTheDocument(), { timeout: 5000 });
+    expect(screen.getByText('80.0%')).toBeInTheDocument();
   });
 
   it('shows error message when calculation fails', async () => {
@@ -36,10 +46,11 @@ describe('FatLossCalculator', () => {
 
     render(<FatLossCalculator />);
 
-  fireEvent.change(screen.getByLabelText(/Daily Calorie Deficit/i), { target: { value: '0' } });
-  fireEvent.change(screen.getByLabelText(/Weekly Weight Loss/i), { target: { value: '0' } });
-  fireEvent.click(screen.getByRole('button', { name: /Calculate Composition/i }));
+    fireEvent.change(screen.getByLabelText(/Daily Calorie Deficit/i), { target: { value: '0' } });
+    fireEvent.change(screen.getByLabelText(/Weekly Weight Loss/i), { target: { value: '0' } });
+    const form = screen.getByRole('button', { name: /Calculate Composition/i }).closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
 
-  await waitFor(() => expect(screen.getByText(/server error/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/server error/)).toBeInTheDocument());
   });
 });

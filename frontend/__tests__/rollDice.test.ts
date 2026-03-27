@@ -29,6 +29,6 @@ describe('rollDice', () => {
 
   it('throws on non-ok response', async () => {
     (globalThis as any).fetch.mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'error' });
-    await expect(rollDice({ die: { type: 'd6' }, count: 1 } as any)).rejects.toThrow('Roll API error: 500');
+    await expect(rollDice({ die: { type: 'd6' }, count: 1 } as any)).rejects.toThrow(/Roll API error.*500/);
   });
 });

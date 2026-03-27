@@ -357,7 +357,12 @@ pub async fn callback(
         // Create session
         match guard.create_session(uid, 60 * 60 * 24).await {
             Ok(sid) => {
-                let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax; Secure");
+                // Only add Secure flag when not running on localhost
+                let secure_flag = match std::env::var("ALLOWED_ORIGINS") {
+                    Ok(origins) if origins.contains("localhost") || origins.contains("127.0.0.1") => "",
+                    _ => "; Secure",
+                };
+                let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax{secure_flag}");
                 // Redirect to frontend (if configured) with cookie set
                 let frontend = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "/".to_string());
                 let http_resp = axum::http::Response::builder()

@@ -6,6 +6,14 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import N26Analyzer from '@/components/tools/N26Analyzer';
 
+// Mock AuthContext
+vi.mock('@/components/auth/AuthContext', () => ({
+  useAuth: () => ({ isAuthenticated: true, isLoading: false }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+}));
+
+import { TestWrapper } from '@/lib/test-utils';
+
 describe('N26Analyzer', () => {
   beforeEach(() => {
   vi.resetAllMocks();
@@ -17,7 +25,7 @@ describe('N26Analyzer', () => {
   // spy on the client function used by the component so we intercept the real import
   const spy = vi.spyOn(apiClient, 'analyzeN26Data').mockResolvedValueOnce({ overall_total: 123.45, category_totals: {}, transactions: [] }) as unknown as Mock;
 
-  const { container } = render(<N26Analyzer />);
+  const { container } = render(<TestWrapper><N26Analyzer /></TestWrapper>);
 
   const file = new File([JSON.stringify({ transactions: [] })], 'n26.json', { type: 'application/json' });
   // attach a text() implementation directly to the File instance
@@ -76,7 +84,7 @@ describe('N26Analyzer', () => {
 
     const spy = vi.spyOn(apiClient, 'analyzeN26Data').mockResolvedValueOnce(mockResult);
 
-    const { container } = render(<N26Analyzer />);
+    const { container } = render(<TestWrapper><N26Analyzer /></TestWrapper>);
 
     const file = new File([JSON.stringify({ transactions: [] })], 'n26.json', { type: 'application/json' });
     (file as any).text = async () => JSON.stringify({ transactions: [] });
@@ -113,7 +121,7 @@ describe('N26Analyzer', () => {
 
   it('shows error when uploading invalid (non-JSON) file', async () => {
     const user = userEvent.setup();
-  const { container } = render(<N26Analyzer />);
+  const { container } = render(<TestWrapper><N26Analyzer /></TestWrapper>);
 
   // upload a file with .json extension but invalid content to bypass the input accept filter
   const badFile = new File(['not a json'], 'invalid.json', { type: 'application/json' });

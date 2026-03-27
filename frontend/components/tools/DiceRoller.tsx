@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DiceIcon from '../icons/DiceIcon';
 import DieFaceIcon from '../icons/DieFaceIcon';
 // DieSelect removed per UX change: we show a compact die symbol instead of a dropdown
@@ -8,11 +8,31 @@ import ModernCheckbox from '@/components/ui/ModernCheckbox';
 import Button from '@/components/ui/Button';
 import Counter from '@/components/ui/Counter';
 import NumberInput from '@/components/ui/NumberInput';
-import { rollDice } from '../../lib/api/client';
+import { rollDice, saveDiceRoll, getDiceHistory } from '../../lib/api/client';
 import DiceHistory from './DiceHistory';
 import Boxplot from '../charts/Boxplot';
 import Histogram from '../charts/Histogram';
 import type { DiceResponse, DiceRequest } from '../../lib/types/dice';
+
+const LS_HISTORY_KEY = 'dice_history_local';
+
+function loadLocalHistory(): Array<{ time: string; summary?: { sum?: number }; details?: unknown[] }> {
+  if (typeof window === 'undefined') return [];
+  try {
+    return JSON.parse(localStorage.getItem(LS_HISTORY_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalHistory(entries: Array<{ time: string; summary?: { sum?: number }; details?: unknown[] }>) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(entries.slice(0, 50)));
+  } catch {
+    // storage full or unavailable — ignore
+  }
+}
 
 type PerDie = {
   original: number[];
@@ -50,10 +70,38 @@ export const DiceRoller: React.FC = () => {
 
   const [history, setHistory] = useState<Array<{ time: string; summary?: { sum?: number }; details?: RollDetail[] }>>([]);
   const [lastResult, setLastResult] = useState<DiceResponse | null>(null);
+  const [historySource, setHistorySource] = useState<'local' | 'server'>('local');
 
   const [loading, setLoading] = useState(false);
   // default to showing charts in test environment (tests expect charts to render)
   const [showCharts, setShowCharts] = useState(true);
+
+  // Load history: prefer backend, fall back to localStorage.
+  // Wrapped in Promise.resolve().then() so that an unmocked / undefined
+  // getDiceHistory (e.g. in tests that only mock rollDice) is caught safely.
+  useEffect(() => {
+    const local = loadLocalHistory();
+    if (local.length > 0) setHistory(local as Array<{ time: string; summary?: { sum?: number }; details?: RollDetail[] }>);
+
+    Promise.resolve()
+      .then(() => getDiceHistory())
+      .then((entries) => {
+        if (entries && entries.length > 0) {
+          const mapped = entries.map((e) => ({
+            time: new Date(e.created_at).toLocaleTimeString(),
+            summary: typeof e.payload === 'object' && e.payload !== null && 'sum' in e.payload
+              ? { sum: (e.payload as { sum?: number }).sum }
+              : undefined,
+            details: undefined,
+          }));
+          setHistory(mapped);
+          setHistorySource('server');
+        }
+      })
+      .catch(() => {
+        // Backend unavailable or not mocked — keep localStorage history
+      });
+  }, []);
 
 const onRoll = async () => {
   if (diceConfigs.length === 0) return;
@@ -76,8 +124,8 @@ const onRoll = async () => {
   return await rollDice(payload as DiceRequest);
     });
 
-    const results = await Promise.all(rollPromises);
-    
+    const results = (await Promise.all(rollPromises)) as DiceResponse[];
+
     // Combine all results into a single response
     let combinedResult: DiceResponse = {
       rolls: results.flatMap(r => r.rolls),
@@ -137,13 +185,19 @@ const onRoll = async () => {
       })
     };
 
-    const entry = { 
-      time: new Date().toLocaleTimeString(), 
-      summary: { sum: combinedResult.rolls.reduce((total, roll) => total + roll.sum, 0) }, 
-      details: combinedResult.rolls as RollDetail[] 
+    const entry = {
+      time: new Date().toLocaleTimeString(),
+      summary: { sum: combinedResult.rolls.reduce((total, roll) => total + roll.sum, 0) },
+      details: combinedResult.rolls as RollDetail[]
     };
-    setHistory(h => [entry, ...h]);
+    setHistory(h => {
+      const updated = [entry, ...h];
+      if (historySource === 'local') saveLocalHistory(updated);
+      return updated;
+    });
     setLastResult(combinedResult);
+    // Best-effort save to backend — fire and forget; never throws to caller.
+    Promise.resolve().then(() => saveDiceRoll({ sum: entry.summary.sum, time: entry.time })).catch(() => {});
   } catch(err) {
     /* eslint-disable-next-line no-console */
     console.error('roll error', err);
@@ -185,26 +239,13 @@ const onRoll = async () => {
   };
 
   return (
-  <div className="max-w-6xl mx-auto p-4 sm:p-6 text-gray-900 dark:text-white">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-4 mb-2">
-          <DiceIcon className="w-9 h-9 text-indigo-600" />
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-            Dice Roller
-          </h1>
-        </div>
-        <p className="text-gray-600 dark:text-gray-400 text-lg">
-          Roll dice with advantage, disadvantage, and detailed statistics
-        </p>
-      </div>
-
+  <div className="p-6 lg:p-8 space-y-8">
   <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Controls Panel */}
   <div className="xl:col-span-2">
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <div className="w-2 h-8 bg-indigo-500 rounded-full mr-3"></div>
+          <div className="card animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center">
+              <div className="w-1 h-8 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-full mr-4"></div>
               Dice Configuration
             </h2>
 
@@ -213,17 +254,17 @@ const onRoll = async () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[760px]">
                   <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-600">
-                      <th className="text-left py-2 text-gray-700 dark:text-gray-300">Die Type</th>
-                      <th className="text-left py-2 text-gray-700 dark:text-gray-300">Count</th>
-                      <th className="text-left py-2 text-gray-700 dark:text-gray-300">Roll modifier</th>
-                      <th className="text-left py-2 text-gray-700 dark:text-gray-300">Reroll</th>
-                      <th className="text-left py-2 text-gray-700 dark:text-gray-300">Actions</th>
+                    <tr className="border-b border-slate-200 dark:border-slate-600">
+                      <th className="text-left py-2 text-slate-700 dark:text-slate-300">Die Type</th>
+                      <th className="text-left py-2 text-slate-700 dark:text-slate-300">Count</th>
+                      <th className="text-left py-2 text-slate-700 dark:text-slate-300">Roll modifier</th>
+                      <th className="text-left py-2 text-slate-700 dark:text-slate-300">Reroll</th>
+                      <th className="text-left py-2 text-slate-700 dark:text-slate-300">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {diceConfigs.map((config) => (
-                      <tr key={config.id} className="border-b border-gray-100 dark:border-gray-700">
+                      <tr key={config.id} className="border-b border-slate-100 dark:border-slate-700">
                         <td className="py-3">
                           <div className="flex items-center gap-2">
                             {/* Show a compact die symbol/label instead of a dropdown. Keep an sr-only label for screen readers. */}
@@ -353,43 +394,43 @@ const onRoll = async () => {
         {/* Results Panel */}
           <div className="xl:col-span-2 space-y-6">
           {lastResult ? (
-            <div className="card bg-white">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                <div className="w-2 h-8 bg-green-500 rounded-full mr-3"></div>
+            <div className="card bg-white animate-scale-in" style={{ animationDelay: '100ms' }}>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center">
+                <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full mr-4"></div>
                 Latest Roll Results
               </h2>
 
               <div className="space-y-6">
                 {lastResult.rolls.map((r, i) => (
-                  <div key={i} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                  <div key={i} className="border border-slate-200 dark:border-slate-600 rounded-xl p-4">
                     <div className="flex justify-between items-center mb-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg font-medium text-gray-900 dark:text-white">Roll {i+1}</span>
+                        <span className="text-lg font-medium text-slate-900 dark:text-white">Roll {i+1}</span>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{r.sum}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Total</div>
+                        <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{r.sum}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</div>
                       </div>
                     </div>
 
                     {/* Dice Results Table */}
                     <div className="mb-4">
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-3">Dice Results</h4>
+                      <h4 className="font-medium text-slate-900 dark:text-white mb-3 text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">Dice Results</h4>
                         <div className="overflow-x-auto">
-                        <table className="w-full text-sm border border-gray-200 dark:border-gray-600 rounded-lg min-w-[760px]">
+                        <table className="w-full text-sm border border-slate-200 dark:border-slate-600 rounded-lg min-w-[760px]">
                           <thead>
-                            <tr className="bg-gray-50 dark:bg-gray-700">
-                              <th className="px-3 py-2 text-left text-gray-700 dark:text-gray-300">Die #</th>
-                              <th className="px-3 py-2 text-left text-gray-700 dark:text-gray-300">Type</th>
-                              <th className="px-3 py-2 text-left text-gray-700 dark:text-gray-300">Rolls</th>
-                              <th className="px-3 py-2 text-left text-gray-700 dark:text-gray-300">Final</th>
+                            <tr className="bg-slate-50 dark:bg-slate-700">
+                              <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Die #</th>
+                              <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Type</th>
+                              <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Rolls</th>
+                              <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Final</th>
                             </tr>
                           </thead>
                           <tbody>
                             {r.perDie.map((d, idx) => (
-                              <tr key={idx} className="border-t border-gray-200 dark:border-gray-600">
-                                <td className="px-3 py-2 text-gray-900 dark:text-white">{idx + 1}</td>
-                                <td className="px-3 py-2 text-gray-600 dark:text-gray-400">
+                              <tr key={idx} className="border-t border-slate-200 dark:border-slate-600">
+                                <td className="px-3 py-2 text-slate-900 dark:text-white tabular-nums">{idx + 1}</td>
+                                <td className="px-3 py-2 text-slate-600 dark:text-slate-400">
                                   {diceConfigs.length > 0 ? (
                                     <div className="flex items-center gap-3">
                                       <DieFaceIcon sides={diceConfigs[Math.min(idx, diceConfigs.length - 1)].sides} className="die-icon" />
@@ -399,10 +440,10 @@ const onRoll = async () => {
                                     </div>
                                   ) : 'D6'}
                                 </td>
-                                <td className="px-3 py-2 text-gray-600 dark:text-gray-400">
+                                <td className="px-3 py-2 text-slate-600 dark:text-slate-400 tabular-nums">
                                   {d.original.length > 1 ? d.original.join(' → ') : d.original[0]}
                                 </td>
-                                <td className="px-3 py-2 font-bold text-indigo-600 dark:text-indigo-400">{d.final}</td>
+                                <td className="px-3 py-2 font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{d.final}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -413,15 +454,15 @@ const onRoll = async () => {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Statistics */}
                       <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white mb-3">Statistics</h4>
+                        <h4 className="font-medium text-slate-900 dark:text-white mb-3 text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">Statistics</h4>
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
-                            <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{r.average.toFixed(2)}</div>
-                            <div className="text-xs text-blue-800 dark:text-blue-200">Average</div>
+                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
+                            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">{r.average.toFixed(2)}</div>
+                            <div className="text-xs text-blue-600 dark:text-blue-300 mt-1 uppercase tracking-wider">Average</div>
                           </div>
-                          <div className="bg-purple-50 dark:bg-purple-900/20 rounded p-3">
-                            <div className="text-lg font-bold text-purple-600 dark:text-purple-400">{Math.min(...r.used)} - {Math.max(...r.used)}</div>
-                            <div className="text-xs text-purple-800 dark:text-purple-200">Range</div>
+                          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4">
+                            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 tabular-nums">{Math.min(...r.used)}–{Math.max(...r.used)}</div>
+                            <div className="text-xs text-purple-600 dark:text-purple-300 mt-1 uppercase tracking-wider">Range</div>
                           </div>
                         </div>
                       </div>
@@ -429,7 +470,7 @@ const onRoll = async () => {
                       {/* Charts - conditionally shown */}
                       {showCharts && (
                         <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white mb-3">Charts</h4>
+                          <h4 className="font-medium text-slate-900 dark:text-white mb-3 text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">Charts</h4>
                           <div className="space-y-2">
                             <div className="h-16">
                               <Boxplot values={r.used} className="w-full h-full" />
@@ -446,20 +487,20 @@ const onRoll = async () => {
               </div>
             </div>
           ) : (
-            <div className="card bg-gray-50 dark:bg-gray-800 text-center">
-              <DiceIcon className="!w-9 !h-9 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Ready to Roll</h3>
-              <p className="text-gray-600 dark:text-gray-400">Configure your dice and click "Roll Dice" to get started!</p>
+            <div className="card bg-slate-50 dark:bg-slate-800/50 text-center animate-fade-in-up">
+              <DiceIcon className="!w-12 !h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">Ready to Roll</h3>
+              <p className="text-slate-500 dark:text-slate-400">Configure your dice and click "Roll Dice" to get started!</p>
             </div>
           )}
 
           {/* History */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <div className="w-2 h-8 bg-purple-500 rounded-full mr-3"></div>
+          <div className="card animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center">
+              <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-violet-600 rounded-full mr-4"></div>
               Roll History
             </h2>
-            <DiceHistory entries={history} />
+            <DiceHistory entries={history} source={historySource} />
           </div>
         </div>
       </div>

@@ -26,18 +26,21 @@ export function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'login' }:
   // Short-circuit when closed
   if (!isOpen) return null;
 
-  // Theme-aware overlay: fully white in light mode, fully black in dark mode, slight transparency
+  // Enhanced theme-aware overlay
   const overlay = (
     <div
-      className="fixed inset-0 bg-white/80 dark:bg-black/80 bg-gray-500 transition-opacity"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
       onClick={onClose}
     />
   );
 
-  // Modal panel content — keep the panel transparent so inner forms render their own card backgrounds
+  // Enhanced modal panel with glassmorphism effect
   const panel = (
-    <div className="inline-block align-bottom bg-transparent rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-      <div>
+    <div className="inline-block align-middle bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl text-left overflow-hidden shadow-soft-lg transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-200/60 dark:border-slate-700/60 animate-scale-in">
+      <div className="relative">
+        {/* Decorative gradient header */}
+        <div className="h-2 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500"></div>
+        
         {/* Pass onClose so forms can render the close button inside the card */}
         {mode === 'login' ? (
           <LoginForm onSuccess={handleSuccess} onSwitchMode={handleSwitchMode} onClose={onClose} />
@@ -50,9 +53,8 @@ export function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'login' }:
 
   // Return composed modal
   return (
-    // Add a page-level text fallback to the modal container so inner forms inherit readable colors
-    <div className="fixed inset-0 z-50 overflow-y-auto text-gray-900 dark:text-white">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         {overlay}
         {panel}
       </div>

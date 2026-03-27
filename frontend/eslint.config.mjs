@@ -83,6 +83,8 @@ async function buildConfig() {
     sessionStorage: "readonly",
     fetch: "readonly",
     setTimeout: "readonly",
+    clearTimeout: "readonly",
+    AbortController: "readonly",
     alert: "readonly",
     File: "readonly",
     HTMLInputElement: "readonly",
@@ -90,6 +92,11 @@ async function buildConfig() {
     HTMLFormElement: "readonly",
     Location: "readonly",
     URLSearchParams: "readonly",
+    URL: "readonly",
+    Request: "readonly",
+    RequestInit: "readonly",
+    Headers: "readonly",
+    CustomEvent: "readonly",
   };
 
   const testGlobals = {

@@ -1,35 +1,132 @@
+// Use named exports for all API functions to keep imports consistent across the codebase.
+// Use a relative default so tests and client-side code that expect
+// relative API paths don't attempt to call an absolute localhost URL.
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+/** Default request timeout in milliseconds (15 seconds). */
+const DEFAULT_TIMEOUT_MS = 15_000;
+
+// ─── Internal helpers ────────────────────────────────────────────────────────
+
+/**
+ * Central fetch wrapper with timeout, consistent error handling, and 401 detection.
+ * All public API functions should call this instead of raw `fetch`.
+ */
+async function apiRequest<T>(
+  url: string,
+  options: RequestInit = {},
+  errorPrefix: string,
+): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      // On 401, broadcast so AuthContext can clear state
+      if (response.status === 401) {
+        try {
+          window.dispatchEvent(new CustomEvent('auth:session-expired'));
+        } catch {
+          // SSR / test environment — ignore
+        }
+      }
+
+      let detail = '';
+      try {
+        const body = await response.text();
+        // Try to extract a JSON error message
+        try {
+          const parsed = JSON.parse(body);
+          if (parsed.error) detail = parsed.error;
+          else detail = body;
+        } catch {
+          detail = body;
+        }
+      } catch {
+        // text() not available (e.g. in test mocks) — try json() directly
+        try {
+          const data = await response.json();
+          if (data?.error) detail = data.error;
+        } catch {
+          // Cannot read response body at all — ignore
+        }
+      }
+
+      throw new Error(
+        detail
+          ? `${errorPrefix} (${response.status}): ${detail}`
+          : `${errorPrefix} (${response.status})`,
+      );
+    }
+
+    // Some endpoints return no body (204, etc.)
+    const contentType = response.headers?.get?.('content-type') || '';
+    if (contentType.includes('application/json')) {
+      return (await response.json()) as T;
+    }
+    // Fallback: try parsing as JSON (many test mocks don't set headers)
+    if (typeof response.json === 'function') {
+      try {
+        return (await response.json()) as T;
+      } catch {
+        // Not JSON — return empty
+      }
+    }
+    return {} as T;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Shorthand for JSON POST requests with credentials. */
+function jsonPost<T>(path: string, body: unknown, errorPrefix: string): Promise<T> {
+  return apiRequest<T>(
+    `${API_BASE_URL}${path}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(body),
+    },
+    errorPrefix,
+  );
+}
+
+/** Shorthand for authenticated GET requests. */
+function authGet<T>(path: string, errorPrefix: string): Promise<T> {
+  return apiRequest<T>(
+    `${API_BASE_URL}${path}`,
+    { credentials: 'include' },
+    errorPrefix,
+  );
+}
+
+// ─── Dice ────────────────────────────────────────────────────────────────────
+
 export interface RollDicePayload {
   die: { type: string; sides?: number };
   count: number;
   advantage?: 'none' | 'adv' | 'dis';
 }
 
-// Use named exports for all API functions to keep imports consistent across the codebase.
-// Default export removed to avoid accidental partial imports.
-// Use a relative default so tests and client-side code that expect
-// relative API paths don't attempt to call an absolute localhost URL.
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
-
 export async function rollDice(payload: RollDicePayload) {
-  const response = await fetch(`${API_BASE_URL}/api/tools/dice/roll`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    let errorMessage = `Roll API error: ${response.status}`;
-    try {
-      const text = await response.text();
-      errorMessage += `: ${text}`;
-    } catch {
-      // If we can't read the response body, just use the status code
-    }
-    throw new Error(errorMessage);
-  }
-
-  return response.json();
+  return apiRequest(
+    `${API_BASE_URL}/api/tools/dice/roll`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    },
+    'Roll API error',
+  );
 }
+
+// ─── Fat Loss ────────────────────────────────────────────────────────────────
 
 export interface FatLossRequest {
   kcal_deficit: number;
@@ -43,29 +140,20 @@ export interface FatLossResponse {
 }
 
 export async function calculateFatLoss(
-  request: FatLossRequest
+  request: FatLossRequest,
 ): Promise<FatLossResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/tools/fat-loss`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  return apiRequest<FatLossResponse>(
+    `${API_BASE_URL}/api/tools/fat-loss`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
     },
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    let errorMessage = `Failed to calculate fat loss (${response.status})`;
-    try {
-      const text = await response.text();
-      errorMessage += `: ${text}`;
-    } catch {
-      // If we can't read the response body, just use the status code
-    }
-    throw new Error(errorMessage);
-  }
-
-  return response.json();
+    'Failed to calculate fat loss',
+  );
 }
+
+// ─── N26 Analyzer ────────────────────────────────────────────────────────────
 
 export interface Transaction {
   amount: number;
@@ -81,29 +169,19 @@ export interface AnalysisResult {
 }
 
 export async function analyzeN26Data(data: Record<string, unknown>): Promise<AnalysisResult> {
-  const response = await fetch(`${API_BASE_URL}/api/tools/n26-analyzer`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  return apiRequest<AnalysisResult>(
+    `${API_BASE_URL}/api/tools/n26-analyzer`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
     },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    let errorMessage = `Failed to analyze N26 data (${response.status})`;
-    try {
-      const text = await response.text();
-      errorMessage += `: ${text}`;
-    } catch {
-      // If we can't read the response body, just use the status code
-    }
-    throw new Error(errorMessage);
-  }
-
-  return response.json();
+    'Failed to analyze N26 data',
+  );
 }
 
-// Authentication API methods
+// ─── Authentication ──────────────────────────────────────────────────────────
+
 export interface RegisterRequest {
   email: string;
   password: string;
@@ -122,71 +200,43 @@ export interface AuthResponse {
 }
 
 export async function registerUser(request: RegisterRequest): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include', // Include cookies for session management
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    let errorMessage = `Registration failed (${response.status})`;
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData.error || errorMessage;
-    } catch {
-      // If we can't parse the error response, use the status text
-    }
-    throw new Error(errorMessage);
-  }
-
-  return response.json();
+  return jsonPost<AuthResponse>('/api/auth/register', request, 'Registration failed');
 }
 
 export async function loginUser(request: LoginRequest): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include', // Include cookies for session management
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    let errorMessage = `Login failed (${response.status})`;
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData.error || errorMessage;
-    } catch {
-      // If we can't parse the error response, use the status text
-    }
-    throw new Error(errorMessage);
-  }
-
-  return response.json();
+  return jsonPost<AuthResponse>('/api/auth/login', request, 'Login failed');
 }
 
 export async function logoutUser(): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
-    method: 'POST',
-    credentials: 'include', // Include cookies for session management
-  });
+  return apiRequest<AuthResponse>(
+    `${API_BASE_URL}/api/auth/logout`,
+    { method: 'POST', credentials: 'include' },
+    'Logout failed',
+  );
+}
 
-  if (!response.ok) {
-    let errorMessage = `Logout failed (${response.status})`;
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData.error || errorMessage;
-    } catch {
-      // If we can't parse the error response, use the status text
-    }
-    throw new Error(errorMessage);
-  }
+export interface UserProfileResponse {
+  id: string;
+  email: string;
+  display_name?: string;
+  created_at: string;
+}
 
-  return response.json();
+export async function getUserProfile(): Promise<UserProfileResponse> {
+  return authGet<UserProfileResponse>('/api/auth/me', 'Failed to get profile');
+}
+
+export async function updateUserProfile(display_name: string): Promise<void> {
+  return apiRequest<void>(
+    `${API_BASE_URL}/api/auth/profile`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ display_name }),
+    },
+    'Failed to update profile',
+  );
 }
 
 export async function startOIDCLogin(): Promise<void> {
@@ -208,28 +258,10 @@ export interface OIDCCallbackResponse {
 }
 
 export async function handleOIDCCallback(request: OIDCCallbackRequest): Promise<OIDCCallbackResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/oidc/callback`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include', // Include cookies for session management
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    let errorMessage = `OIDC callback failed (${response.status})`;
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData.error || errorMessage;
-    } catch {
-      // If we can't parse the error response, use the status text
-    }
-    throw new Error(errorMessage);
-  }
-
-  return response.json();
+  return jsonPost<OIDCCallbackResponse>('/api/auth/oidc/callback', request, 'OIDC callback failed');
 }
+
+// ─── Blood Level / Tolerance ─────────────────────────────────────────────────
 
 export interface Substance {
   id: string;
@@ -267,48 +299,43 @@ export interface ToleranceCalculationResponse {
 }
 
 export async function getToleranceSubstances(): Promise<Substance[]> {
-  const response = await fetch(`${API_BASE_URL}/api/tools/bloodlevel/substances`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    let errorMessage = `Failed to get substances (${response.status})`;
-    try {
-      const text = await response.text();
-      errorMessage += `: ${text}`;
-    } catch {
-      // If we can't read the response body, just use the status code
-    }
-    throw new Error(errorMessage);
-  }
-
-  return response.json();
+  return apiRequest<Substance[]>(
+    `${API_BASE_URL}/api/tools/bloodlevel/substances`,
+    { method: 'GET', headers: { 'Content-Type': 'application/json' } },
+    'Failed to get substances',
+  );
 }
 
 export async function calculateTolerance(
-  request: ToleranceCalculationRequest
+  request: ToleranceCalculationRequest,
 ): Promise<ToleranceCalculationResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/tools/bloodlevel/calculate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  return apiRequest<ToleranceCalculationResponse>(
+    `${API_BASE_URL}/api/tools/bloodlevel/calculate`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
     },
-    body: JSON.stringify(request),
-  });
+    'Failed to calculate tolerance',
+  );
+}
 
-  if (!response.ok) {
-    let errorMessage = `Failed to calculate tolerance (${response.status})`;
-    try {
-      const text = await response.text();
-      errorMessage += `: ${text}`;
-    } catch {
-      // If we can't read the response body, just use the status code
-    }
-    throw new Error(errorMessage);
+// ─── Dice History ────────────────────────────────────────────────────────────
+
+export interface DiceHistoryEntry {
+  id?: string;
+  payload: unknown;
+  created_at: string;
+}
+
+export async function saveDiceRoll(payload: unknown): Promise<void> {
+  try {
+    await jsonPost<void>('/api/tools/dice/save', { payload }, 'Save dice roll failed');
+  } catch {
+    // Best-effort: silently ignore save failures
   }
+}
 
-  return response.json();
+export async function getDiceHistory(): Promise<DiceHistoryEntry[]> {
+  return authGet<DiceHistoryEntry[]>('/api/tools/dice/history', 'History fetch failed');
 }

@@ -5,5 +5,5 @@ import { Default } from '../components/tools/DiceRoller.stories';
 
 test('DiceRoller stories render without error', () => {
   render(<Default />);
-  expect(screen.getByText('Dice Roller')).toBeInTheDocument();
+  expect(screen.getByText('Dice Configuration')).toBeInTheDocument();
 });

@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function DicePage() {
   return (
-    <ToolPage title="Dice Roller" description="Roll dice with various options including advantage/disadvantage and custom dice types.">
+    <ToolPage title="Dice Roller" description="Roll dice with advantage, disadvantage, reroll rules, and detailed statistics." emoji="🎲" gradientFrom="from-indigo-500" gradientTo="to-purple-600">
       <DiceRoller />
     </ToolPage>
   );

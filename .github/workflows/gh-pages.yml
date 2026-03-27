@@ -1,0 +1,61 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Only one deployment at a time; cancel older runs on the same branch.
+concurrency:
+  group: gh-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write  # needed to push to gh-pages branch
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build static site for GitHub Pages
+        run: pnpm --filter frontend run build
+        env:
+          # Serve from /<repo-name>/ on GitHub Pages
+          GITHUB_PAGES: 'true'
+          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
+          # No backend on GitHub Pages — tools show a "backend unavailable" banner
+          NEXT_PUBLIC_API_URL: ''
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: '1'
+
+      - name: Add .nojekyll (prevents Jekyll processing)
+        run: touch frontend/out/.nojekyll
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./frontend/out
+          publish_branch: gh-pages
+          # Keep previous deployment history for rollback
+          keep_files: false
+          commit_message: 'deploy: ${{ github.sha }}'

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 
 // Mock next/router
@@ -17,18 +17,20 @@ vi.mock('@/components/tools/FatLossCalculator', () => ({ __esModule: true, defau
 vi.mock('@/components/tools/N26Analyzer', () => ({ __esModule: true, default: () => <div>MockN26</div> }));
 
 import Home from '@/app/page';
+import { TestWrapper } from '@/lib/test-utils';
 
 describe('Home page tool interactions', () => {
   test('home page exposes links to per-tool pages', async () => {
-    render(<Home />);
+    render(<TestWrapper><Home /></TestWrapper>);
 
     // Ensure the grid and tool titles render
     expect(screen.getByRole('heading', { name: /Tools Collection/i })).toBeInTheDocument();
 
-    // Each tool should be a link to its route
-    const fatLink = screen.getByRole('link', { name: /Fat Loss Calculator/i });
-    const n26Link = screen.getByRole('link', { name: /N26 Transaction Analyzer/i });
-    const diceLink = screen.getByRole('link', { name: /Dice Roller/i });
+    // Each tool should be a link to its route - look in main content, not header
+    const main = screen.getByRole('main');
+    const fatLink = within(main).getByRole('link', { name: /Fat Loss Calculator/i });
+    const n26Link = within(main).getByRole('link', { name: /N26 Transaction Analyzer/i });
+    const diceLink = within(main).getByRole('link', { name: /Dice Roller/i });
 
     expect(fatLink).toHaveAttribute('href', '/tools/fat-loss');
     expect(n26Link).toHaveAttribute('href', '/tools/n26');
