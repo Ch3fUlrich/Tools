@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { render } from '@testing-library/react';
 import { AuthProvider } from '@/components/auth/AuthContext';
 import ThemeInitializer from '@/components/ThemeInitializer';

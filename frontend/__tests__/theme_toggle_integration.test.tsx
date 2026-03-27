@@ -2,7 +2,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import ThemeToggle from '@/components/ui/ThemeToggle';
 import { applyTheme } from '@/lib/theme';
 import { TestWrapper } from '@/lib/test-utils';
 

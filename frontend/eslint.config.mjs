@@ -90,6 +90,9 @@ async function buildConfig() {
     HTMLFormElement: "readonly",
     Location: "readonly",
     URLSearchParams: "readonly",
+    URL: "readonly",
+    Request: "readonly",
+    Headers: "readonly",
   };
 
   const testGlobals = {
