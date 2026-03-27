@@ -5,17 +5,23 @@ on:
     types: [opened, reopened, synchronize]
     branches: [ main ]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   enable-automerge:
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot'
+    if: github.actor == 'dependabot[bot]'
     steps:
-      - name: Enable automerge for Dependabot PRs
-        uses: peter-evans/enable-pull-request-automerge@v2
-        with:
-          # Use the repository token. Repository must allow GitHub Actions to merge.
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          merge-method: squash
-          # Require status checks (they must pass before merge)
-          required-approving-review-count: 0
-          required-status-checks: true
+      - name: Enable auto-merge for Dependabot PRs
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-approve Dependabot PRs
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
