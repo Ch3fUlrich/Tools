@@ -8,6 +8,12 @@ vi.mock('@/lib/api/client', () => ({
   calculateFatLoss: vi.fn(),
 }));
 
+// Mock visualization to avoid expensive 960-point SVG render in CI
+vi.mock('@/components/tools/FatLossVisualization', () => ({
+  default: () => null,
+  FatLossVisualization: () => null,
+}));
+
 import FatLossCalculator from '@/components/tools/FatLossCalculator';
 
 describe('FatLossCalculator extra flows', () => {
