@@ -173,26 +173,22 @@ export default function Home() {
             )}
           </div>
 
-          {/* Stats Section */}
+          {/* Features strip */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-12">
             {[
-              { label: 'Total Tools', value: tools.length, icon: '🛠️' },
-              { label: 'Categories', value: '4', icon: '📂' },
-              { label: 'Daily Users', value: '1.2k', icon: '👥' },
-              { label: 'Satisfaction', value: '98%', icon: '⭐' },
-            ].map((stat, index) => (
+              { label: `${tools.length} Tools`, detail: 'Growing collection', icon: '🛠️' },
+              { label: 'Dark Mode', detail: 'Light & dark themes', icon: '🌙' },
+              { label: 'Open Source', detail: 'MIT licensed', icon: '💻' },
+              { label: 'Privacy First', detail: 'No data stored', icon: '🔒' },
+            ].map((feat, index) => (
               <div
-                key={stat.label}
+                key={feat.label}
                 className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200/60 dark:border-slate-700/60 animate-fade-in-up"
                 style={{ animationDelay: `${400 + index * 100}ms`, animationFillMode: 'both' }}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">{stat.label}</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
-                  </div>
-                  <span className="text-2xl">{stat.icon}</span>
-                </div>
+                <span className="text-2xl block mb-2">{feat.icon}</span>
+                <p className="font-semibold text-slate-900 dark:text-white text-sm">{feat.label}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{feat.detail}</p>
               </div>
             ))}
           </div>
@@ -228,7 +224,7 @@ export default function Home() {
           </div>
           <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
             <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-              © 2024 Tools Collection • Built with ❤️ using Next.js & Rust
+              © 2025 Tools Collection • Built with ❤️ using Next.js & Rust
             </p>
           </div>
         </div>
