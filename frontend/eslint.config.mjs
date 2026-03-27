@@ -83,6 +83,8 @@ async function buildConfig() {
     sessionStorage: "readonly",
     fetch: "readonly",
     setTimeout: "readonly",
+    clearTimeout: "readonly",
+    AbortController: "readonly",
     alert: "readonly",
     File: "readonly",
     HTMLInputElement: "readonly",

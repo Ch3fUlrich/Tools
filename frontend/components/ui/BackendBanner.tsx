@@ -10,8 +10,10 @@ export default function BackendBanner() {
 
   useEffect(() => {
     // Skip check if no API URL is configured (e.g. GitHub Pages demo)
-    fetch(`${API_BASE_URL}/api/health`, { signal: AbortSignal.timeout(3000) })
-      .then((r) => { if (!r.ok) setOffline(true); })
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3000);
+    fetch(`${API_BASE_URL}/api/health`, { signal: controller.signal })
+      .then((r) => { clearTimeout(timer); if (!r.ok) setOffline(true); })
       .catch(() => setOffline(true));
   }, []);
 
