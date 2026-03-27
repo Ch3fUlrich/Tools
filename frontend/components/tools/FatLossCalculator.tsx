@@ -3,6 +3,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import NumberInput from '@/components/ui/NumberInput';
+import ErrorAlert from '@/components/ui/ErrorAlert';
+import CardSection from '@/components/ui/CardSection';
 import { calculateFatLoss, type FatLossResponse } from '../../lib/api/client';
 import FatLossVisualization from './FatLossVisualization';
 
@@ -60,31 +62,9 @@ export const FatLossCalculator: React.FC = () => {
 
   return (
     <div className="p-6 lg:p-8 space-y-8">
-      {/* Enhanced Header */}
-      <div className="text-center animate-fade-in-up">
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-emerald-600 rounded-2xl shadow-soft-lg">
-            <span className="text-3xl">🏋️</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-            Fat Loss Calculator
-          </h1>
-        </div>
-        <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto">
-          Calculate the percentage of fat vs muscle loss based on your calorie deficit and weight loss
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Enhanced Input Form */}
-        <div className="card animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-          <div className="flex items-center mb-6">
-            <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-emerald-600 rounded-full mr-4"></div>
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-              Input Parameters
-            </h2>
-          </div>
-
+        {/* Input Form */}
+        <CardSection title="Input Parameters" gradient="from-blue-500 to-emerald-600" delay="100ms">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
               <label
@@ -203,29 +183,14 @@ export const FatLossCalculator: React.FC = () => {
               </button>
             </div>
           </form>
-        </div>
+        </CardSection>
 
-        {/* Enhanced Results Display */}
+        {/* Results Display */}
         <div className="space-y-6">
-          {error && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg animate-fade-in-up">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-red-600 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-sm text-red-800 dark:text-red-300 font-medium">{error}</p>
-              </div>
-            </div>
-          )}
+          {error && <ErrorAlert error={error} />}
 
           {result && result.is_valid && (
-            <div className="card animate-scale-in" style={{ animationDelay: '200ms' }}>
-              <div className="flex items-center mb-6">
-                <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full mr-4"></div>
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                  Body Composition Results
-                </h2>
-              </div>
+            <CardSection title="Body Composition Results" gradient="from-green-500 to-emerald-600" className="animate-scale-in" delay="200ms">
 
               <div className="space-y-6">
                 {/* Enhanced Fat Loss Result */}
@@ -294,7 +259,7 @@ export const FatLossCalculator: React.FC = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </CardSection>
           )}
 
           {result && !result.is_valid && (

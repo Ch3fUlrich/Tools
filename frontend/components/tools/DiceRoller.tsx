@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DiceIcon from '../icons/DiceIcon';
 import DieFaceIcon from '../icons/DieFaceIcon';
 // DieSelect removed per UX change: we show a compact die symbol instead of a dropdown
@@ -8,11 +8,31 @@ import ModernCheckbox from '@/components/ui/ModernCheckbox';
 import Button from '@/components/ui/Button';
 import Counter from '@/components/ui/Counter';
 import NumberInput from '@/components/ui/NumberInput';
-import { rollDice } from '../../lib/api/client';
+import { rollDice, saveDiceRoll, getDiceHistory } from '../../lib/api/client';
 import DiceHistory from './DiceHistory';
 import Boxplot from '../charts/Boxplot';
 import Histogram from '../charts/Histogram';
 import type { DiceResponse, DiceRequest } from '../../lib/types/dice';
+
+const LS_HISTORY_KEY = 'dice_history_local';
+
+function loadLocalHistory(): Array<{ time: string; summary?: { sum?: number }; details?: unknown[] }> {
+  if (typeof window === 'undefined') return [];
+  try {
+    return JSON.parse(localStorage.getItem(LS_HISTORY_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalHistory(entries: Array<{ time: string; summary?: { sum?: number }; details?: unknown[] }>) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(entries.slice(0, 50)));
+  } catch {
+    // storage full or unavailable — ignore
+  }
+}
 
 type PerDie = {
   original: number[];
@@ -50,10 +70,38 @@ export const DiceRoller: React.FC = () => {
 
   const [history, setHistory] = useState<Array<{ time: string; summary?: { sum?: number }; details?: RollDetail[] }>>([]);
   const [lastResult, setLastResult] = useState<DiceResponse | null>(null);
+  const [historySource, setHistorySource] = useState<'local' | 'server'>('local');
 
   const [loading, setLoading] = useState(false);
   // default to showing charts in test environment (tests expect charts to render)
   const [showCharts, setShowCharts] = useState(true);
+
+  // Load history: prefer backend, fall back to localStorage.
+  // Wrapped in Promise.resolve().then() so that an unmocked / undefined
+  // getDiceHistory (e.g. in tests that only mock rollDice) is caught safely.
+  useEffect(() => {
+    const local = loadLocalHistory();
+    if (local.length > 0) setHistory(local as Array<{ time: string; summary?: { sum?: number }; details?: RollDetail[] }>);
+
+    Promise.resolve()
+      .then(() => getDiceHistory())
+      .then((entries) => {
+        if (entries && entries.length > 0) {
+          const mapped = entries.map((e) => ({
+            time: new Date(e.created_at).toLocaleTimeString(),
+            summary: typeof e.payload === 'object' && e.payload !== null && 'sum' in e.payload
+              ? { sum: (e.payload as { sum?: number }).sum }
+              : undefined,
+            details: undefined,
+          }));
+          setHistory(mapped);
+          setHistorySource('server');
+        }
+      })
+      .catch(() => {
+        // Backend unavailable or not mocked — keep localStorage history
+      });
+  }, []);
 
 const onRoll = async () => {
   if (diceConfigs.length === 0) return;
@@ -137,13 +185,19 @@ const onRoll = async () => {
       })
     };
 
-    const entry = { 
-      time: new Date().toLocaleTimeString(), 
-      summary: { sum: combinedResult.rolls.reduce((total, roll) => total + roll.sum, 0) }, 
-      details: combinedResult.rolls as RollDetail[] 
+    const entry = {
+      time: new Date().toLocaleTimeString(),
+      summary: { sum: combinedResult.rolls.reduce((total, roll) => total + roll.sum, 0) },
+      details: combinedResult.rolls as RollDetail[]
     };
-    setHistory(h => [entry, ...h]);
+    setHistory(h => {
+      const updated = [entry, ...h];
+      if (historySource === 'local') saveLocalHistory(updated);
+      return updated;
+    });
     setLastResult(combinedResult);
+    // Best-effort save to backend — fire and forget; never throws to caller.
+    Promise.resolve().then(() => saveDiceRoll({ sum: entry.summary.sum, time: entry.time })).catch(() => {});
   } catch(err) {
     /* eslint-disable-next-line no-console */
     console.error('roll error', err);
@@ -186,21 +240,6 @@ const onRoll = async () => {
 
   return (
   <div className="p-6 lg:p-8 space-y-8">
-      {/* Header */}
-      <div className="text-center animate-fade-in-up">
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-soft-lg">
-            <DiceIcon className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-            Dice Roller
-          </h1>
-        </div>
-        <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto">
-          Roll dice with advantage, disadvantage, reroll rules, and detailed statistics
-        </p>
-      </div>
-
   <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Controls Panel */}
   <div className="xl:col-span-2">
@@ -461,7 +500,7 @@ const onRoll = async () => {
               <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-violet-600 rounded-full mr-4"></div>
               Roll History
             </h2>
-            <DiceHistory entries={history} />
+            <DiceHistory entries={history} source={historySource} />
           </div>
         </div>
       </div>

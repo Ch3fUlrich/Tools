@@ -1,15 +1,24 @@
 import type { NextConfig } from "next";
+import path from "path";
+
+// When building for GitHub Pages, set GITHUB_PAGES=true.
+// The site will be served at https://<owner>.github.io/<repo>/.
+const isGitHubPages = process.env.GITHUB_PAGES === 'true';
+const repoName = process.env.GITHUB_REPOSITORY_NAME || 'Tools';
 
 const nextConfig: NextConfig = {
-  // Keep using static export behavior.
+  // Static export — required for GitHub Pages and Docker nginx serving.
   output: 'export',
-  // Use Turbopack (Next 16 default). An explicit empty config avoids errors when
-  // previously there was a webpack customization. We removed webpack hooks so
-  // Turbopack can run without conflict. Set a turbopack.root to silence the
-  // workspace-root inference warning when multiple lockfiles are present.
+
+  // basePath + assetPrefix are needed when serving from a sub-path (GitHub Pages).
+  // For regular deployments (Docker, Vercel) leave them empty.
+  basePath: isGitHubPages ? `/${repoName}` : '',
+  assetPrefix: isGitHubPages ? `/${repoName}/` : '',
+
+  // Use Turbopack (Next 16 default). Explicit root silences the workspace-root
+  // inference warning when multiple lockfiles are present.
   turbopack: {
-    // Set root to workspace root to avoid inference issues
-    root: require('path').resolve(__dirname, '..'),
+    root: path.resolve(__dirname, '..'),
   },
 };
 

@@ -183,6 +183,13 @@ async fn main() {
         }
     }
 
+    // Run SQL migrations (creates tables if they don't exist)
+    if let Err(e) = sqlx::migrate!("./migrations").run(&pool).await {
+        tracing::error!("Failed to run database migrations: {}", e);
+        std::process::exit(1);
+    }
+    tracing::info!("Database migrations completed");
+
     let shared_pool = Arc::new(pool);
 
     let app = app::build_app(shared_pool.clone(), session_store_opt).layer(cors);

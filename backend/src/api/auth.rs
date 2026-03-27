@@ -9,9 +9,9 @@ use serde_json::json;
 use sqlx::PgPool;
 use sqlx::Row;
 use std::sync::Arc;
-// uuid::Uuid imported where needed in other modules; not used directly here
 use crate::tools::auth as auth_tools;
 use crate::tools::session::SessionStore;
+use crate::middleware::session_middleware::AuthenticatedUser;
 use axum::http::HeaderMap;
 
 #[derive(Deserialize)]
@@ -49,7 +49,7 @@ pub struct LoginRequest {
 
 pub async fn login(
     Extension(pool): Extension<Arc<PgPool>>,
-    Extension(store): Extension<Arc<tokio::sync::Mutex<SessionStore>>>,
+    Extension(store_opt): Extension<Option<Arc<tokio::sync::Mutex<SessionStore>>>>,
     Json(payload): Json<LoginRequest>,
 ) -> Response<String> {
     // Verify user exists and password (runtime query)
@@ -80,6 +80,18 @@ pub async fn login(
                     }
                 };
 
+                let store = match store_opt {
+                    Some(s) => s,
+                    None => {
+                        return Response::builder()
+                            .status(StatusCode::SERVICE_UNAVAILABLE)
+                            .body(
+                                serde_json::to_string(&json!({"error":"session store unavailable"}))
+                                    .unwrap_or_else(|_| "{\"error\":\"session store unavailable\"}".to_string()),
+                            )
+                            .unwrap();
+                    }
+                };
                 let mut guard = store.lock().await;
                 let sid = match guard.create_session(uid, 60 * 60 * 24).await {
                     Ok(s) => s,
@@ -124,20 +136,19 @@ pub async fn login(
 }
 
 pub async fn logout(
-    Extension(store): Extension<Arc<tokio::sync::Mutex<SessionStore>>>,
+    Extension(store_opt): Extension<Option<Arc<tokio::sync::Mutex<SessionStore>>>>,
     _headers: HeaderMap,
 ) -> Response<String> {
-    // Note: `_headers` kept for signature compatibility but not used directly here.
-    // If cookie parsing is needed later, replace `_headers` with `headers`.
-    if let Some(val) = _headers.get(header::COOKIE) {
-        if let Ok(s) = val.to_str() {
-            // parse simple sid cookie
-            for part in s.split(';') {
-                let kv: Vec<&str> = part.trim().splitn(2, '=').collect();
-                if kv.len() == 2 && kv[0] == "sid" {
-                    let sid = kv[1];
-                    let mut guard = store.lock().await;
-                    let _ = guard.destroy_session(sid).await;
+    if let Some(store) = store_opt {
+        if let Some(val) = _headers.get(header::COOKIE) {
+            if let Ok(s) = val.to_str() {
+                for part in s.split(';') {
+                    let kv: Vec<&str> = part.trim().splitn(2, '=').collect();
+                    if kv.len() == 2 && kv[0] == "sid" {
+                        let sid = kv[1];
+                        let mut guard = store.lock().await;
+                        let _ = guard.destroy_session(sid).await;
+                    }
                 }
             }
         }
@@ -152,4 +163,68 @@ pub async fn logout(
                 .unwrap_or_else(|_| "{\"ok\":true}".to_string()),
         )
         .unwrap()
+}
+
+pub async fn get_profile(
+    AuthenticatedUser(user): AuthenticatedUser,
+    Extension(pool): Extension<Arc<PgPool>>,
+) -> impl IntoResponse {
+    let row = sqlx::query(
+        "SELECT id, email, display_name, created_at FROM users WHERE id = $1",
+    )
+    .bind(user.id)
+    .fetch_one(&*pool)
+    .await;
+    match row {
+        Ok(rec) => {
+            let id: uuid::Uuid = rec.try_get("id").unwrap_or_default();
+            let email: String = rec.try_get("email").unwrap_or_default();
+            let display_name: Option<String> = rec.try_get("display_name").ok().flatten();
+            let created_at: chrono::DateTime<chrono::Utc> =
+                rec.try_get("created_at").unwrap_or_else(|_| chrono::Utc::now());
+            (
+                StatusCode::OK,
+                AxumJson(json!({
+                    "id": id.to_string(),
+                    "email": email,
+                    "display_name": display_name,
+                    "created_at": created_at.to_rfc3339()
+                })),
+            )
+        }
+        Err(e) => {
+            tracing::error!("get_profile failed: {}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                AxumJson(json!({"error": "internal"})),
+            )
+        }
+    }
+}
+
+#[derive(Deserialize)]
+pub struct UpdateProfileRequest {
+    pub display_name: Option<String>,
+}
+
+pub async fn update_profile(
+    AuthenticatedUser(user): AuthenticatedUser,
+    Extension(pool): Extension<Arc<PgPool>>,
+    Json(payload): Json<UpdateProfileRequest>,
+) -> impl IntoResponse {
+    let result = sqlx::query("UPDATE users SET display_name = $1 WHERE id = $2")
+        .bind(&payload.display_name)
+        .bind(user.id)
+        .execute(&*pool)
+        .await;
+    match result {
+        Ok(_) => (StatusCode::OK, AxumJson(json!({"ok": true}))),
+        Err(e) => {
+            tracing::error!("update_profile failed: {}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                AxumJson(json!({"error": "internal"})),
+            )
+        }
+    }
 }

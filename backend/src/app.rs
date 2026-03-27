@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
 use axum::{
-    routing::{get, post},
+    routing::{get, post, put},
     Json, Router,
 };
 use serde_json::json;
@@ -37,6 +37,8 @@ pub fn build_app(
         .route("/api/auth/register", post(crate::api::auth::register))
         .route("/api/auth/login", post(crate::api::auth::login))
         .route("/api/auth/logout", post(crate::api::auth::logout))
+        .route("/api/auth/me", get(crate::api::auth::get_profile))
+        .route("/api/auth/profile", put(crate::api::auth::update_profile))
         .route("/api/auth/oidc/start", get(crate::api::oidc::start))
         .route("/api/auth/oidc/callback", get(crate::api::oidc::callback))
         .layer(tower_http::cors::CorsLayer::new())

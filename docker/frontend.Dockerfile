@@ -1,95 +1,95 @@
-# ------------------------------
-# Stage 1: Dependencies
-# ------------------------------
+# ──────────────────────────────────────────────────────────────────────────────
+# Stage 1 — Install dependencies (maximise layer-cache hits)
+# ──────────────────────────────────────────────────────────────────────────────
 FROM node:24-alpine AS deps
 
-WORKDIR /app
+WORKDIR /workspace
 
-# Install pnpm
-RUN npm install -g pnpm
+# corepack is bundled with Node 24 — no network fetch, no untrusted install
+RUN corepack enable pnpm
 
-# Copy only package files to leverage Docker layer caching
-COPY frontend/package*.json frontend/pnpm-lock.yaml ./
+# Copy workspace manifests so this layer is only invalidated when deps change.
+# The root pnpm-lock.yaml is the authoritative lockfile for the workspace.
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY frontend/package.json ./frontend/
 
-# Install dependencies in clean mode (faster + reproducible)
+# Install all workspace deps (hoisted to /workspace/node_modules)
 RUN pnpm install --frozen-lockfile
 
-# ------------------------------
-# Stage 2: Build
-# ------------------------------
+# ──────────────────────────────────────────────────────────────────────────────
+# Stage 2 — Build Next.js static export
+# ──────────────────────────────────────────────────────────────────────────────
 FROM node:24-alpine AS builder
 
-WORKDIR /app
+WORKDIR /workspace
 
-# Install pnpm
-RUN npm install -g pnpm
+RUN corepack enable pnpm
 
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
+# Bring in installed node_modules from deps stage
+COPY --from=deps /workspace/node_modules ./node_modules
+COPY --from=deps /workspace/frontend/node_modules ./frontend/node_modules
+
+# Copy workspace config (needed for pnpm path resolution)
+COPY pnpm-workspace.yaml package.json ./
 
 # Copy full frontend source
-COPY frontend/ ./
+COPY frontend/ ./frontend/
 
-# Accept build argument for public API endpoint
 ARG NEXT_PUBLIC_API_URL=http://localhost:3001
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ARG GITHUB_PAGES=false
+ARG GITHUB_REPOSITORY_NAME=Tools
 
-# Build Next.js app (using standalone mode for smaller runtime image)
-RUN pnpm run build
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
+    GITHUB_PAGES=${GITHUB_PAGES} \
+    GITHUB_REPOSITORY_NAME=${GITHUB_REPOSITORY_NAME} \
+    NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1
 
-# ------------------------------
-# Build a tiny, static healthcheck binary
-# ------------------------------
-FROM golang:1.20-alpine AS hc-builder
-WORKDIR /src
-COPY docker/healthcheck/healthcheck.go ./
-RUN CGO_ENABLED=0 GOOS=linux go build -o /healthcheck ./healthcheck.go
+RUN pnpm --filter frontend run build
 
-# ------------------------------
-# Stage 3: Runtime (nginx-unprivileged) - final image
-# ------------------------------
+# ──────────────────────────────────────────────────────────────────────────────
+# Stage 3 — Runtime: rootless nginx-unprivileged on Alpine (~25 MB total)
+#   • nginxinc/nginx-unprivileged runs as UID 101 (nginx) — never root
+#   • No Node.js, no npm, no shell interpreters in the final image
+# ──────────────────────────────────────────────────────────────────────────────
 FROM nginxinc/nginx-unprivileged:alpine AS runtime
 
-# Switch to root for file operations
+# Default port — override at runtime with -e PORT=<number>
+ENV PORT=8080
+
+# Root only for permission fixups; switched back to nginx before ENTRYPOINT
 USER root
 
-# Remove default nginx html and default conf
-RUN rm -rf /usr/share/nginx/html/* && rm -f /etc/nginx/conf.d/default.conf || true
+# Remove default placeholder content
+RUN rm -rf /usr/share/nginx/html/*
 
-# Copy nginx templates and security headers
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf.template
-COPY docker/nginx.conf /usr/share/nginx/default.conf.template
-COPY docker/security-headers.conf /etc/nginx/conf.d/security-headers.conf
-COPY docker/security-headers.conf /usr/share/nginx/security-headers.conf
+# Static build output (ownership set at copy-time → no extra chown layer)
+COPY --from=builder --chown=nginx:nginx /workspace/frontend/out /usr/share/nginx/html
 
-# Copy entrypoint script and normalize line endings
+# Nginx config template (entrypoint replaces ${PORT} via sed)
+COPY --chown=nginx:nginx docker/nginx.conf              /usr/share/nginx/default.conf.template
+COPY --chown=nginx:nginx docker/security-headers.conf   /usr/share/nginx/security-headers.conf
+
+# Entrypoint: validate PORT, template nginx.conf, exec nginx
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
+# Normalise Windows line endings and make executable in a single layer
 RUN sed -i 's/\r$//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 
-# Copy built static output from builder
-COPY --from=builder /app/out /usr/share/nginx/html
+# Grant nginx write access to runtime dirs in one layer
+RUN chown -R nginx:nginx \
+      /var/cache/nginx \
+      /var/log/nginx \
+      /etc/nginx/conf.d && \
+    touch /var/run/nginx.pid && \
+    chown nginx:nginx /var/run/nginx.pid
 
-# Copy the healthcheck binary built earlier
-COPY --from=hc-builder /healthcheck /app/healthcheck
-RUN chmod +x /app/healthcheck || true
-
-# Adjust ownership to nginx user provided by base image
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx/conf.d && \
-    touch /var/run/nginx.pid && chown -R nginx:nginx /var/run/nginx.pid
-
-# Default port (can be overridden at runtime)
-ENV PORT=3000
-EXPOSE ${PORT}
-
-# Healthcheck using static binary (probes root path)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD ["/app/healthcheck","-url","http://localhost:${PORT}/","-timeout","3"]
-
-# Switch back to non-root runtime user
 USER nginx
 
-# Use provided entrypoint which templates the nginx conf and starts nginx
+# Document default port (actual listen port set via PORT env at runtime)
+EXPOSE 8080
+
+# wget is included in the nginx:alpine base — no extra binary needed
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider "http://localhost:${PORT:-8080}/" || exit 1
+
 ENTRYPOINT ["/docker-entrypoint.sh"]

@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import NumberInput from '@/components/ui/NumberInput';
+import ErrorAlert from '@/components/ui/ErrorAlert';
+import CardSection from '@/components/ui/CardSection';
 import { calculateTolerance, getToleranceSubstances, Substance, BloodLevelPoint } from '../../lib/api/client';
 import LineChart from '../charts/LineChart';
 
@@ -102,29 +104,8 @@ const BloodLevelCalculator: React.FC = () => {
 
   return (
     <div className="p-6 lg:p-8 space-y-8">
-      {/* Header */}
-      <div className="text-center animate-fade-in-up">
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <div className="p-3 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl shadow-soft-lg">
-            <span className="text-3xl">🧪</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-            Blood Level Calculator
-          </h1>
-        </div>
-        <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto">
-          Calculate substance elimination and blood levels over time using pharmacokinetic models
-        </p>
-      </div>
-
       {/* Input Panel */}
-      <div className="card animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-        <div className="flex items-center mb-6">
-          <div className="w-1 h-8 bg-gradient-to-b from-red-500 to-rose-600 rounded-full mr-4"></div>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            Substance Intake
-          </h2>
-        </div>
+      <CardSection title="Substance Intake" gradient="from-red-500 to-rose-600" delay="100ms">
 
         <div className="space-y-4">
           <div className="overflow-x-auto">
@@ -240,27 +221,12 @@ const BloodLevelCalculator: React.FC = () => {
             )}
           </button>
 
-          {error && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg animate-fade-in-up">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-red-600 dark:text-red-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-sm text-red-800 dark:text-red-300 font-medium">{error}</p>
-              </div>
-            </div>
-          )}
+          {error && <ErrorAlert error={error} />}
         </div>
-      </div>
+      </CardSection>
 
       {/* Results Panel */}
-      <div className="card animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-        <div className="flex items-center mb-6">
-          <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full mr-4"></div>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            Blood Level Graph
-          </h2>
-        </div>
+      <CardSection title="Blood Level Graph" gradient="from-blue-500 to-indigo-600" delay="200ms">
 
         {bloodLevels.length > 0 ? (
           <div className="space-y-6">
@@ -320,7 +286,7 @@ const BloodLevelCalculator: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
+      </CardSection>
     </div>
   );
 };

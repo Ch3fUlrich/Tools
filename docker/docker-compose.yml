@@ -1,20 +1,37 @@
-version: '3.8'
+version: '3.9'
+
+# Production deployment using pre-built GHCR images.
+#
+# Port configuration:
+#   Set NGINX_PORT in your environment or a .env file (default: 8080).
+#   Example:
+#     NGINX_PORT=9000 docker compose -f docker/docker-compose.yml up -d
+#   Or create docker/.env:
+#     NGINX_PORT=9000
+#
+# Image version:
+#   Set TOOLS_VERSION to pin a specific release (default: latest).
+#   Example: TOOLS_VERSION=v1.2.3
 
 services:
-  tools-frontend:
-    image: ghcr.io/ch3fulrich/tools-frontend:${DOCKER_VERSION:-latest}
-    container_name: tools-frontend
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-ch3fulrich}/tools-frontend:${TOOLS_VERSION:-latest}
+    container_name: tools-nginx
     restart: unless-stopped
     ports:
-      - "6805:6805"
+      - "${NGINX_PORT:-8080}:${NGINX_PORT:-8080}"
     environment:
-      - NODE_ENV=production
-      - PORT=6805
+      - PORT=${NGINX_PORT:-8080}
     security_opt:
       - no-new-privileges:true
     tmpfs:
       - /tmp:noexec,nosuid,nodev,size=10m
-      - /var/run:noexec,nosuid,nodev,size=10m
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${NGINX_PORT:-8080}/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     deploy:
       resources:
         limits:
@@ -23,9 +40,3 @@ services:
         reservations:
           cpus: '0.1'
           memory: 64M
-    healthcheck:
-      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:$$PORT/ || exit 1"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 10s

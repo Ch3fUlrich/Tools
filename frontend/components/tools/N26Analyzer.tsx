@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import ErrorAlert from '@/components/ui/ErrorAlert';
+import CardSection from '@/components/ui/CardSection';
 import { analyzeN26Data, AnalysisResult } from '@/lib/api/client';
 
 export default function N26Analyzer() {
@@ -59,26 +61,8 @@ export default function N26Analyzer() {
 
   return (
     <div className="p-6 lg:p-8 space-y-8">
-      {/* Header */}
-      <div className="text-center animate-fade-in-up">
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl shadow-soft-lg">
-            <span className="text-3xl">🏦</span>
-          </div>
-        </div>
-        <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto">
-          Analyze your N26 bank transactions, view spending patterns, and get insights into your financial data
-        </p>
-      </div>
-
       {/* Upload Card */}
-      <div className="card animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-        <div className="flex items-center mb-6">
-          <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-cyan-600 rounded-full mr-4"></div>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            Upload Data
-          </h2>
-        </div>
+      <CardSection title="Upload Data" gradient="from-blue-500 to-cyan-600" delay="100ms">
 
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
           <p className="text-sm text-slate-700 dark:text-slate-300">
@@ -166,37 +150,20 @@ export default function N26Analyzer() {
           </button>
         </form>
 
-        {error && (
-          <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg animate-fade-in-up">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-red-600 dark:text-red-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-sm text-red-800 dark:text-red-300 font-medium">{error}</p>
-            </div>
-          </div>
-        )}
-      </div>
+        {error && <ErrorAlert error={error} />}
+      </CardSection>
 
       {result && (
         <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
           {/* Overall Balance */}
-          <div className="card">
-            <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-3">
-              <div className="w-1 h-8 bg-gradient-to-b from-emerald-500 to-green-600 rounded-full flex-shrink-0"></div>
-              Overall Balance
-            </h3>
+          <CardSection title="Overall Balance" gradient="from-emerald-500 to-green-600">
             <div className={`text-4xl sm:text-5xl font-bold ${result.overall_total >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
               {result.overall_total >= 0 ? '+' : ''}{result.overall_total.toFixed(2)} €
             </div>
-          </div>
+          </CardSection>
 
           {/* Category Totals */}
-          <div className="card">
-            <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
-              <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full flex-shrink-0"></div>
-              Category Totals
-            </h3>
+          <CardSection title="Category Totals" gradient="from-blue-500 to-indigo-600">
             <div className="space-y-2">
               {Object.entries(result.category_totals)
                 .sort(([, a], [, b]) => a - b)
@@ -209,14 +176,10 @@ export default function N26Analyzer() {
                   </div>
                 ))}
             </div>
-          </div>
+          </CardSection>
 
           {/* Transactions Table */}
-          <div className="card">
-            <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
-              <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-violet-600 rounded-full flex-shrink-0"></div>
-              Recent Transactions ({result.transactions.length} total)
-            </h3>
+          <CardSection title={`Recent Transactions (${result.transactions.length} total)`} gradient="from-purple-500 to-violet-600">
             <div className="overflow-x-auto -mx-6 px-6">
               <table className="min-w-full text-sm">
                 <thead>
@@ -246,7 +209,7 @@ export default function N26Analyzer() {
                 Showing first 50 of {result.transactions.length} transactions
               </p>
             )}
-          </div>
+          </CardSection>
         </div>
       )}
     </div>

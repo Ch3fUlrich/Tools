@@ -3,6 +3,7 @@ import "./globals.css";
 import AuthProviderClient from "@/components/auth/AuthProviderClient";
 import Header from "@/components/layout/Header";
 import ThemeInitializer from "@/components/ThemeInitializer";
+import BackendBanner from "@/components/ui/BackendBanner";
 
 export const metadata: Metadata = {
   title: "Tools Collection",
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProviderClient>
           <ThemeInitializer />
           <Header />
+          <BackendBanner />
           <main className="site-container">{children}</main>
         </AuthProviderClient>
       </body>

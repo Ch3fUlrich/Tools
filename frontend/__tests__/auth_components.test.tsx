@@ -17,6 +17,8 @@ vi.mock('@/lib/api/client', async () => {
     loginUser: vi.fn().mockResolvedValue({ ok: true, id: 'u1' }),
     startOIDCLogin: vi.fn(),
     logoutUser: vi.fn().mockResolvedValue({ ok: true }),
+    getUserProfile: vi.fn().mockResolvedValue({ id: '1', email: 'u@u.com', display_name: undefined, created_at: new Date().toISOString() }),
+    updateUserProfile: vi.fn().mockResolvedValue(undefined),
   };
 });
 
@@ -32,7 +34,10 @@ describe('Auth components', () => {
     } catch (_) {
       // Ignore if storage is unavailable in environment
     }
-    vi.resetAllMocks();
+    // clearAllMocks preserves mock implementations (mockResolvedValue etc.)
+    // while resetting call history — resetAllMocks would strip implementations
+    // and cause getUserProfile() to return undefined, crashing the UserProfile mount.
+    vi.clearAllMocks();
   });
 
   it('AuthProvider persists and restores user via localStorage', async () => {

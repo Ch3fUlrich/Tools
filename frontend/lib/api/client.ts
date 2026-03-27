@@ -189,6 +189,35 @@ export async function logoutUser(): Promise<AuthResponse> {
   return response.json();
 }
 
+export interface UserProfileResponse {
+  id: string;
+  email: string;
+  display_name?: string;
+  created_at: string;
+}
+
+export async function getUserProfile(): Promise<UserProfileResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to get profile (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function updateUserProfile(display_name: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ display_name }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to update profile (${response.status})`);
+  }
+}
+
 export async function startOIDCLogin(): Promise<void> {
   // Redirect to OIDC start endpoint
   window.location.href = `${API_BASE_URL}/api/auth/oidc/start`;
@@ -285,6 +314,33 @@ export async function getToleranceSubstances(): Promise<Substance[]> {
     throw new Error(errorMessage);
   }
 
+  return response.json();
+}
+
+export interface DiceHistoryEntry {
+  id?: string;
+  payload: unknown;
+  created_at: string;
+}
+
+export async function saveDiceRoll(payload: unknown): Promise<void> {
+  try {
+    await fetch(`${API_BASE_URL}/api/tools/dice/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ payload }),
+    });
+  } catch {
+    // Best-effort: silently ignore save failures
+  }
+}
+
+export async function getDiceHistory(): Promise<DiceHistoryEntry[]> {
+  const response = await fetch(`${API_BASE_URL}/api/tools/dice/history`, {
+    credentials: 'include',
+  });
+  if (!response.ok) throw new Error(`History fetch failed (${response.status})`);
   return response.json();
 }
 
