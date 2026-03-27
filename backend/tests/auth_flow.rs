@@ -18,21 +18,18 @@ async fn test_register_and_save_history() {
         .await
         .expect("connect test db");
 
-    // prepare schema for tests
-    let _ = pool
-        .execute(
-            r#"
-        DROP TABLE IF EXISTS dice_rolls;
-        DROP TABLE IF EXISTS users;
+    // prepare schema for tests (idempotent: use IF NOT EXISTS to avoid race conditions)
+    pool.execute(
+        r#"
         CREATE EXTENSION IF NOT EXISTS pgcrypto;
-        CREATE TABLE users (
+        CREATE TABLE IF NOT EXISTS users (
             id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
             email text UNIQUE NOT NULL,
             password_hash text NOT NULL,
             display_name text,
             created_at timestamptz DEFAULT now()
         );
-        CREATE TABLE dice_rolls (
+        CREATE TABLE IF NOT EXISTS dice_rolls (
             id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
             user_id uuid REFERENCES users(id) ON DELETE SET NULL,
             session_id text NULL,
@@ -40,8 +37,9 @@ async fn test_register_and_save_history() {
             created_at timestamptz NOT NULL DEFAULT now()
         );
     "#,
-        )
-        .await;
+    )
+    .await
+    .expect("setup schema");
 
     // Register a user via tools::auth::register_user
     let email = format!("test+{}@example.com", uuid::Uuid::new_v4());
