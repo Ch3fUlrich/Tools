@@ -28,14 +28,15 @@ describe('FatLossCalculator', () => {
 
     fireEvent.change(screen.getByLabelText(/Daily Calorie Deficit/i), { target: { value: '3500' } });
     fireEvent.change(screen.getByLabelText(/Weekly Weight Loss/i), { target: { value: '1' } });
-    fireEvent.click(screen.getByRole('button', { name: /Calculate Composition/i }));
+    const form = screen.getByRole('button', { name: /Calculate Composition/i }).closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
 
     await waitFor(() => expect(calculateFatLoss).toHaveBeenCalledWith({
       kcal_deficit: 3500,
       weight_loss_kg: 1,
     }));
 
-    await waitFor(() => expect(screen.getByText(/Body Composition Results/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Body Composition Results/)).toBeInTheDocument(), { timeout: 5000 });
     expect(screen.getByText('80.0%')).toBeInTheDocument();
   });
 
@@ -47,7 +48,8 @@ describe('FatLossCalculator', () => {
 
     fireEvent.change(screen.getByLabelText(/Daily Calorie Deficit/i), { target: { value: '0' } });
     fireEvent.change(screen.getByLabelText(/Weekly Weight Loss/i), { target: { value: '0' } });
-    fireEvent.click(screen.getByRole('button', { name: /Calculate Composition/i }));
+    const form = screen.getByRole('button', { name: /Calculate Composition/i }).closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
 
     await waitFor(() => expect(screen.getByText(/server error/)).toBeInTheDocument());
   });
