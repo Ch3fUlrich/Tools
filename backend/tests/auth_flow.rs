@@ -18,10 +18,14 @@ async fn test_register_and_save_history() {
         .await
         .expect("connect test db");
 
+    // pgcrypto is built-in since Postgres 13; ignore race if another test creates it first
+    let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS pgcrypto")
+        .execute(&pool)
+        .await;
+
     // prepare schema for tests (idempotent: use IF NOT EXISTS to avoid race conditions)
     pool.execute(
         r#"
-        CREATE EXTENSION IF NOT EXISTS pgcrypto;
         CREATE TABLE IF NOT EXISTS users (
             id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
             email text UNIQUE NOT NULL,
