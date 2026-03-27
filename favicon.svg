@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Simple emoji-friendly favicon: toolbox emoji centered -->
+  <rect width="100%" height="100%" rx="24" fill="#ffffff00" />
+  <text x="50%" y="50%" font-size="160" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji, sans-serif">🧰</text>
+</svg>
