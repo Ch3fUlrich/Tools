@@ -215,8 +215,10 @@ vi.mock('@/lib/api/client', () => ({ myApiCall: vi.fn() }));
 ### Backend (Rust)
 - Unit tests live inside `#[cfg(test)]` blocks in `src/`
 - Integration tests in `backend/tests/` require `TEST_DATABASE_URL`
+- CI runs SQL migrations via `psql` before `cargo test` — tests should not rely solely on inline schema creation
 - Use `CREATE TABLE IF NOT EXISTS` (idempotent) — never DROP in tests
 - Tests run in parallel; avoid shared mutable state
+- `Cargo.lock` is committed; CI uses `--locked` for reproducible builds
 
 ---
 
@@ -246,10 +248,10 @@ Enforced by commitlint — the CI will reject non-conforming messages.
 | `backend.yml` | Push/PR touching `backend/` | Cargo test, clippy, fmt |
 | `ci.yml` | All PRs + push to main | Smoke tests, backend (Postgres+Redis), frontend, build artifacts |
 | `integration-tests.yml` | After CI succeeds | Full integration tests with Postgres + Redis |
-| `cargo-audit.yml` | Scheduled + manual + Cargo.toml changes | Dependency security audit |
+| `cargo-audit.yml` | Scheduled + manual + Cargo.toml/lock changes | Dependency security audit (`--ignore RUSTSEC-2023-0071`) |
 | `automerge-dependabot.yml` | Dependabot PRs | Auto-merge + auto-approve |
 | `gh-pages.yml` | Push to main | Build and deploy static site to GitHub Pages |
-| `release.yml` | After CI succeeds on main | Semantic-release versioning |
+| `release.yml` | After CI succeeds on main | Semantic-release → GitHub Release (no branch push) |
 | `publish-on-ci-success.yml` | Version tags (`v*.*.*`) | Build & push Docker images to GHCR |
 | `commitlint.yml` | PRs | Validate conventional commit messages |
 
@@ -267,6 +269,7 @@ Codecov token is optional — `fail_ci_if_error: false` is set so missing token 
 - **Do not** add `DROP TABLE` in test setup — use `CREATE TABLE IF NOT EXISTS`
 - **Do not** run frontend tests with Node.js < 24 — vitest 4 requires ≥ 24
 - **Do not** push without running `pnpm --filter frontend test --run` locally
+- **Do not** forget to commit `Cargo.lock` after changing backend dependencies — CI uses `--locked`
 - **Do not** commit generated files: `*.log`, `backend-deps.txt`, `backend-metadata.json`
 - **Do not** skip commitlint hooks (`--no-verify`) — fix the commit message instead
 

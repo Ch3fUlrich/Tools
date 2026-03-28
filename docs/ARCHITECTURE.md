@@ -126,6 +126,53 @@ Unauthenticated users can still use most tools. Dice history falls back to Redis
 
 ---
 
+## CI/CD Architecture
+
+### Workflow Pipeline
+
+```
+Push to PR branch
+    ↓
+ci.yml (Backend tests + Frontend tests + Build artifacts)
+    │
+    ├─ backend: Postgres + Redis services → psql migrations → cargo test
+    ├─ frontend: pnpm install → vitest
+    └─ build-artifacts: cargo build --release --locked + next build (on push to main)
+
+Push to main
+    ↓
+ci.yml → release.yml (semantic-release → GitHub Release + version tag)
+              ↓
+         publish-on-ci-success.yml (on v*.*.* tag → Docker images to GHCR)
+```
+
+### Key CI Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| `Cargo.lock` committed | Reproducible builds; `--locked` flag in CI ensures lock file stays in sync |
+| Database migrations in CI | `psql` runs migration SQL files before `cargo test` to ensure schema exists |
+| Stable Rust only | `dtolnay/rust-toolchain@stable` in all workflows; `rustfmt.toml` uses only stable-compatible options |
+| No CHANGELOG push | `@semantic-release/git` removed because branch protection blocks direct pushes to main; release notes live in GitHub Releases |
+| `RUSTSEC-2023-0071` ignored in audit | Transitive `rsa` vulnerability with no upstream fix; tracked via `--ignore` flag |
+
+### Workflow Reference
+
+| Workflow | Trigger | What it does |
+|----------|---------|-------------|
+| `ci.yml` | PRs + push to main | Smoke tests, backend tests (Postgres + Redis), frontend tests, build artifacts |
+| `backend.yml` | Push/PR touching `backend/` | Cargo test, clippy, fmt (no DB services — unit tests only) |
+| `frontend.yml` | Push/PR touching `frontend/` | Vitest, ESLint, build, Codecov upload |
+| `integration-tests.yml` | After CI succeeds | Full integration tests with Postgres + Redis |
+| `release.yml` | After CI succeeds on main | Semantic-release → GitHub Release + version tag |
+| `publish-on-ci-success.yml` | Version tags (`v*.*.*`) | Multi-arch Docker images → GHCR |
+| `gh-pages.yml` | Push to main | Build static site → deploy to GitHub Pages |
+| `cargo-audit.yml` | Weekly + Cargo.toml/lock changes | Dependency security audit (`--ignore RUSTSEC-2023-0071`) |
+| `commitlint.yml` | PRs | Validate conventional commit messages |
+| `automerge-dependabot.yml` | Dependabot PRs | Auto-merge + auto-approve via `gh pr merge` |
+
+---
+
 ## Project Structure
 
 ```
@@ -206,6 +253,7 @@ Tools/
 │   │   └── middleware/
 │   │       └── session_middleware.rs  AuthenticatedUser extractor — reads sid cookie, validates session
 │   ├── migrations/                   SQL migrations (date-prefixed, run by sqlx on startup)
+│   ├── Cargo.lock                    Committed for reproducible builds (--locked in CI)
 │   └── tests/                        Integration tests (require TEST_DATABASE_URL)
 │
 ├── docker/
@@ -222,11 +270,13 @@ Tools/
 │   ├── ci.yml                        Full CI: smoke tests, backend+frontend tests, build artifacts
 │   ├── integration-tests.yml         Full integration tests (triggered after CI succeeds)
 │   ├── cargo-audit.yml               Rust dependency security audit (weekly + on Cargo changes)
-│   ├── release.yml                   Semantic-release on main → version bump + CHANGELOG
+│   ├── release.yml                   Semantic-release on main → GitHub Release (no branch push)
 │   ├── gh-pages.yml                  Build static site → deploy to gh-pages branch
 │   ├── publish-on-ci-success.yml     Docker image build & push to GHCR (on version tags)
 │   ├── commitlint.yml                PR commit message validation (Conventional Commits)
 │   └── automerge-dependabot.yml      Auto-merge + auto-approve Dependabot PRs
+│
+├── .releaserc.json                  Semantic-release plugin config (commit-analyzer + github)
 │
 ├── docs/
 │   ├── ARCHITECTURE.md               This file — architecture overview and file tree
