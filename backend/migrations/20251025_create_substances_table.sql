@@ -18,7 +18,9 @@ CREATE TABLE IF NOT EXISTS substances (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_substances_name ON substances (lower(name));
 CREATE INDEX IF NOT EXISTS idx_substances_category ON substances (category);
 
--- Insert some common substances with their half-lives
+-- Insert some common substances with their half-lives.
+-- ON CONFLICT DO NOTHING makes this migration idempotent: safe to re-run
+-- (e.g. when psql applies the SQL directly before sqlx tracks it).
 INSERT INTO substances (name, half_life_hours, description, category, common_dosage_mg, max_daily_dose_mg, elimination_route, bioavailability_percent) VALUES
 ('Caffeine', 5.7, 'Central nervous system stimulant', 'Stimulant', 100, 400, 'Hepatic metabolism', 99),
 ('Nicotine', 2.0, 'Addictive stimulant found in tobacco', 'Stimulant', 1, 4, 'Hepatic metabolism', 90),
@@ -39,4 +41,5 @@ INSERT INTO substances (name, half_life_hours, description, category, common_dos
 ('Digoxin', 36.0, 'Cardiac glycoside', 'Cardiovascular', 0.125, 0.5, 'Renal excretion', 70),
 ('Theophylline', 8.0, 'Bronchodilator', 'Respiratory', 200, 800, 'Hepatic metabolism', 96),
 ('Prednisone', 3.5, 'Corticosteroid', 'Corticosteroid', 5, 60, 'Hepatic metabolism', 70),
-('Levothyroxine', 168.0, 'Thyroid hormone replacement', 'Thyroid', 50, 200, 'Various', 48);
+('Levothyroxine', 168.0, 'Thyroid hormone replacement', 'Thyroid', 50, 200, 'Various', 48)
+ON CONFLICT (name) DO NOTHING;

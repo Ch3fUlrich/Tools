@@ -1,7 +1,13 @@
 # Tools Collection
 
-[![CI](https://github.com/Ch3fUlrich/Tools/actions/workflows/integration-tests.yml/badge.svg)](https://github.com/Ch3fUlrich/Tools/actions/workflows/integration-tests.yml)
+[![CI](https://github.com/Ch3fUlrich/Tools/actions/workflows/ci.yml/badge.svg)](https://github.com/Ch3fUlrich/Tools/actions/workflows/ci.yml)
+[![Integration Tests](https://github.com/Ch3fUlrich/Tools/actions/workflows/integration-tests.yml/badge.svg)](https://github.com/Ch3fUlrich/Tools/actions/workflows/integration-tests.yml)
+[![Deploy to GitHub Pages](https://github.com/Ch3fUlrich/Tools/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/Ch3fUlrich/Tools/actions/workflows/gh-pages.yml)
+[![codecov](https://codecov.io/gh/Ch3fUlrich/Tools/branch/main/graph/badge.svg)](https://codecov.io/gh/Ch3fUlrich/Tools)
 [![GitHub Pages](https://img.shields.io/badge/demo-GitHub%20Pages-blue)](https://ch3fulrich.github.io/Tools/)
+[![Docker backend](https://ghcr-badge.egpl.dev/ch3fulrich/tools-backend/size?color=blue&tag=latest&label=backend)](https://github.com/Ch3fUlrich/Tools/pkgs/container/tools-backend)
+[![Docker frontend](https://ghcr-badge.egpl.dev/ch3fulrich/tools-frontend/size?color=blue&tag=latest&label=frontend)](https://github.com/Ch3fUlrich/Tools/pkgs/container/tools-frontend)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A collection of practical web tools built on a **Rust/Axum backend** and a **Next.js 16 frontend**. The site works as a static demo on GitHub Pages and gains full functionality (history, authentication, server-side calculations) when connected to a backend.
 
@@ -56,8 +62,17 @@ Analyzes a JSON export from an N26 bank account and produces a spending breakdow
 
 ### Option A — Docker (recommended)
 
+Pre-built images are published to GitHub Container Registry on every release and are freely downloadable without authentication:
+
 ```bash
-# Clone and start everything
+# Pull images directly (no login required — packages are public)
+docker pull ghcr.io/ch3fulrich/tools-backend:latest
+docker pull ghcr.io/ch3fulrich/tools-frontend:latest
+```
+
+Or clone and run the full stack with Docker Compose:
+
+```bash
 git clone https://github.com/Ch3fUlrich/Tools.git
 cd Tools
 docker compose up -d
@@ -141,6 +156,23 @@ GET  /api/auth/oidc/callback             — OIDC OAuth2 callback
 | Backend runtime | distroless/static (musl-linked, ~2 MB) |
 | CI/CD | GitHub Actions, semantic-release, Docker images on GHCR |
 | Tests | Vitest 4 + Testing Library (frontend), Rust built-in (backend) |
+
+---
+
+## CI/CD Pipelines
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `ci.yml` | Push/PR to main | Backend + frontend tests, build artifacts |
+| `integration-tests.yml` | After CI succeeds | Full stack tests with Postgres + Redis |
+| `frontend.yml` | Changes to `frontend/` | Tests, lint, build, Codecov upload |
+| `backend.yml` | Changes to `backend/` | Cargo test, clippy, fmt |
+| `gh-pages.yml` | Push to main | Build and deploy static site to GitHub Pages |
+| `release.yml` | After CI succeeds on main | Semantic-release versioning (conventional commits) |
+| `publish-on-ci-success.yml` | On GitHub Release published | Build and push Docker images to GHCR |
+| `cargo-audit.yml` | Weekly + Cargo changes | Dependency security audit |
+| `commitlint.yml` | PRs | Validate conventional commit messages |
+| `automerge-dependabot.yml` | Dependabot PRs | Auto-merge patch/minor updates |
 
 ---
 
