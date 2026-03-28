@@ -1,5 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
+/* Tailwind v4: explicitly declare source paths so all TSX/JSX utility classes are generated */
+@source "../app";
+@source "../components";
+@source "../lib";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -42,51 +47,63 @@ html, body, #__next {
   transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Enhanced Color Variables with modern gradients */
+/* ─── Header gradient variables (theme-aware) ─── */
 :root {
-  --bg: #fafafa;
+  --header-bg: linear-gradient(to right, rgba(237,233,254,0.92), rgba(245,243,255,0.92), rgba(250,244,255,0.92));
+  --header-border: rgba(167,139,250,0.30);
+  --header-shadow: 0 1px 8px 0 rgba(109,40,217,0.08);
+}
+.dark {
+  --header-bg: linear-gradient(to right, #0d0b1a, #130f2a, #0d0b1a);
+  --header-border: rgba(109,40,217,0.45);
+  --header-shadow: 0 1px 12px 0 rgba(109,40,217,0.28);
+}
+
+/* Light mode — clean white with purple accents */
+:root {
+  --bg: #f8f7ff;
   --bg-secondary: #ffffff;
-  --fg: #1f2937;
-  --fg-secondary: #374151;
-  --input-bg: rgba(15,23,42,0.04);
-  --input-border: rgba(15,23,42,0.08);
-  --input-focus: rgba(79,70,229,0.12);
-  /* Checkbox border colors for light theme (stronger contrast on light) */
-  --checkbox-border: rgba(15,23,42,0.18);
-  --checkbox-checked-border: rgba(15,23,42,0.32);
+  --fg: #1a1035;
+  --fg-secondary: #3b3060;
+  --input-bg: rgba(109,40,217,0.04);
+  --input-border: rgba(109,40,217,0.12);
+  --input-focus: rgba(109,40,217,0.14);
+  /* Checkbox border colors for light theme */
+  --checkbox-border: rgba(109,40,217,0.22);
+  --checkbox-checked-border: rgba(109,40,217,0.38);
   --muted: #6b7280;
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
   --card-bg: #ffffff;
-  --card-border: rgba(0,0,0,0.06);
-  --shadow-soft: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --card-border: rgba(109,40,217,0.08);
+  --shadow-soft: 0 4px 20px -4px rgba(109,40,217,0.10);
+  --gradient-primary: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  --gradient-secondary: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
   border-color: var(--checkbox-checked-border);
   --success: #10b981;
   --error: #ef4444;
   --warning: #f59e0b;
 }
 
-/* Enhanced dark mode variables with modern aesthetics */
+/* Dark mode — rich purple-black */
 .dark {
-  --bg: #0f0f0f;
-  --bg-secondary: #1a1a1a;
-  --fg: #e5e7eb;
-  --fg-secondary: #d1d5db;
-  --input-bg: rgba(255,255,255,0.04);
-  --input-border: rgba(255,255,255,0.08);
-  --input-focus: rgba(139,92,246,0.18);
-  /* Lighter checkbox borders in dark mode for correct contrast */
-  --checkbox-border: rgba(255,255,255,0.36);
-  --checkbox-checked-border: rgba(255,255,255,0.48);
-  --muted: #9ca3af;
-  --accent: #8b5cf6;
-  --accent-hover: #7c3aed;
-  --card-bg: rgba(255,255,255,0.02);
-  --card-border: rgba(255,255,255,0.06);
-  --shadow-soft: 0 4px 20px -4px rgba(0, 0, 0, 0.4);
-  --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  --bg: #0d0b1a;
+  --bg-secondary: #130f2a;
+  --fg: #ede8ff;
+  --fg-secondary: #c4b8f0;
+  --input-bg: rgba(139,92,246,0.07);
+  --input-border: rgba(139,92,246,0.18);
+  --input-focus: rgba(139,92,246,0.22);
+  /* Checkbox borders in dark mode */
+  --checkbox-border: rgba(139,92,246,0.40);
+  --checkbox-checked-border: rgba(139,92,246,0.60);
+  --muted: #9d91c4;
+  --accent: #a78bfa;
+  --accent-hover: #8b5cf6;
+  --card-bg: rgba(255,255,255,0.03);
+  --card-border: rgba(139,92,246,0.14);
+  --shadow-soft: 0 4px 24px -4px rgba(0,0,0,0.50);
+  --gradient-primary: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
   --gradient-secondary: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
   --success: #34d399;
   --error: #f87171;
@@ -442,6 +459,14 @@ html, body, #__next {
   .mobile-dropdown { display: block !important; }
 }
 
+/* Always collapse to hamburger on small phones (≤ 540px), regardless of JS threshold */
+@media (max-width: 540px) {
+  .nav-responsive { display: none !important; }
+  .mobile-dropdown { display: block !important; }
+  .desktop-only { display: none !important; }
+  .mobile-only { display: block !important; }
+}
+
 .nav-label {
   display: inline;
   transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -745,12 +770,15 @@ textarea::placeholder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.25rem;
+  padding: 0.5rem 1rem;
   border-radius: 0.75rem;
   background: var(--card-bg);
   border: 1px solid var(--accent);
   color: var(--accent);
+  font-size: 0.875rem;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
