@@ -50,7 +50,15 @@ jobs:
       - name: Set environment
         run: |
           echo "TEST_DATABASE_URL=postgres://tools:pass@localhost:5432/tools" >> $GITHUB_ENV
+          echo "DATABASE_URL=postgres://tools:pass@localhost:5432/tools" >> $GITHUB_ENV
           echo "REDIS_URL=redis://localhost:6379" >> $GITHUB_ENV
+
+      - name: Run database migrations
+        run: |
+          for f in $(ls backend/migrations/*.sql | sort); do
+            echo "Applying migration: $f"
+            PGPASSWORD=pass psql -h localhost -U tools -d tools -f "$f"
+          done
 
       - name: Run backend integration tests
         run: |
