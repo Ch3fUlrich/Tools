@@ -29,23 +29,23 @@ export default function ToolPage({
   children,
 }: Props) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="min-h-screen" style={{background:'var(--bg)'}}>
       <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-700/60 overflow-hidden animate-fade-in-up">
+        <div className="rounded-2xl overflow-hidden animate-fade-in-up" style={{background:'var(--card-bg)',border:'1px solid var(--card-border)',boxShadow:'var(--shadow-soft)'}}>
           {/* Tool header — the only <h1> on the page */}
           <div className="px-6 lg:px-8 pt-8 pb-0 text-center">
             <div className="flex items-center justify-center gap-4 mb-4">
               {emoji && (
-                <div className={`p-3 bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-2xl shadow-soft-lg`}>
+                <div className={`p-3 bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-2xl`} style={{boxShadow:'0 8px 32px -8px rgba(124,58,237,0.35)'}}>
                   <span className="text-3xl" role="img" aria-label={title}>{emoji}</span>
                 </div>
               )}
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl font-bold" style={{background:'var(--gradient-primary)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>
                 {title}
               </h1>
             </div>
             {description && (
-              <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto pb-2">
+              <p className="text-lg max-w-2xl mx-auto pb-2" style={{color:'var(--muted)'}}>
                 {description}
               </p>
             )}

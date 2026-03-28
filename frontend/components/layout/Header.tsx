@@ -83,7 +83,14 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="w-full bg-gradient-to-r from-purple-100/60 via-purple-50/60 to-pink-100/60 dark:from-purple-900/60 dark:via-purple-800/60 dark:to-pink-900/60 backdrop-blur-md border-b border-purple-200/40 dark:border-purple-700/40 animate-fade-in-down">
+    <header
+      className="w-full backdrop-blur-md animate-fade-in-down"
+      style={{
+        background: 'var(--header-bg)',
+        borderBottom: '1px solid var(--header-border)',
+        boxShadow: 'var(--header-shadow)',
+      }}
+    >
       <div ref={siteRef} className="header-container flex items-center justify-between gap-4 py-0 h-14">
         <div ref={leftRef} className="flex items-center gap-4 flex-1 min-w-0">
           <Link href="/" className="flex items-center gap-3 no-underline hover:shadow-lg transition-all duration-300 h-full group">
@@ -136,50 +143,32 @@ export default function Header() {
           <div className="mobile-dropdown mobile-only">
             <details className="relative" open={false}>
               <summary
-                className="list-none px-3 py-2 rounded-lg hover:bg-purple-100/50 dark:hover:bg-purple-800/50 transition-colors duration-200 cursor-pointer"
+                className="list-none rounded-lg transition-colors duration-200 cursor-pointer"
+                style={{padding:'0.5rem 0.75rem'}}
                 aria-haspopup="true"
               >
-                <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:20,height:20,color:'var(--fg)'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </summary>
-              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-soft-lg border border-slate-200/60 dark:border-slate-700/60 p-2 animate-scale-in">
-                <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              <div className="absolute right-0 mt-2 rounded-xl animate-scale-in" style={{width:224, background:'var(--card-bg)', border:'1px solid var(--card-border)', boxShadow:'var(--shadow-soft)', padding:'0.5rem', zIndex:50}}>
+                <div className="uppercase tracking-wider" style={{padding:'0.5rem 0.75rem', fontSize:'0.75rem', fontWeight:700, color:'var(--muted)'}}>
                   Tools
                 </div>
-                <Link 
-                  href="/tools/dice" 
-                  className={`btn-ghost block w-full text-left px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 no-underline rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/50 transition-colors duration-200`}
-                >
-                  <span className="mr-3">🎲</span>
-                  Dice Roller
+                <Link href="/tools/dice" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                  <span className="mr-3">🎲</span>Dice Roller
                 </Link>
-                <Link 
-                  href="/tools/fat-loss" 
-                  className={`btn-ghost block w-full text-left px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 no-underline rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/50 transition-colors duration-200`}
-                >
-                  <span className="mr-3">🏋️</span>
-                  Fat Loss Calculator
+                <Link href="/tools/fat-loss" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                  <span className="mr-3">🏋️</span>Fat Loss Calculator
                 </Link>
-                <Link 
-                  href="/tools/n26" 
-                  className={`btn-ghost block w-full text-left px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 no-underline rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/50 transition-colors duration-200`}
-                >
-                  <span className="mr-3">🏦</span>
-                  N26 Transaction Analyzer
+                <Link href="/tools/n26" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                  <span className="mr-3">🏦</span>N26 Transaction Analyzer
                 </Link>
-                <Link 
-                  href="/tools/bloodlevel" 
-                  className={`btn-ghost block w-full text-left px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 no-underline rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/50 transition-colors duration-200`}
-                >
-                  <span className="mr-3">🧪</span>
-                  Blood Level Calculator
+                <Link href="/tools/bloodlevel" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                  <span className="mr-3">🧪</span>Blood Level Calculator
                 </Link>
-                <div className="my-2 border-t border-slate-200 dark:border-slate-700"></div>
-                <Link 
-                  href="/auth" 
-                  className={`btn-ghost block w-full text-left px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 no-underline rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/50 transition-colors duration-200`}
-                >
+                <div style={{margin:'0.5rem 0', borderTop:'1px solid var(--card-border)'}}></div>
+                <Link href="/auth" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
                   <span className="mr-3">🔐</span>
                   Sign In
                 </Link>
