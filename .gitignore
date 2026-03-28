@@ -1,7 +1,7 @@
 # Rust
 /backend/target/
 **/*.rs.bk
-Cargo.lock
+# Cargo.lock is committed for binary projects to ensure reproducible builds
 
 # Next.js / Node
 /node_modules
