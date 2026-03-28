@@ -184,10 +184,8 @@ pub async fn history(
         // Try Redis session-backed anonymous history
         if let Some(store) = store {
             // parse sid from headers
-            let cookie_header = headers
-                .get(axum::http::header::COOKIE)
-                .and_then(|v| v.to_str().ok())
-                .unwrap_or("");
+            let cookie_header =
+                headers.get(axum::http::header::COOKIE).and_then(|v| v.to_str().ok()).unwrap_or("");
             let sid_opt = cookie_header.split(';').map(str::trim).find_map(|part| {
                 let mut kv = part.splitn(2, '=');
                 match (kv.next(), kv.next()) {

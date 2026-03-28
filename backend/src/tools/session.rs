@@ -1,13 +1,13 @@
+use redis::aio::ConnectionManager;
 use redis::AsyncCommands;
 use redis::Client as RedisClient;
-use redis::aio::ConnectionManager;
-use redis::RedisError;
 use redis::ErrorKind as RedisErrorKind;
+use redis::RedisError;
 use std::time::Duration;
 // Note: earlier iterations used boxed futures; current helpers use concrete retry loops.
 // Keep imports minimal.
-use tokio::time::sleep;
 use serde::{Deserialize, Serialize};
+use tokio::time::sleep;
 use uuid::Uuid;
 // std::time::Duration is not currently used but might be useful for future TTL logic
 // use std::time::Duration;
@@ -344,9 +344,8 @@ impl SessionStore {
         let key = key.to_string();
         let member = member.clone();
 
-        let allowed: bool = self
-            .sliding_window_retry(key, member, now, min_score, window_secs, limit)
-            .await?;
+        let allowed: bool =
+            self.sliding_window_retry(key, member, now, min_score, window_secs, limit).await?;
 
         Ok(allowed)
     }

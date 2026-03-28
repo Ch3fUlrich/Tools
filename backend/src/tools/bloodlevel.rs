@@ -118,9 +118,7 @@ pub fn find_substance_by_name<'a>(
     name: &str,
     substances: &'a [Substance],
 ) -> Option<&'a Substance> {
-    substances
-        .iter()
-        .find(|s| s.name.to_lowercase() == name.to_lowercase())
+    substances.iter().find(|s| s.name.to_lowercase() == name.to_lowercase())
 }
 
 pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResponse, String> {
@@ -133,10 +131,7 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
         std::collections::HashMap::new();
 
     for intake in &request.intakes {
-        substance_intakes
-            .entry(intake.substance.clone())
-            .or_default()
-            .push(intake);
+        substance_intakes.entry(intake.substance.clone()).or_default().push(intake);
     }
 
     for (substance_name, intakes) in substance_intakes {

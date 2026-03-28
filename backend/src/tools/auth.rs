@@ -61,7 +61,5 @@ pub async fn verify_password(
     password: &str,
 ) -> Result<bool, argon2::password_hash::Error> {
     let parsed = PasswordHash::new(stored)?;
-    Ok(Argon2::default()
-        .verify_password(password.as_bytes(), &parsed)
-        .is_ok())
+    Ok(Argon2::default().verify_password(password.as_bytes(), &parsed).is_ok())
 }
