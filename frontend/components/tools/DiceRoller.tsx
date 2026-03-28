@@ -322,16 +322,18 @@ const onRoll = async () => {
                         </td>
 
                         <td className="py-2">
-                          <div className="inline-flex items-center gap-2">
-                            <ModernCheckbox id={`reroll-${config.id}`} ariaLabel="Enabled" checked={!!config.rerollEnabled} onChange={(v) => updateDiceConfig(config.id, { rerollEnabled: v })} className="mr-2" />
+                          <div className="flex flex-wrap items-center gap-2">
+                            <ModernCheckbox id={`reroll-${config.id}`} ariaLabel="Enabled" checked={!!config.rerollEnabled} onChange={(v) => updateDiceConfig(config.id, { rerollEnabled: v })} className="mr-1" />
                             {config.rerollEnabled && (
                               <>
-                                <div className="inline-flex rounded-md overflow-hidden">
+                                <div className="inline-flex rounded-md overflow-hidden flex-shrink-0">
                                   {(['<','>','='] as ('<'|'>'|'=')[]).map((op) => (
                                     <button key={op} type="button" onClick={() => updateDiceConfig(config.id, { rerollOperator: op })} className={`text-gray-900 dark:text-white op-btn ${config.rerollOperator === op ? 'active' : ''}`} aria-pressed={config.rerollOperator === op}>{op}</button>
                                   ))}
                                 </div>
-                                <NumberInput placeholder="value" value={String(config.rerollValue ?? 0)} onChange={(v) => updateDiceConfig(config.id, { rerollValue: Number(v || 0) })} step={1} className="form-input--compact" />
+                                <div style={{minWidth:'5rem'}}>
+                                  <NumberInput placeholder="value" value={String(config.rerollValue ?? 0)} onChange={(v) => updateDiceConfig(config.id, { rerollValue: Number(v || 0) })} step={1} className="form-input--compact" />
+                                </div>
                               </>
                             )}
                           </div>
@@ -381,10 +383,7 @@ const onRoll = async () => {
                     Rolling...
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center">
-                    <DiceIcon className="w-9 h-9 mr-3" />
-                    Roll Dice
-                  </div>
+                  'Roll Dice'
                 )}
               </Button>
             </div>
