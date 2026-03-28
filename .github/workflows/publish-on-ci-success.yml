@@ -1,12 +1,15 @@
 name: CD - Build & Push Docker Images
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+  # Triggered when semantic-release publishes a GitHub Release.
+  # Using `release: published` instead of `push: tags` because tags created
+  # via GITHUB_TOKEN (as semantic-release does) do not trigger `push` events
+  # on other workflows — but the `release: published` event is always fired.
+  release:
+    types: [published]
 
 permissions:
-  contents: write
+  contents: read
   packages: write
   id-token: write
 
@@ -33,9 +36,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version from tag
+      - name: Extract version from release tag
         id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "version=${TAG#v}" >> $GITHUB_OUTPUT
 
       - name: Build and push backend
         uses: docker/build-push-action@v6
@@ -45,7 +51,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/tools-backend:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/tools-backend:${{ steps.version.outputs.tag }}
             ghcr.io/${{ github.repository_owner }}/tools-backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -58,7 +64,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/tools-frontend:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/tools-frontend:${{ steps.version.outputs.tag }}
             ghcr.io/${{ github.repository_owner }}/tools-frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
