@@ -65,9 +65,10 @@ async fn test_migrate_binary_idempotent() {
 
 #[tokio::test]
 async fn test_migrate_binary_missing_env() {
-    // Run migrate without DATABASE_URL
+    // Run migrate without DATABASE_URL (explicitly remove it in case the CI env sets it)
     let output = Command::new("cargo")
         .args(["run", "--bin", "migrate"])
+        .env_remove("DATABASE_URL")
         .output()
         .expect("Failed to run migrate binary");
 
