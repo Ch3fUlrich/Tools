@@ -28,4 +28,5 @@ jobs:
 
       - name: Run cargo audit
         working-directory: ./backend
-        run: cargo audit
+        # RUSTSEC-2023-0071: rsa Marvin attack (medium, no fix available — transitive via sqlx-mysql/openidconnect)
+        run: cargo audit --ignore RUSTSEC-2023-0071
