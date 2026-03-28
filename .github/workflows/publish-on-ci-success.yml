@@ -36,12 +36,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version from release tag
-        id: version
+      - name: Extract version and lowercase owner
+        id: meta
         run: |
           TAG="${{ github.event.release.tag_name }}"
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "version=${TAG#v}" >> $GITHUB_OUTPUT
+          # GHCR requires all-lowercase repository names
+          echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       - name: Build and push backend
         uses: docker/build-push-action@v6
@@ -51,8 +53,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/tools-backend:${{ steps.version.outputs.tag }}
-            ghcr.io/${{ github.repository_owner }}/tools-backend:latest
+            ghcr.io/${{ steps.meta.outputs.owner }}/tools-backend:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ steps.meta.outputs.owner }}/tools-backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -64,7 +66,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/tools-frontend:${{ steps.version.outputs.tag }}
-            ghcr.io/${{ github.repository_owner }}/tools-frontend:latest
+            ghcr.io/${{ steps.meta.outputs.owner }}/tools-frontend:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ steps.meta.outputs.owner }}/tools-frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
