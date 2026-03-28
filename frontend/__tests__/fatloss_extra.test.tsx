@@ -25,15 +25,15 @@ describe('FatLossCalculator extra flows', () => {
     render(<FatLossCalculator />);
 
     // open tooltip using the info button by title
-    const infoBtn = screen.getByRole('button', { name: /Information about calculation method and sources/i });
+    const infoBtn = screen.getByRole('button', { name: /How it works/i });
     fireEvent.click(infoBtn);
 
-    expect(await screen.findByText(/Calculation Method/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Formula/i)).toBeInTheDocument();
 
     // simulate clicking outside to close
     fireEvent.mouseDown(document.body);
 
-    await waitFor(() => expect(screen.queryByText(/Calculation Method/i)).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText(/Formula/i)).not.toBeInTheDocument());
   });
 
   it('reset button clears inputs', async () => {

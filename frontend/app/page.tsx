@@ -85,29 +85,34 @@ export default function Home() {
 
       <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16" style={{color:'var(--fg)'}}>
         <div className="space-y-8">
-          {/* Enhanced Search Bar */}
+          {/* Search Bar */}
           <div className="animate-fade-in-up" style={{ animationDelay: '0ms' }}>
             <div className="relative max-w-2xl mx-auto">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:20,height:20,flexShrink:0}}>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
               <input
                 type="search"
                 aria-label="Search tools"
                 placeholder="Search tools by name or description..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="form-input pl-12 pr-4 py-4 text-lg bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl shadow-soft focus:shadow-soft-lg transition-all duration-300"
+                style={{paddingRight:'3rem'}}
+                className="form-input pr-12 py-4 text-lg rounded-xl shadow-soft focus:shadow-soft-lg transition-all duration-300"
               />
+              {/* Search icon — right side, vertically centered */}
+              {!query && (
+                <div style={{position:'absolute', inset:'0 0.875rem 0 auto', display:'flex', alignItems:'center', pointerEvents:'none'}}>
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:20,height:20,color:'var(--muted)',flexShrink:0}}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              )}
+              {/* Clear button — appears when typing */}
               {query && (
                 <button
                   onClick={() => setQuery('')}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                   aria-label="Clear search"
+                  style={{position:'absolute', inset:'0 0 0 auto', width:'3rem', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--muted)', background:'none', border:'none', cursor:'pointer'}}
                 >
-                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:20,height:20}}>
+                  <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:18,height:18}}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -159,19 +164,13 @@ export default function Home() {
                     <p className="text-sm lg:text-base leading-relaxed line-clamp-3" style={{color:'var(--muted)'}}>
                       {tool.description}
                     </p>
-
-                    {/* Hover indicator */}
-                    <div className="mt-4 flex items-center text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0" style={{color:'var(--accent)'}}>
-                      <span>Open tool</span>
-                      <svg width="16" height="16" className="ml-2 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:16,height:16,flexShrink:0}}>
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
                   </div>
 
-                  {/* Decorative corner accent */}
-                  <div className="absolute top-0 right-0 rounded-bl-full opacity-0 group-hover:opacity-20 transition-opacity duration-300"
-                    style={{width:80,height:80,background:tool.gradient}} />
+                  {/* Full-card gradient overlay on hover */}
+                  <div
+                    className="opacity-0 group-hover:opacity-10 transition-opacity duration-300"
+                    style={{position:'absolute', inset:0, background:tool.gradient}}
+                  />
                 </Link>
               ))
             )}

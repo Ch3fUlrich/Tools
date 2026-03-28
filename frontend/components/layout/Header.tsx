@@ -140,18 +140,18 @@ export default function Header() {
           <UserControls />
 
           {/* Enhanced mobile overflow: dropdown */}
-          <div className="mobile-dropdown mobile-only">
-            <details className="relative" open={false}>
+          <div className="mobile-dropdown mobile-only" style={{position:'relative'}}>
+            <details open={false}>
               <summary
                 className="list-none rounded-lg transition-colors duration-200 cursor-pointer"
-                style={{padding:'0.5rem 0.75rem'}}
+                style={{padding:'0.5rem 0.75rem', display:'block'}}
                 aria-haspopup="true"
               >
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:20,height:20,color:'var(--fg)'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </summary>
-              <div className="absolute right-0 mt-2 rounded-xl animate-scale-in" style={{width:224, background:'var(--card-bg)', border:'1px solid var(--card-border)', boxShadow:'var(--shadow-soft)', padding:'0.5rem', zIndex:50}}>
+              <div className="popup-panel animate-scale-in" style={{position:'absolute', right:0, top:'calc(100% + 0.5rem)', width:240, padding:'0.5rem', zIndex:100}}>
                 <div className="uppercase tracking-wider" style={{padding:'0.5rem 0.75rem', fontSize:'0.75rem', fontWeight:700, color:'var(--muted)'}}>
                   Tools
                 </div>

@@ -3,18 +3,17 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), back: vi.fn() }) }));
 
-// Mock AuthModal to capture handlers
+// Mock LoginForm and RegisterForm to capture handlers
 vi.mock('@/components/auth', () => ({
-  AuthModal: ({ isOpen, onClose, onSuccess }: any) => {
+  LoginForm: ({ onSuccess, onClose }: any) => {
     // call handlers to ensure they don't throw
-    if (isOpen) {
-      onClose();
-      onSuccess();
-    }
-    return <div>MockAuthModal</div>;
+    onClose?.();
+    onSuccess?.();
+    return <div>MockLoginForm</div>;
   },
+  RegisterForm: () => <div>MockRegisterForm</div>,
 }));
 
 import AuthPage from '@/app/auth/page';

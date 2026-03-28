@@ -252,7 +252,7 @@ const onRoll = async () => {
             {/* Dice Configuration Table */}
             <div className="space-y-4">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[760px]">
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-600">
                       <th className="text-left py-2 text-slate-700 dark:text-slate-300">Die Type</th>
@@ -265,7 +265,7 @@ const onRoll = async () => {
                   <tbody>
                     {diceConfigs.map((config) => (
                       <tr key={config.id} className="border-b border-slate-100 dark:border-slate-700">
-                        <td className="py-3">
+                        <td className="py-2">
                           <div className="flex items-center gap-2">
                             {/* Show a compact die symbol/label instead of a dropdown. Keep an sr-only label for screen readers. */}
                             <div className="die-btn inline-flex items-center justify-center" aria-hidden="true">
@@ -297,10 +297,10 @@ const onRoll = async () => {
                             )}
                           </div>
                         </td>
-                        <td className="py-3">
+                        <td className="py-2">
                           <Counter value={config.count} min={1} max={20} onChange={(v) => updateDiceConfig(config.id, { count: v })} />
                         </td>
-                        <td className="py-3">
+                        <td className="py-2">
                           <div className="flex items-center gap-2">
                             <div className="inline-flex items-center gap-2">
                               <div className="inline-flex items-center gap-2">
@@ -321,7 +321,7 @@ const onRoll = async () => {
                           </div>
                         </td>
 
-                        <td className="py-3">
+                        <td className="py-2">
                           <div className="inline-flex items-center gap-2">
                             <ModernCheckbox id={`reroll-${config.id}`} ariaLabel="Enabled" checked={!!config.rerollEnabled} onChange={(v) => updateDiceConfig(config.id, { rerollEnabled: v })} className="mr-2" />
                             {config.rerollEnabled && (
@@ -337,7 +337,7 @@ const onRoll = async () => {
                           </div>
                         </td>
 
-                        <td className="py-3">
+                        <td className="py-2">
                           {diceConfigs.length > 1 && (
                             <button
                               type="button"
@@ -417,7 +417,7 @@ const onRoll = async () => {
                     <div className="mb-4">
                       <h4 className="font-medium text-slate-900 dark:text-white mb-3 text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">Dice Results</h4>
                         <div className="overflow-x-auto">
-                        <table className="w-full text-sm border border-slate-200 dark:border-slate-600 rounded-lg min-w-[760px]">
+                        <table className="w-full text-sm border border-slate-200 dark:border-slate-600 rounded-lg">
                           <thead>
                             <tr className="bg-slate-50 dark:bg-slate-700">
                               <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Die #</th>

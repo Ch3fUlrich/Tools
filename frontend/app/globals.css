@@ -202,6 +202,16 @@ html, body, #__next {
   box-shadow: 0 8px 30px -8px rgba(0, 0, 0, 0.15);
 }
 
+/* ─── Reusable popup panel (info tooltips, mobile menu, etc.) ─── */
+.popup-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: 0.875rem;
+  box-shadow: 0 8px 32px -8px rgba(0,0,0,0.32), 0 0 0 1px rgba(139,92,246,0.08);
+  backdrop-filter: blur(16px);
+  color: var(--fg);
+}
+
 .tool-card {
   padding: 1.5rem;
   background: var(--card-bg);

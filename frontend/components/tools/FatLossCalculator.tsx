@@ -124,52 +124,38 @@ export const FatLossCalculator: React.FC = () => {
                 )}
               </button>
 
-              {/* Enhanced Info Button */}
+              {/* Info Button */}
               <div className="relative" ref={infoRef}>
                 <button
                   type="button"
                   onClick={() => setShowInfo(!showInfo)}
-                  className="w-12 h-12 btn-ghost flex items-center justify-center hover:scale-105 transition-transform duration-200"
-                  title="Information about calculation method and sources"
+                  className="btn-ghost"
+                  aria-label="How it works"
+                  style={{height:44, padding:'0 0.75rem', display:'inline-flex', alignItems:'center', gap:'0.375rem', flexShrink:0}}
+                  title="How it works"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:16,height:16,minWidth:16}}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
+                  <span style={{fontSize:'0.8125rem', fontWeight:600}}>?</span>
                 </button>
 
-                {/* Enhanced Info Tooltip */}
+                {/* Info Popup */}
                 {showInfo && (
-                  <div className="absolute bottom-full right-0 mb-2 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-soft-lg border border-slate-200 dark:border-slate-700 p-4 z-10 animate-scale-in">
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-slate-900 dark:text-white">Calculation Method</h4>
-                      <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
-                        <p>
-                          <strong>Formula:</strong> The calculator uses a simplified model based on research from sports science and nutrition studies.
-                        </p>
-                        <p>
-                          <strong>Factors considered:</strong>
-                        </p>
-                        <ul className="list-disc list-inside ml-2 space-y-1">
-                          <li>Calorie deficit magnitude</li>
-                          <li>Rate of weight loss</li>
-                          <li>Typical body composition ratios</li>
-                          <li>Metabolic adaptations</li>
-                        </ul>
-                        <p>
-                          <strong>Sources:</strong>
-                        </p>
-                        <ul className="list-disc list-inside ml-2 space-y-1">
-                          <li>International Journal of Obesity</li>
-                          <li>American Journal of Clinical Nutrition</li>
-                          <li>Research by Dr. Layne Norton</li>
-                          <li>Body recomposition studies</li>
-                        </ul>
-                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-2">
-                          <em>Note: This is an estimation tool. Individual results may vary based on genetics, training, and nutrition.</em>
-                        </p>
-                      </div>
+                  <div className="popup-panel animate-scale-in" style={{position:'absolute', bottom:'100%', right:0, marginBottom:'0.5rem', width:'19rem', padding:'1rem', zIndex:20}}>
+                    <h4 style={{fontWeight:700, color:'var(--fg)', marginBottom:'0.625rem', fontSize:'0.9375rem'}}>How it works</h4>
+                    <div style={{fontSize:'0.8125rem', color:'var(--muted)', display:'flex', flexDirection:'column', gap:'0.375rem'}}>
+                      <p>• Enter your daily calorie deficit and weekly weight loss</p>
+                      <p>• The calculator estimates fat vs muscle loss ratio</p>
+                      <p>• Healthy fat loss: 70%+ of weight loss from fat</p>
+                      <p>• Combine with strength training for best results</p>
+                      <div style={{borderTop:'1px solid var(--card-border)', margin:'0.375rem 0'}} />
+                      <p><strong style={{color:'var(--fg)'}}>Formula:</strong> Simplified model based on sports science and nutrition research.</p>
+                      <p><strong style={{color:'var(--fg)'}}>Sources:</strong> International Journal of Obesity, American Journal of Clinical Nutrition, Dr. Layne Norton studies.</p>
+                      <p style={{fontSize:'0.75rem', fontStyle:'italic', marginTop:'0.25rem'}}>Note: Estimation only — individual results may vary.</p>
                     </div>
-                    <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white dark:border-t-slate-800"></div>
+                    {/* Caret */}
+                    <div style={{position:'absolute', top:'100%', right:'1rem', width:0, height:0, borderLeft:'6px solid transparent', borderRight:'6px solid transparent', borderTop:'6px solid var(--card-border)'}} />
                   </div>
                 )}
               </div>
@@ -275,23 +261,6 @@ export const FatLossCalculator: React.FC = () => {
             </div>
           )}
 
-          {/* Enhanced Info Card */}
-          {!result && !error && (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800 animate-fade-in-up">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg">💡</span>
-                </div>
-                <h3 className="font-semibold text-blue-900 dark:text-blue-100">How it works</h3>
-              </div>
-              <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
-                <p>• Enter your daily calorie deficit and weekly weight loss</p>
-                <p>• The calculator estimates fat vs muscle loss ratio</p>
-                <p>• Healthy fat loss: 70%+ of weight loss from fat</p>
-                <p>• Combine with strength training for best results</p>
-              </div>
-            </div>
-          )}
 
           {/* Visualization */}
           {result && result.is_valid && (
