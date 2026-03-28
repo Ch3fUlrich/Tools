@@ -77,9 +77,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -101,7 +98,9 @@ jobs:
         with:
           context: .
           file: docker/backend.Dockerfile
-          platforms: linux/amd64,linux/arm64
+          # linux/amd64 only: the backend uses x86_64-musl which cannot cross-compile
+          # to arm64 via QEMU without additional musl cross-toolchain setup.
+          platforms: linux/amd64
           push: true
           tags: |
             ghcr.io/${{ steps.owner.outputs.name }}/tools-backend:v${{ needs.semantic-release.outputs.new_release_version }}
