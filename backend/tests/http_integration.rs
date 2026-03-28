@@ -17,9 +17,7 @@ async fn test_http_endpoints() {
 
     let pool = PgPool::connect(&db_url).await.expect("connect db");
     // Ensure migrations/tables exist (same as earlier test)
-    let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
-        .execute(&pool)
-        .await;
+    let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS pgcrypto;").execute(&pool).await;
     let _ = sqlx::query("CREATE TABLE IF NOT EXISTS users (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), email TEXT UNIQUE NOT NULL);").execute(&pool).await;
     let _ = sqlx::query("CREATE TABLE IF NOT EXISTS dice_rolls (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid REFERENCES users(id) ON DELETE SET NULL, session_id text NULL, payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now());").execute(&pool).await;
 
@@ -86,10 +84,7 @@ async fn test_http_error_responses() {
     let server = TestServer::new(app).unwrap();
 
     // Test invalid JSON - should be 400 Bad Request, but axum might return 415 for wrong content type
-    let resp = server
-        .post("/api/tools/fat-loss")
-        .text("invalid json")
-        .await;
+    let resp = server.post("/api/tools/fat-loss").text("invalid json").await;
     assert!(resp.status_code().is_client_error(), "Should return client error for invalid content");
 
     // Test invalid dice request (negative count)

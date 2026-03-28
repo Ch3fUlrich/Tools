@@ -93,10 +93,7 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
     }
 
     // determine effective max rerolls per die
-    let max_rerolls = req
-        .max_rerolls_per_die
-        .unwrap_or(10)
-        .min(MAX_REROLLS_PER_DIE);
+    let max_rerolls = req.max_rerolls_per_die.unwrap_or(10).min(MAX_REROLLS_PER_DIE);
 
     // estimated work heuristic: count * (1 + max_rerolls) * rolls
     let est_work: u128 = u128::from(req.count) * (u128::from(max_rerolls) + 1) * u128::from(rolls);
@@ -148,10 +145,7 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
     for _ in 0..rolls {
         let mut rng = rand::thread_rng();
         let advantage = req.advantage.clone().unwrap_or_else(|| "none".to_string());
-        let adv_mode = req
-            .advantage_mode
-            .clone()
-            .unwrap_or_else(|| "per-die".to_string());
+        let adv_mode = req.advantage_mode.clone().unwrap_or_else(|| "per-die".to_string());
 
         if advantage == "none" || adv_mode == "per-die" {
             // per-die advantage: for each die, roll either once (none) or twice and pick

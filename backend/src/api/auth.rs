@@ -1,3 +1,7 @@
+use crate::middleware::session_middleware::AuthenticatedUser;
+use crate::tools::auth as auth_tools;
+use crate::tools::session::SessionStore;
+use axum::http::HeaderMap;
 use axum::{
     extract::{Extension, Json},
     http::{header, Response, StatusCode},
@@ -9,10 +13,6 @@ use serde_json::json;
 use sqlx::PgPool;
 use sqlx::Row;
 use std::sync::Arc;
-use crate::tools::auth as auth_tools;
-use crate::tools::session::SessionStore;
-use crate::middleware::session_middleware::AuthenticatedUser;
-use axum::http::HeaderMap;
 
 #[derive(Deserialize)]
 pub struct RegisterRequest {
@@ -61,10 +61,7 @@ pub async fn login(
         Ok(Some(rec)) => {
             let pwd: Option<String> = rec.try_get("password_hash").ok();
             let pwd = pwd.unwrap_or_default();
-            if auth_tools::verify_password(&pwd, &payload.password)
-                .await
-                .unwrap_or(false)
-            {
+            if auth_tools::verify_password(&pwd, &payload.password).await.unwrap_or(false) {
                 // create session
                 let uid: uuid::Uuid = match rec.try_get("id") {
                     Ok(u) => u,
@@ -86,8 +83,12 @@ pub async fn login(
                         return Response::builder()
                             .status(StatusCode::SERVICE_UNAVAILABLE)
                             .body(
-                                serde_json::to_string(&json!({"error":"session store unavailable"}))
-                                    .unwrap_or_else(|_| "{\"error\":\"session store unavailable\"}".to_string()),
+                                serde_json::to_string(
+                                    &json!({"error":"session store unavailable"}),
+                                )
+                                .unwrap_or_else(|_| {
+                                    "{\"error\":\"session store unavailable\"}".to_string()
+                                }),
                             )
                             .unwrap();
                     }
@@ -109,7 +110,11 @@ pub async fn login(
 
                 // set cookie — only add Secure flag when not running on localhost
                 let secure_flag = match std::env::var("ALLOWED_ORIGINS") {
-                    Ok(origins) if origins.contains("localhost") || origins.contains("127.0.0.1") => "",
+                    Ok(origins)
+                        if origins.contains("localhost") || origins.contains("127.0.0.1") =>
+                    {
+                        ""
+                    }
                     _ => "; Secure",
                 };
                 let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax{secure_flag}");
@@ -173,12 +178,10 @@ pub async fn get_profile(
     AuthenticatedUser(user): AuthenticatedUser,
     Extension(pool): Extension<Arc<PgPool>>,
 ) -> impl IntoResponse {
-    let row = sqlx::query(
-        "SELECT id, email, display_name, created_at FROM users WHERE id = $1",
-    )
-    .bind(user.id)
-    .fetch_one(&*pool)
-    .await;
+    let row = sqlx::query("SELECT id, email, display_name, created_at FROM users WHERE id = $1")
+        .bind(user.id)
+        .fetch_one(&*pool)
+        .await;
     match row {
         Ok(rec) => {
             let id: uuid::Uuid = rec.try_get("id").unwrap_or_default();
@@ -198,10 +201,7 @@ pub async fn get_profile(
         }
         Err(e) => {
             tracing::error!("get_profile failed: {}", e);
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                AxumJson(json!({"error": "internal"})),
-            )
+            (StatusCode::INTERNAL_SERVER_ERROR, AxumJson(json!({"error": "internal"})))
         }
     }
 }
@@ -225,10 +225,7 @@ pub async fn update_profile(
         Ok(_) => (StatusCode::OK, AxumJson(json!({"ok": true}))),
         Err(e) => {
             tracing::error!("update_profile failed: {}", e);
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                AxumJson(json!({"error": "internal"})),
-            )
+            (StatusCode::INTERNAL_SERVER_ERROR, AxumJson(json!({"error": "internal"})))
         }
     }
 }

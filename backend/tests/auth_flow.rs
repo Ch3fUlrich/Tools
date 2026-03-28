@@ -14,14 +14,10 @@ async fn test_register_and_save_history() {
         }
     };
 
-    let pool = sqlx::PgPool::connect(&database_url)
-        .await
-        .expect("connect test db");
+    let pool = sqlx::PgPool::connect(&database_url).await.expect("connect test db");
 
     // pgcrypto is built-in since Postgres 13; ignore race if another test creates it first
-    let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS pgcrypto")
-        .execute(&pool)
-        .await;
+    let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS pgcrypto").execute(&pool).await;
 
     // prepare schema for tests (idempotent: use IF NOT EXISTS to avoid race conditions)
     pool.execute(
@@ -48,9 +44,8 @@ async fn test_register_and_save_history() {
     // Register a user via tools::auth::register_user
     let email = format!("test+{}@example.com", uuid::Uuid::new_v4());
     let password = "password123";
-    let id = auth_tools::register_user(&pool, &email, password, Some("Tester"))
-        .await
-        .expect("register");
+    let id =
+        auth_tools::register_user(&pool, &email, password, Some("Tester")).await.expect("register");
 
     // Save a dice history entry directly via SQL (simulate endpoint)
     let payload = serde_json::json!({"rolls": [{"sum": 10}], "summary": {}});
@@ -83,9 +78,7 @@ async fn test_session_store_redis() {
         }
     };
 
-    let mut store = SessionStore::new(&redis_url, "test")
-        .await
-        .expect("create store");
+    let mut store = SessionStore::new(&redis_url, "test").await.expect("create store");
     let uid = uuid::Uuid::new_v4();
     let sid = store.create_session(uid, 60).await.expect("create sid");
     let got = store.get_session(&sid).await.expect("get session");
@@ -105,9 +98,7 @@ async fn test_register_user_validation() {
         }
     };
 
-    let pool = sqlx::PgPool::connect(&database_url)
-        .await
-        .expect("connect test db");
+    let pool = sqlx::PgPool::connect(&database_url).await.expect("connect test db");
 
     // Ensure schema exists (idempotent setup so this test can run in any order)
     let _ = pool
@@ -155,9 +146,7 @@ async fn test_session_store_edge_cases() {
         }
     };
 
-    let mut store = SessionStore::new(&redis_url, "test")
-        .await
-        .expect("create session store");
+    let mut store = SessionStore::new(&redis_url, "test").await.expect("create session store");
 
     // Test with empty session ID
     let result = store.get_session("").await;
@@ -165,10 +154,7 @@ async fn test_session_store_edge_cases() {
 
     // Test with very long session ID - create a session and try to get it
     let test_uuid = uuid::Uuid::new_v4();
-    let sid = store
-        .create_session(test_uuid, 300)
-        .await
-        .expect("create session");
+    let sid = store.create_session(test_uuid, 300).await.expect("create session");
     let result = store.get_session(&sid).await;
     assert!(result.is_ok(), "Should handle session retrieval");
     assert!(result.unwrap().is_some(), "Session should exist");

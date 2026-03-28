@@ -251,13 +251,8 @@ pub async fn callback(
     };
 
     // Obtain subject and optional email from ID token claims
-    let subject = claims
-        .as_ref()
-        .map(|c| c.subject().to_string())
-        .unwrap_or_default();
-    let email = claims
-        .as_ref()
-        .and_then(|c| c.email().map(|e| e.to_string()));
+    let subject = claims.as_ref().map(|c| c.subject().to_string()).unwrap_or_default();
+    let email = claims.as_ref().and_then(|c| c.email().map(|e| e.to_string()));
 
     if subject.is_empty() {
         return axum::http::Response::builder()
@@ -291,9 +286,7 @@ pub async fn callback(
         uid
     } else {
         // create new user
-        let em = email
-            .clone()
-            .unwrap_or_else(|| format!("{}@oauth", &subject));
+        let em = email.clone().unwrap_or_else(|| format!("{}@oauth", &subject));
         let rec = match sqlx::query("INSERT INTO users (email, password_hash, display_name) VALUES ($1, $2, $3) RETURNING id")
             .bind(&em)
             .bind("")
@@ -359,7 +352,11 @@ pub async fn callback(
             Ok(sid) => {
                 // Only add Secure flag when not running on localhost
                 let secure_flag = match std::env::var("ALLOWED_ORIGINS") {
-                    Ok(origins) if origins.contains("localhost") || origins.contains("127.0.0.1") => "",
+                    Ok(origins)
+                        if origins.contains("localhost") || origins.contains("127.0.0.1") =>
+                    {
+                        ""
+                    }
                     _ => "; Secure",
                 };
                 let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax{secure_flag}");

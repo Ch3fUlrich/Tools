@@ -38,10 +38,8 @@ pub async fn roll(
     let mut limited = false;
     if let Some(store_arc) = store {
         // try to parse sid from cookie
-        let cookie_header = headers
-            .get(axum::http::header::COOKIE)
-            .and_then(|v| v.to_str().ok())
-            .unwrap_or("");
+        let cookie_header =
+            headers.get(axum::http::header::COOKIE).and_then(|v| v.to_str().ok()).unwrap_or("");
         if let Some(sid) = SessionStore::parse_sid_from_cookie(cookie_header) {
             let mut guard = store_arc.lock().await;
             let key = format!("{}:lim:roll:{}", guard.namespace, sid);

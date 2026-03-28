@@ -21,10 +21,7 @@ where
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         // Extract cookie header
         let headers = &parts.headers;
-        let cookie_header = headers
-            .get(header::COOKIE)
-            .and_then(|v| v.to_str().ok())
-            .unwrap_or("");
+        let cookie_header = headers.get(header::COOKIE).and_then(|v| v.to_str().ok()).unwrap_or("");
         if cookie_header.is_empty() {
             return Err((StatusCode::UNAUTHORIZED, "No session cookie".to_string()));
         }

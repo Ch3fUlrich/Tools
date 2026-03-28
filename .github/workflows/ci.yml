@@ -30,10 +30,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Setup Rust (stable)
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Quick backend unit tests
         run: |
@@ -51,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16
         env:
           POSTGRES_USER: tools
           POSTGRES_PASSWORD: pass
@@ -71,10 +68,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup Rust (stable)
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Cache cargo registry
         uses: actions/cache@v4
@@ -93,12 +87,6 @@ jobs:
         run: |
           cd backend
           cargo test --workspace --all-features --no-fail-fast
-
-      - name: Run cargo-audit (best-effort)
-        run: |
-          cd backend
-          cargo install cargo-audit --version 0.17.0 || true
-          cargo audit || true
 
   frontend:
     name: Frontend tests
@@ -143,9 +131,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: 1.90.0
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Build backend (release)
         run: |

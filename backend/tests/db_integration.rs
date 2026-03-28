@@ -24,14 +24,10 @@ async fn test_postgres_and_redis_integration() {
     };
 
     // Connect to Postgres
-    let pool = PgPool::connect(&db_url)
-        .await
-        .expect("Failed to connect to Postgres");
+    let pool = PgPool::connect(&db_url).await.expect("Failed to connect to Postgres");
 
     // Ensure minimal tables exist (idempotent)
-    let _ = sqlx::query(r#"CREATE EXTENSION IF NOT EXISTS pgcrypto;"#)
-        .execute(&pool)
-        .await;
+    let _ = sqlx::query(r#"CREATE EXTENSION IF NOT EXISTS pgcrypto;"#).execute(&pool).await;
 
     let _ = sqlx::query(
         r#"CREATE TABLE IF NOT EXISTS users (
@@ -92,10 +88,8 @@ async fn test_postgres_and_redis_integration() {
     if !redis_url.is_empty() {
         let client =
             redis::Client::open(redis_url.as_str()).expect("Failed to create redis client");
-        let mut conn = client
-            .get_multiplexed_async_connection()
-            .await
-            .expect("Failed to connect to redis");
+        let mut conn =
+            client.get_multiplexed_async_connection().await.expect("Failed to connect to redis");
 
         let key = format!("test:history:{}", uuid::Uuid::new_v4());
         let _: () = conn.lpush(&key, "payload1").await.expect("lpush failed");
@@ -127,18 +121,14 @@ async fn test_database_query_error_handling() {
         }
     };
 
-    let pool = PgPool::connect(&db_url)
-        .await
-        .expect("Failed to connect to Postgres");
+    let pool = PgPool::connect(&db_url).await.expect("Failed to connect to Postgres");
 
     // Test invalid SQL syntax
     let result = sqlx::query("INVALID SQL SYNTAX").execute(&pool).await;
     assert!(result.is_err(), "Should fail with invalid SQL");
 
     // Test query on non-existent table
-    let result = sqlx::query("SELECT * FROM nonexistent_table")
-        .execute(&pool)
-        .await;
+    let result = sqlx::query("SELECT * FROM nonexistent_table").execute(&pool).await;
     assert!(result.is_err(), "Should fail when querying non-existent table");
 
     // Test constraint violation (if we can trigger one)
@@ -163,7 +153,5 @@ async fn test_database_query_error_handling() {
     assert!(result.is_err(), "Should fail due to unique constraint violation");
 
     // Clean up
-    let _ = sqlx::query("DROP TABLE test_constraints")
-        .execute(&pool)
-        .await;
+    let _ = sqlx::query("DROP TABLE test_constraints").execute(&pool).await;
 }

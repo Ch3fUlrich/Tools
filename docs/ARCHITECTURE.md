@@ -219,12 +219,14 @@ Tools/
 ├── .github/workflows/
 │   ├── frontend.yml                  Frontend: tests, lint, build, Codecov
 │   ├── backend.yml                   Backend: cargo test, clippy, fmt
-│   ├── ci.yml                        All-PR smoke tests + commit lint
-│   ├── integration-tests.yml         Backend integration tests with real Postgres + Redis
-│   ├── cargo-audit.yml               Weekly Rust dependency security audit
+│   ├── ci.yml                        Full CI: smoke tests, backend+frontend tests, build artifacts
+│   ├── integration-tests.yml         Full integration tests (triggered after CI succeeds)
+│   ├── cargo-audit.yml               Rust dependency security audit (weekly + on Cargo changes)
 │   ├── release.yml                   Semantic-release on main → version bump + CHANGELOG
 │   ├── gh-pages.yml                  Build static site → deploy to gh-pages branch
-│   └── automerge-dependabot.yml      Auto-merge patch/minor Dependabot PRs
+│   ├── publish-on-ci-success.yml     Docker image build & push to GHCR (on version tags)
+│   ├── commitlint.yml                PR commit message validation (Conventional Commits)
+│   └── automerge-dependabot.yml      Auto-merge + auto-approve Dependabot PRs
 │
 ├── docs/
 │   ├── ARCHITECTURE.md               This file — architecture overview and file tree

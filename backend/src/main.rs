@@ -51,10 +51,8 @@ fn configure_cors() -> CorsLayer {
     // so the defaults follow the ports the services actually run on. If BACKEND_PORT
     // is not set we fall back to PORT (used elsewhere). If ALLOWED_ORIGINS is set,
     // it takes precedence.
-    let default_frontend_port: u16 = std::env::var("FRONTEND_PORT")
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(3000);
+    let default_frontend_port: u16 =
+        std::env::var("FRONTEND_PORT").ok().and_then(|s| s.parse().ok()).unwrap_or(3000);
 
     let default_backend_port: u16 = std::env::var("BACKEND_PORT")
         .ok()
@@ -67,11 +65,8 @@ fn configure_cors() -> CorsLayer {
 
     let allowed_origins = std::env::var("ALLOWED_ORIGINS").unwrap_or(default_allowed);
 
-    let safe_allowed_origins: String = allowed_origins
-        .chars()
-        .take(MAX_LOG_ORIGIN_LENGTH)
-        .filter(|c| !c.is_control())
-        .collect();
+    let safe_allowed_origins: String =
+        allowed_origins.chars().take(MAX_LOG_ORIGIN_LENGTH).filter(|c| !c.is_control()).collect();
     tracing::info!("Configuring CORS with allowed origins: {}", safe_allowed_origins);
 
     let origins: Vec<_> = allowed_origins
@@ -157,11 +152,7 @@ async fn main() {
     // Initialize Postgres pool
     let database_url =
         std::env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://localhost/tools".into());
-    let pool: PgPool = match PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&database_url)
-        .await
-    {
+    let pool: PgPool = match PgPoolOptions::new().max_connections(5).connect(&database_url).await {
         Ok(p) => p,
         Err(e) => {
             let redacted = redact_database_url(&database_url);
@@ -195,10 +186,7 @@ async fn main() {
     let app = app::build_app(shared_pool.clone(), session_store_opt).layer(cors);
 
     // Run the server. Honor PORT env var if set (fallback to 3001).
-    let port: u16 = std::env::var("PORT")
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(3001);
+    let port: u16 = std::env::var("PORT").ok().and_then(|s| s.parse().ok()).unwrap_or(3001);
 
     let bind_addr = format!("0.0.0.0:{port}");
     let listener = match tokio::net::TcpListener::bind(&bind_addr).await {

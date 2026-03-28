@@ -243,10 +243,15 @@ Enforced by commitlint — the CI will reject non-conforming messages.
 | Workflow | Trigger | What it checks |
 |---|---|---|
 | `frontend.yml` | Push/PR touching `frontend/` | Tests, lint, build, Codecov upload |
-| `backend.yml` | Push/PR touching `backend/` | Cargo tests (Postgres + Redis) |
-| `ci.yml` | All PRs to main | Smoke tests, commit linting |
-| `cargo-audit.yml` | Scheduled + manual | Dependency security audit |
-| `automerge-dependabot.yml` | Dependabot PRs | Auto-merge patch/minor deps |
+| `backend.yml` | Push/PR touching `backend/` | Cargo test, clippy, fmt |
+| `ci.yml` | All PRs + push to main | Smoke tests, backend (Postgres+Redis), frontend, build artifacts |
+| `integration-tests.yml` | After CI succeeds | Full integration tests with Postgres + Redis |
+| `cargo-audit.yml` | Scheduled + manual + Cargo.toml changes | Dependency security audit |
+| `automerge-dependabot.yml` | Dependabot PRs | Auto-merge + auto-approve |
+| `gh-pages.yml` | Push to main | Build and deploy static site to GitHub Pages |
+| `release.yml` | After CI succeeds on main | Semantic-release versioning |
+| `publish-on-ci-success.yml` | Version tags (`v*.*.*`) | Build & push Docker images to GHCR |
+| `commitlint.yml` | PRs | Validate conventional commit messages |
 
 Codecov token is optional — `fail_ci_if_error: false` is set so missing token doesn't block CI.
 
