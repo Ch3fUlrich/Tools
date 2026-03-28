@@ -139,7 +139,7 @@ GET  /api/auth/oidc/callback             — OIDC OAuth2 callback
 | Cache / Sessions | Redis 7 |
 | Frontend runtime | nginx-unprivileged (Alpine, rootless) |
 | Backend runtime | distroless/static (musl-linked, ~2 MB) |
-| CI/CD | GitHub Actions, semantic-release |
+| CI/CD | GitHub Actions, semantic-release, Docker images on GHCR |
 | Tests | Vitest 4 + Testing Library (frontend), Rust built-in (backend) |
 
 ---

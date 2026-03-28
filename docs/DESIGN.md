@@ -33,6 +33,8 @@ This document outlines the design principles, patterns, and guidelines for build
 
 ## Visual Design
 
+> **Convention:** All tool components use Tailwind `slate-*` grays (not `gray-*`). The `gray-*` palette appears in this document for design system reference only; in actual component code, always use `slate-*`.
+
 ### Color Palette
 
 **Light Mode:**
@@ -193,7 +195,7 @@ Use Tailwind's spacing scale consistently:
 - Support both light and dark modes
 - Use Tailwind's `dark:` prefix for dark mode styles
 - Respect system preferences
-- Provide manual toggle (future enhancement)
+- Manual toggle provided via `ThemeToggle` component (persisted to localStorage)
 
 ## Icons
 

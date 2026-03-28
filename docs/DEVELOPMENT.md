@@ -6,7 +6,7 @@
 |------|---------|-------|
 | Node.js | **24** (required) | Vitest 4 + Vite 7 require ≥ 24 |
 | pnpm | latest | `corepack enable pnpm` |
-| Rust | stable (pinned via `rust-toolchain.toml`) | [Install](https://rustup.rs/) |
+| Rust | stable (1.90.0+) | [Install](https://rustup.rs/); CI uses `dtolnay/rust-toolchain@stable` |
 | Docker | 24+ | For Postgres + Redis in dev |
 
 **Pin Node 24 with nvm:**
@@ -40,6 +40,8 @@ cd backend && cargo run
 ```
 
 The backend auto-runs migrations via SQLx when it starts. No manual migration command is needed.
+
+> **Note:** `Cargo.lock` is committed to the repository for reproducible builds. CI uses `cargo build --locked` and `cargo test --locked` to ensure the lock file stays in sync with `Cargo.toml`. After changing dependencies, run `cargo update` and commit the updated lock file.
 
 ---
 
@@ -87,8 +89,14 @@ cargo fmt --check
 # Auto-format
 cargo fmt
 
+# Verify lock file is in sync (CI uses this)
+cargo check --locked
+
 # Check compilation without building
 cargo check
+
+# Run only unit tests (no DB needed)
+cargo test --workspace --lib
 ```
 
 ### Full Stack
@@ -162,6 +170,7 @@ TEST_DATABASE_URL=postgres://tools:pass@localhost:5432/tools cargo test
 
 **Rules:**
 - Use `CREATE TABLE IF NOT EXISTS` in test setup — never `DROP TABLE` (tests run in parallel)
+- CI runs SQL migrations via `psql` before `cargo test` — tests do not rely solely on inline schema creation
 - Tests that mutate the DB must use a unique schema or table prefix to avoid conflicts
 
 ---
@@ -318,3 +327,4 @@ Breaking changes: add `!` after scope (`feat(auth)!: change session format`) or 
 | Running tests with Node < 24 | Vitest 4 requires Node ≥ 24 |
 | `vi.resetAllMocks()` in `beforeEach` | Use `vi.clearAllMocks()` to preserve mock implementations |
 | Committing generated files | Never commit `*.log`, `.next/`, `out/`, `target/` |
+| Forgetting to commit `Cargo.lock` after dep changes | Run `cargo update` and commit the lock file |

@@ -171,7 +171,7 @@ Multi-stage build — 3 stages:
 | Event | Workflow | Result |
 |-------|----------|--------|
 | PR opened/updated | `ci.yml` | Tests, lint, build |
-| Push to `main` | `ci.yml` → `release.yml` | Semantic version bump, tag, CHANGELOG update |
+| Push to `main` | `ci.yml` → `release.yml` | Semantic version bump, tag, GitHub Release |
 | Tag `v*.*.*` created | CD (publish) | Build + push multi-arch images to GHCR |
 | Push to `main` | `gh-pages.yml` | Deploy static demo to GitHub Pages |
 
@@ -190,6 +190,8 @@ Versioning is fully automated using [semantic-release](https://semantic-release.
 | `fix:` | Patch (1.0.**1**) |
 | `feat:` | Minor (1.**1**.0) |
 | `feat!:` or `BREAKING CHANGE:` | Major (**2**.0.0) |
+
+Release notes are published as **GitHub Releases** (via `@semantic-release/github`). There is no CHANGELOG file committed to the repository — the `@semantic-release/git` plugin was removed because branch protection rules prevent direct pushes to `main`.
 
 ---
 

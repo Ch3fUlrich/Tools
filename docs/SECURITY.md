@@ -15,9 +15,7 @@ This document outlines the security practices and guidelines for the Tools proje
    - Sanitize file uploads and JSON data
 
 2. **CORS Configuration**
-   - CORS is currently set to `Any` for development
-   - **PRODUCTION**: Restrict CORS to specific frontend domains
-   - Update `backend/src/main.rs` CORS configuration before deployment
+   - CORS is configured via the `ALLOWED_ORIGINS` environment variable (comma-separated origins). Defaults to localhost origins for development. See `backend/src/main.rs` for the `configure_cors()` implementation.
 
 3. **Rate Limiting**
    - Implement rate limiting for API endpoints to prevent abuse
@@ -51,11 +49,17 @@ This document outlines the security practices and guidelines for the Tools proje
 1. **Dependency Management**
    - Regularly update dependencies: `cargo update`
    - Audit dependencies for vulnerabilities: `cargo audit`
+   - CI runs `cargo audit` weekly and on every `Cargo.toml`/`Cargo.lock` change (known unfixable advisory `RUSTSEC-2023-0071` is ignored)
    - Review new dependencies before adding them
 
 2. **Minimal Dependencies**
    - Only include necessary crates
    - Prefer well-maintained, popular libraries
+
+3. **Supply Chain Security**
+   - `Cargo.lock` is committed for reproducible builds
+   - CI uses `--locked` flag to prevent unexpected dependency changes
+   - Docker images use multi-stage builds with minimal runtime bases (distroless/static)
 
 ## Frontend Security (Next.js/React)
 
@@ -89,10 +93,11 @@ This document outlines the security practices and guidelines for the Tools proje
    - Implement proper error handling
    - Add request timeouts
 
-2. **Authentication** (Future)
-   - When adding authentication, use secure token storage
-   - Implement proper session management
-   - Add CSRF protection
+2. **Authentication**
+   - Sessions are managed via Redis-backed `sid` HttpOnly cookies (24h TTL)
+   - Passwords are hashed with argon2id
+   - OIDC/OAuth2 login is supported for linked accounts
+   - Session middleware validates the `sid` cookie on every request
 
 ## Infrastructure Security
 

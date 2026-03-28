@@ -298,16 +298,18 @@ fn test_env_cleanup_on_panic() {
 }
 
 #[test]
+#[serial(env)]
 fn test_configure_cors_with_multiple_valid_origins() {
     // Test that multiple origins are all properly configured
     // This test verifies the fix for the issue where calling allow_origin
     // repeatedly in a loop would overwrite previous values
-    std::env::set_var(
+    temp_env::with_var(
         "ALLOWED_ORIGINS",
-        "http://localhost:3000,http://localhost:3001,https://example.com,https://app.example.com",
+        Some("http://localhost:3000,http://localhost:3001,https://example.com,https://app.example.com"),
+        || {
+            let cors_layer = configure_cors();
+            // Should not panic and should create a valid CorsLayer with all origins
+            assert!(std::mem::size_of_val(&cors_layer) > 0);
+        },
     );
-    let cors_layer = configure_cors();
-    // Should not panic and should create a valid CorsLayer with all origins
-    assert!(std::mem::size_of_val(&cors_layer) > 0);
-    std::env::remove_var("ALLOWED_ORIGINS");
 }
