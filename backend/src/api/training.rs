@@ -1,11 +1,9 @@
 use crate::middleware::session_middleware::AuthenticatedUser;
-use crate::tools::training::{
-    self, BodyMeasurements, MuscleMapping, SetEnergy, SetEnergyParams, Tempo,
-};
+use crate::tools::training::{self, BodyMeasurements, SetEnergy, SetEnergyParams, Tempo};
 use axum::extract::{Extension, Json, Path, Query};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::json;
 use sqlx::{PgPool, Row};
 use std::sync::Arc;
@@ -64,10 +62,16 @@ pub async fn create_measurement(
     Json(req): Json<CreateMeasurementRequest>,
 ) -> impl IntoResponse {
     if req.body_weight_kg <= 0.0 {
-        return (StatusCode::BAD_REQUEST, Json(json!({"error": "body_weight_kg must be positive"}))).into_response();
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({"error": "body_weight_kg must be positive"})),
+        )
+            .into_response();
     }
 
-    let measured_at = req.measured_at.as_deref()
+    let measured_at = req
+        .measured_at
+        .as_deref()
         .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
         .map(|dt| dt.with_timezone(&chrono::Utc))
         .unwrap_or_else(chrono::Utc::now);
@@ -189,7 +193,9 @@ pub async fn delete_measurement(
 ) -> impl IntoResponse {
     let uuid = match Uuid::parse_str(&id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
+        }
     };
     match sqlx::query("DELETE FROM body_measurements WHERE id = $1 AND user_id = $2")
         .bind(uuid)
@@ -215,9 +221,7 @@ pub async fn delete_measurement(
 // MUSCLE GROUPS
 // ============================================================================
 
-pub async fn list_muscles(
-    Extension(pool): Extension<Arc<PgPool>>,
-) -> impl IntoResponse {
+pub async fn list_muscles(Extension(pool): Extension<Arc<PgPool>>) -> impl IntoResponse {
     match sqlx::query("SELECT id, name, display_name, relative_size, body_map_position, svg_region_id FROM muscle_groups ORDER BY name")
         .fetch_all(&*pool)
         .await
@@ -256,7 +260,7 @@ pub async fn list_exercises(
         "SELECT e.id, e.name, e.description, e.movement_pattern, e.equipment, e.difficulty,
                 e.is_bodyweight, e.is_unilateral, e.primary_segments_moved, e.rom_degrees,
                 e.body_mass_fraction_moved, e.is_system_default, e.metadata
-         FROM exercises e WHERE (e.is_system_default = TRUE OR e.user_id = $1)"
+         FROM exercises e WHERE (e.is_system_default = TRUE OR e.user_id = $1)",
     );
     let mut param_idx = 2u32;
 
@@ -289,7 +293,7 @@ pub async fn list_exercises(
                 e.is_bodyweight, e.is_unilateral, e.primary_segments_moved, e.rom_degrees,
                 e.body_mass_fraction_moved, e.is_system_default, e.metadata
          FROM exercises e WHERE (e.is_system_default = TRUE OR e.user_id = $1)
-         ORDER BY e.is_system_default DESC, e.name"
+         ORDER BY e.is_system_default DESC, e.name",
     )
     .bind(user.id)
     .fetch_all(&*pool)
@@ -344,7 +348,9 @@ pub async fn get_exercise(
 ) -> impl IntoResponse {
     let uuid = match Uuid::parse_str(&id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
+        }
     };
 
     let exercise = sqlx::query(
@@ -359,7 +365,7 @@ pub async fn get_exercise(
     let muscles = sqlx::query(
         "SELECT mg.name, mg.display_name, em.involvement, em.activation_fraction
          FROM exercise_muscles em JOIN muscle_groups mg ON mg.id = em.muscle_group_id
-         WHERE em.exercise_id = $1 ORDER BY em.involvement, mg.name"
+         WHERE em.exercise_id = $1 ORDER BY em.involvement, mg.name",
     )
     .bind(uuid)
     .fetch_all(&*pool)
@@ -393,7 +399,9 @@ pub async fn get_exercise(
                 "muscles": muscles,
             }))).into_response()
         }
-        (Ok(None), _) => (StatusCode::NOT_FOUND, Json(json!({"error": "exercise not found"}))).into_response(),
+        (Ok(None), _) => {
+            (StatusCode::NOT_FOUND, Json(json!({"error": "exercise not found"}))).into_response()
+        }
         (Err(e), _) | (_, Err(e)) => {
             tracing::error!("get_exercise failed: {e}");
             (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": "internal"}))).into_response()
@@ -419,7 +427,7 @@ pub async fn list_plans(
 ) -> impl IntoResponse {
     match sqlx::query(
         "SELECT id, name, description, plan_type, is_active, sort_order, created_at
-         FROM training_plans WHERE user_id = $1 ORDER BY sort_order, name"
+         FROM training_plans WHERE user_id = $1 ORDER BY sort_order, name",
     )
     .bind(user.id)
     .fetch_all(&*pool)
@@ -479,7 +487,9 @@ pub async fn get_plan(
 ) -> impl IntoResponse {
     let uuid = match Uuid::parse_str(&id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
+        }
     };
 
     let plan = sqlx::query(
@@ -519,16 +529,22 @@ pub async fn get_plan(
                 })
             }).collect();
 
-            (StatusCode::OK, Json(json!({
-                "id": row.try_get::<Uuid, _>("id").unwrap_or_default().to_string(),
-                "name": row.try_get::<String, _>("name").unwrap_or_default(),
-                "description": row.try_get::<Option<String>, _>("description").ok().flatten(),
-                "planType": row.try_get::<String, _>("plan_type").unwrap_or_default(),
-                "isActive": row.try_get::<bool, _>("is_active").unwrap_or(true),
-                "exercises": exercises,
-            }))).into_response()
+            (
+                StatusCode::OK,
+                Json(json!({
+                    "id": row.try_get::<Uuid, _>("id").unwrap_or_default().to_string(),
+                    "name": row.try_get::<String, _>("name").unwrap_or_default(),
+                    "description": row.try_get::<Option<String>, _>("description").ok().flatten(),
+                    "planType": row.try_get::<String, _>("plan_type").unwrap_or_default(),
+                    "isActive": row.try_get::<bool, _>("is_active").unwrap_or(true),
+                    "exercises": exercises,
+                })),
+            )
+                .into_response()
         }
-        (Ok(None), _) => (StatusCode::NOT_FOUND, Json(json!({"error": "plan not found"}))).into_response(),
+        (Ok(None), _) => {
+            (StatusCode::NOT_FOUND, Json(json!({"error": "plan not found"}))).into_response()
+        }
         (Err(e), _) | (_, Err(e)) => {
             tracing::error!("get_plan failed: {e}");
             (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": "internal"}))).into_response()
@@ -544,7 +560,9 @@ pub async fn update_plan(
 ) -> impl IntoResponse {
     let uuid = match Uuid::parse_str(&id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
+        }
     };
     match sqlx::query(
         "UPDATE training_plans SET name = $1, description = $2, plan_type = COALESCE($3, plan_type), updated_at = now()
@@ -579,7 +597,9 @@ pub async fn delete_plan(
 ) -> impl IntoResponse {
     let uuid = match Uuid::parse_str(&id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
+        }
     };
     match sqlx::query("DELETE FROM training_plans WHERE id = $1 AND user_id = $2")
         .bind(uuid)
@@ -623,11 +643,17 @@ pub async fn add_plan_exercise(
 ) -> impl IntoResponse {
     let plan_uuid = match Uuid::parse_str(&plan_id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid plan_id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid plan_id"})))
+                .into_response()
+        }
     };
     let exercise_uuid = match Uuid::parse_str(&req.exercise_id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid exercise_id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid exercise_id"})))
+                .into_response()
+        }
     };
 
     // Verify plan belongs to user
@@ -675,11 +701,16 @@ pub async fn delete_plan_exercise(
 ) -> impl IntoResponse {
     let plan_uuid = match Uuid::parse_str(&plan_id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid plan_id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid plan_id"})))
+                .into_response()
+        }
     };
     let pe_uuid = match Uuid::parse_str(&exercise_id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
+        }
     };
 
     // Verify ownership
@@ -732,7 +763,7 @@ pub async fn start_session(
 
     // Snapshot latest measurement
     let measurement_id: Option<Uuid> = sqlx::query(
-        "SELECT id FROM body_measurements WHERE user_id = $1 ORDER BY measured_at DESC LIMIT 1"
+        "SELECT id FROM body_measurements WHERE user_id = $1 ORDER BY measured_at DESC LIMIT 1",
     )
     .bind(user.id)
     .fetch_optional(&*pool)
@@ -822,7 +853,9 @@ pub async fn get_session(
 ) -> impl IntoResponse {
     let uuid = match Uuid::parse_str(&id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
+        }
     };
 
     let session = sqlx::query(
@@ -888,7 +921,9 @@ pub async fn get_session(
                 "sets": sets_json,
             }))).into_response()
         }
-        (Ok(None), _) => (StatusCode::NOT_FOUND, Json(json!({"error": "session not found"}))).into_response(),
+        (Ok(None), _) => {
+            (StatusCode::NOT_FOUND, Json(json!({"error": "session not found"}))).into_response()
+        }
         (Err(e), _) | (_, Err(e)) => {
             tracing::error!("get_session failed: {e}");
             (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": "internal"}))).into_response()
@@ -911,14 +946,13 @@ pub async fn update_session(
 ) -> impl IntoResponse {
     let uuid = match Uuid::parse_str(&id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
+        }
     };
 
-    let completed_at = if req.status.as_deref() == Some("completed") {
-        Some(chrono::Utc::now())
-    } else {
-        None
-    };
+    let completed_at =
+        if req.status.as_deref() == Some("completed") { Some(chrono::Utc::now()) } else { None };
 
     // Update session
     match sqlx::query(
@@ -927,7 +961,7 @@ pub async fn update_session(
             notes = COALESCE($2, notes),
             completed_at = COALESCE($3, completed_at),
             updated_at = now()
-         WHERE id = $4 AND user_id = $5"
+         WHERE id = $4 AND user_id = $5",
     )
     .bind(&req.status)
     .bind(&req.notes)
@@ -939,7 +973,8 @@ pub async fn update_session(
     {
         Ok(result) => {
             if result.rows_affected() == 0 {
-                return (StatusCode::NOT_FOUND, Json(json!({"error": "not found"}))).into_response();
+                return (StatusCode::NOT_FOUND, Json(json!({"error": "not found"})))
+                    .into_response();
             }
 
             // If completing, recalculate totals
@@ -1001,11 +1036,17 @@ pub async fn log_set(
 ) -> impl IntoResponse {
     let session_uuid = match Uuid::parse_str(&session_id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid session_id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid session_id"})))
+                .into_response()
+        }
     };
     let exercise_uuid = match Uuid::parse_str(&req.exercise_id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid exercise_id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid exercise_id"})))
+                .into_response()
+        }
     };
 
     // Verify session belongs to user and is in_progress
@@ -1019,10 +1060,17 @@ pub async fn log_set(
 
     let measurement_id: Option<Uuid> = match session_check {
         Ok(Some(row)) => row.try_get("measurement_id").ok(),
-        Ok(None) => return (StatusCode::NOT_FOUND, Json(json!({"error": "session not found or not in_progress"}))).into_response(),
+        Ok(None) => {
+            return (
+                StatusCode::NOT_FOUND,
+                Json(json!({"error": "session not found or not in_progress"})),
+            )
+                .into_response()
+        }
         Err(e) => {
             tracing::error!("log_set session check failed: {e}");
-            return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": "internal"}))).into_response();
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": "internal"})))
+                .into_response();
         }
     };
 
@@ -1110,7 +1158,13 @@ async fn compute_set_energy_for_log(
     };
 
     let Some(ex) = exercise else {
-        return SetEnergy { total_kcal: 0.0, potential_kcal: 0.0, kinetic_kcal: 0.0, isometric_kcal: 0.0, mechanical_work_joules: 0.0 };
+        return SetEnergy {
+            total_kcal: 0.0,
+            potential_kcal: 0.0,
+            kinetic_kcal: 0.0,
+            isometric_kcal: 0.0,
+            mechanical_work_joules: 0.0,
+        };
     };
 
     let measurements = if let Some(mr) = measurement_row {
@@ -1159,7 +1213,9 @@ async fn compute_set_energy_for_log(
         weight_kg: req.weight_kg,
         reps: req.reps.max(0) as u32,
         movement_pattern: ex.try_get::<String, _>("movement_pattern").unwrap_or_default(),
-        primary_segments_moved: ex.try_get::<Vec<String>, _>("primary_segments_moved").unwrap_or_default(),
+        primary_segments_moved: ex
+            .try_get::<Vec<String>, _>("primary_segments_moved")
+            .unwrap_or_default(),
         rom_degrees: bd_ex("rom_degrees").unwrap_or(90.0),
         is_bodyweight: ex.try_get::<bool, _>("is_bodyweight").unwrap_or(false),
         is_unilateral: ex.try_get::<bool, _>("is_unilateral").unwrap_or(false),
@@ -1183,11 +1239,17 @@ pub async fn delete_set(
 ) -> impl IntoResponse {
     let session_uuid = match Uuid::parse_str(&session_id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid session_id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid session_id"})))
+                .into_response()
+        }
     };
     let set_uuid = match Uuid::parse_str(&set_id) {
         Ok(u) => u,
-        Err(_) => return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid set_id"}))).into_response(),
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid set_id"})))
+                .into_response()
+        }
     };
 
     // Verify ownership
@@ -1197,7 +1259,8 @@ pub async fn delete_set(
         .fetch_optional(&*pool)
         .await;
     if matches!(owns, Ok(None)) {
-        return (StatusCode::NOT_FOUND, Json(json!({"error": "session not found"}))).into_response();
+        return (StatusCode::NOT_FOUND, Json(json!({"error": "session not found"})))
+            .into_response();
     }
 
     match sqlx::query("DELETE FROM workout_sets WHERE id = $1 AND session_id = $2")
@@ -1224,17 +1287,18 @@ pub async fn delete_set(
 // ENERGY CALCULATION (one-off endpoint)
 // ============================================================================
 
-pub async fn calculate_energy(
-    Json(params): Json<SetEnergyParams>,
-) -> impl IntoResponse {
+pub async fn calculate_energy(Json(params): Json<SetEnergyParams>) -> impl IntoResponse {
     let energy = training::compute_set_energy(&params);
-    (StatusCode::OK, Json(json!({
-        "totalKcal": energy.total_kcal,
-        "potentialKcal": energy.potential_kcal,
-        "kineticKcal": energy.kinetic_kcal,
-        "isometricKcal": energy.isometric_kcal,
-        "mechanicalWorkJoules": energy.mechanical_work_joules,
-    })))
+    (
+        StatusCode::OK,
+        Json(json!({
+            "totalKcal": energy.total_kcal,
+            "potentialKcal": energy.potential_kcal,
+            "kineticKcal": energy.kinetic_kcal,
+            "isometricKcal": energy.isometric_kcal,
+            "mechanicalWorkJoules": energy.mechanical_work_joules,
+        })),
+    )
 }
 
 // ============================================================================
@@ -1247,9 +1311,7 @@ pub struct PlateCalcRequest {
     pub target_weight_kg: f64,
 }
 
-pub async fn calculate_plates(
-    Json(req): Json<PlateCalcRequest>,
-) -> impl IntoResponse {
+pub async fn calculate_plates(Json(req): Json<PlateCalcRequest>) -> impl IntoResponse {
     let result = training::calculate_plates(req.target_weight_kg);
     (StatusCode::OK, Json(result))
 }
@@ -1269,7 +1331,7 @@ pub async fn stats_energy(
          JOIN workout_sets wse ON wse.session_id = ws.id
          WHERE ws.user_id = $1 AND ws.status = 'completed'
          GROUP BY ws.started_at::date
-         ORDER BY day DESC LIMIT 365"
+         ORDER BY day DESC LIMIT 365",
     )
     .bind(user.id)
     .fetch_all(&*pool)
@@ -1302,7 +1364,7 @@ pub async fn stats_volume(
          JOIN workout_sets wse ON wse.session_id = ws.id
          WHERE ws.user_id = $1 AND ws.status = 'completed'
          GROUP BY ws.started_at::date
-         ORDER BY day DESC LIMIT 365"
+         ORDER BY day DESC LIMIT 365",
     )
     .bind(user.id)
     .fetch_all(&*pool)
@@ -1382,7 +1444,3 @@ pub async fn stats_muscle_energy(
         }
     }
 }
-
-// Suppress unused import warnings for items used in filtered params
-#[allow(unused_imports)]
-use std::marker::PhantomData;

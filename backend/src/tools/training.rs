@@ -34,9 +34,9 @@ pub struct SegmentMassFractions;
 impl SegmentMassFractions {
     pub const HEAD_NECK: f64 = 0.081;
     pub const TRUNK: f64 = 0.430;
-    pub const UPPER_ARM: f64 = 0.028;     // per arm
+    pub const UPPER_ARM: f64 = 0.028; // per arm
     pub const LOWER_ARM_HAND: f64 = 0.022; // per arm
-    pub const UPPER_LEG: f64 = 0.100;     // per leg
+    pub const UPPER_LEG: f64 = 0.100; // per leg
     pub const LOWER_LEG_FOOT: f64 = 0.061; // per leg
 
     /// Center of mass position as fraction from proximal joint
@@ -181,9 +181,13 @@ pub fn compute_moving_segment_mass(
     for seg in segments {
         match seg.as_str() {
             "upper_arm" => mass += body_weight_kg * SegmentMassFractions::UPPER_ARM * multiplier,
-            "lower_arm" => mass += body_weight_kg * SegmentMassFractions::LOWER_ARM_HAND * multiplier,
+            "lower_arm" => {
+                mass += body_weight_kg * SegmentMassFractions::LOWER_ARM_HAND * multiplier
+            }
             "upper_leg" => mass += body_weight_kg * SegmentMassFractions::UPPER_LEG * multiplier,
-            "lower_leg" => mass += body_weight_kg * SegmentMassFractions::LOWER_LEG_FOOT * multiplier,
+            "lower_leg" => {
+                mass += body_weight_kg * SegmentMassFractions::LOWER_LEG_FOOT * multiplier
+            }
             "torso" => mass += body_weight_kg * SegmentMassFractions::TRUNK,
             _ => {}
         }
@@ -293,11 +297,7 @@ pub fn compute_displacement(
 /// 2. Kinetic energy: acceleration/deceleration cost (significant for explosive reps)
 /// 3. Isometric energy: metabolic cost of holding during pauses
 #[must_use]
-pub fn compute_rep_energy(
-    total_load_kg: f64,
-    displacement_m: f64,
-    tempo: &Tempo,
-) -> RepEnergy {
+pub fn compute_rep_energy(total_load_kg: f64, displacement_m: f64, tempo: &Tempo) -> RepEnergy {
     if total_load_kg <= 0.0 || displacement_m < 0.0 {
         return RepEnergy {
             total_joules: 0.0,
@@ -315,18 +315,12 @@ pub fn compute_rep_energy(
 
     // 2. KINETIC ENERGY (acceleration cost)
     let kinetic_joules = if displacement_m > 0.0 {
-        let v_con = if tempo.concentric_s > 0.0 {
-            displacement_m / tempo.concentric_s
-        } else {
-            0.0
-        };
-        let v_ecc = if tempo.eccentric_s > 0.0 {
-            displacement_m / tempo.eccentric_s
-        } else {
-            0.0
-        };
+        let v_con =
+            if tempo.concentric_s > 0.0 { displacement_m / tempo.concentric_s } else { 0.0 };
+        let v_ecc = if tempo.eccentric_s > 0.0 { displacement_m / tempo.eccentric_s } else { 0.0 };
         let ke_con = 0.5 * total_load_kg * v_con * v_con / MECHANICAL_EFFICIENCY;
-        let ke_ecc = 0.5 * total_load_kg * v_ecc * v_ecc * ECCENTRIC_COST_RATIO / MECHANICAL_EFFICIENCY;
+        let ke_ecc =
+            0.5 * total_load_kg * v_ecc * v_ecc * ECCENTRIC_COST_RATIO / MECHANICAL_EFFICIENCY;
         ke_con + ke_ecc
     } else {
         0.0
@@ -360,11 +354,8 @@ pub fn compute_set_energy(params: &SetEnergyParams) -> SetEnergy {
     }
 
     // Compute displacement
-    let displacement = compute_displacement(
-        &params.movement_pattern,
-        &params.measurements,
-        params.rom_degrees,
-    );
+    let displacement =
+        compute_displacement(&params.movement_pattern, &params.measurements, params.rom_degrees);
 
     // Compute total load (external weight + moving body segments)
     let segment_mass = compute_moving_segment_mass(
@@ -446,11 +437,8 @@ pub fn attribute_muscle_energy(
         .map(|m| {
             let pool_frac = pool_fraction(&m.involvement);
             let pool_sum = pool_sums.get(&m.involvement).copied().unwrap_or(1.0);
-            let share = if pool_sum > 0.0 {
-                (m.activation_fraction / pool_sum) * pool_frac
-            } else {
-                0.0
-            };
+            let share =
+                if pool_sum > 0.0 { (m.activation_fraction / pool_sum) * pool_frac } else { 0.0 };
             MuscleEnergy {
                 muscle_name: m.muscle_name.clone(),
                 energy_kcal: total_energy_kcal * share,
@@ -561,10 +549,7 @@ mod tests {
             + 2.0 * SegmentMassFractions::UPPER_LEG
             + 2.0 * SegmentMassFractions::LOWER_LEG_FOOT;
 
-        assert!(
-            (sum - 1.0).abs() < 0.01,
-            "Segment fractions should sum to ~1.0, got {sum}"
-        );
+        assert!((sum - 1.0).abs() < 0.01, "Segment fractions should sum to ~1.0, got {sum}");
     }
 
     #[test]
@@ -725,8 +710,10 @@ mod tests {
     fn test_tempo_affects_energy() {
         let m = test_measurements();
         let standard = Tempo::standard(); // 2-0-1-0
-        let slow = Tempo { eccentric_s: 4.0, pause_bottom_s: 2.0, concentric_s: 2.0, pause_top_s: 1.0 };
-        let explosive = Tempo { eccentric_s: 1.0, pause_bottom_s: 0.0, concentric_s: 0.5, pause_top_s: 0.0 };
+        let slow =
+            Tempo { eccentric_s: 4.0, pause_bottom_s: 2.0, concentric_s: 2.0, pause_top_s: 1.0 };
+        let explosive =
+            Tempo { eccentric_s: 1.0, pause_bottom_s: 0.0, concentric_s: 0.5, pause_top_s: 0.0 };
 
         let load = 100.0;
         let displacement = compute_displacement("horizontal_push", &m, 90.0);
@@ -798,9 +785,21 @@ mod tests {
     #[test]
     fn test_muscle_attribution_sums_to_total() {
         let mappings = vec![
-            MuscleMapping { muscle_name: "chest".to_string(), involvement: "primary".to_string(), activation_fraction: 1.0 },
-            MuscleMapping { muscle_name: "front_deltoid".to_string(), involvement: "secondary".to_string(), activation_fraction: 0.6 },
-            MuscleMapping { muscle_name: "triceps".to_string(), involvement: "secondary".to_string(), activation_fraction: 0.7 },
+            MuscleMapping {
+                muscle_name: "chest".to_string(),
+                involvement: "primary".to_string(),
+                activation_fraction: 1.0,
+            },
+            MuscleMapping {
+                muscle_name: "front_deltoid".to_string(),
+                involvement: "secondary".to_string(),
+                activation_fraction: 0.6,
+            },
+            MuscleMapping {
+                muscle_name: "triceps".to_string(),
+                involvement: "secondary".to_string(),
+                activation_fraction: 0.7,
+            },
         ];
 
         let total_energy = 10.0;
@@ -816,9 +815,21 @@ mod tests {
     #[test]
     fn test_muscle_attribution_primary_gets_most() {
         let mappings = vec![
-            MuscleMapping { muscle_name: "chest".to_string(), involvement: "primary".to_string(), activation_fraction: 1.0 },
-            MuscleMapping { muscle_name: "triceps".to_string(), involvement: "secondary".to_string(), activation_fraction: 0.7 },
-            MuscleMapping { muscle_name: "abs".to_string(), involvement: "stabilizer".to_string(), activation_fraction: 0.3 },
+            MuscleMapping {
+                muscle_name: "chest".to_string(),
+                involvement: "primary".to_string(),
+                activation_fraction: 1.0,
+            },
+            MuscleMapping {
+                muscle_name: "triceps".to_string(),
+                involvement: "secondary".to_string(),
+                activation_fraction: 0.7,
+            },
+            MuscleMapping {
+                muscle_name: "abs".to_string(),
+                involvement: "stabilizer".to_string(),
+                activation_fraction: 0.3,
+            },
         ];
 
         let attributed = attribute_muscle_energy(10.0, &mappings);
@@ -923,10 +934,7 @@ mod tests {
             measurements: m.clone(),
             tempo: Tempo::standard(),
         };
-        let unilateral = SetEnergyParams {
-            is_unilateral: true,
-            ..bilateral.clone()
-        };
+        let unilateral = SetEnergyParams { is_unilateral: true, ..bilateral.clone() };
 
         let e_bi = compute_set_energy(&bilateral);
         let e_uni = compute_set_energy(&unilateral);
