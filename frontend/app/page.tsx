@@ -54,6 +54,15 @@ export default function Home() {
       emoji: '🧪',
       animationDelay: '300ms',
     },
+    {
+      title: 'Training Tracker',
+      href: '/tools/training',
+      description: 'Track workouts with physics-based energy calculation and muscle activation heat maps.',
+      gradient: 'linear-gradient(135deg, #f97316 0%, #dc2626 100%)',
+      glowColor: 'rgba(249,115,22,0.25)',
+      emoji: '💪',
+      animationDelay: '400ms',
+    },
   ];
 
   const filtered = tools.filter(t =>

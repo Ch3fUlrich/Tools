@@ -5,3 +5,4 @@ pub mod dice_history;
 pub mod fat_loss;
 pub mod n26_analyzer;
 pub mod oidc;
+pub mod training;
