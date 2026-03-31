@@ -38,7 +38,7 @@ export default function NumberInput({ id, value, onChange, step = 1, min = 0, pl
         className={`form-input ${className || ''}`}
         placeholder={placeholder}
         min={min}
-        step={step}
+        step="any"
         aria-label={ariaLabel || undefined}
       />
 
