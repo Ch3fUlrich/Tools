@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
@@ -108,7 +108,7 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
     // Helper: roll a single die with optional rerolls; returns (originals, final)
     let roll_with_rerolls = |rng: &mut rand::rngs::ThreadRng| -> (Vec<i32>, i32) {
         let mut originals = Vec::new();
-        let mut v = rng.gen_range(1..=(sides as i32));
+        let mut v = rng.random_range(1..=(sides as i32));
         originals.push(v);
         let mut tries = 0u32;
         if let Some(rspec) = &req.reroll {
@@ -122,7 +122,7 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
                 if !should || tries >= effective_max {
                     break;
                 }
-                v = rng.gen_range(1..=(sides as i32));
+                v = rng.random_range(1..=(sides as i32));
                 originals.push(v);
                 tries += 1;
             }
@@ -143,7 +143,7 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
     };
 
     for _ in 0..rolls {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let advantage = req.advantage.clone().unwrap_or_else(|| "none".to_string());
         let adv_mode = req.advantage_mode.clone().unwrap_or_else(|| "per-die".to_string());
 

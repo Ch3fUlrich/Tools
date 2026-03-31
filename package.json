@@ -2,11 +2,17 @@
   "name": "tools-repo-dev",
   "private": true,
   "devDependencies": {
-    "@commitlint/config-conventional": "^17.0.0",
     "@commitlint/cli": "^17.0.0",
+    "@commitlint/config-conventional": "^17.0.0",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
     "husky": "^8.0.0"
   },
   "scripts": {
+    "dev": "pnpm run dev:services && npx --yes concurrently -k -p \"[{name}]\" -n \"backend,frontend\" -c \"magenta,cyan\" \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+    "dev:services": "docker-compose -f docker-compose.deps.yml up -d",
+    "dev:backend": "docker run --rm -v ./backend:/app -w /app --network tools-deps-network -e DATABASE_URL=postgres://test:test@postgres:5432/tools_test -e REDIS_URL=redis://redis:6379 -p 3001:3001 rust:1.90.0 cargo run --bin tools-backend",
+    "dev:frontend": "cd frontend && cross-env NEXT_PUBLIC_API_URL=http://localhost:3001 pnpm run dev",
     "prepare": "husky install",
     "commitlint": "commitlint --from=HEAD~1",
     "lint": "pnpm run lint:frontend && pnpm run lint:css && pnpm run lint:backend",

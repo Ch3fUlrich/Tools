@@ -42,7 +42,7 @@ cargo test --all-features -- --nocapture
 cleanup_compose() {
   if command -v docker >/dev/null 2>&1; then
     echo "==> Tearing down docker-compose test stack (if any)"
-    docker compose -f "$BACKEND_DIR/docker-compose.test.yml" down -v || true
+    docker compose -f "$BACKEND_DIR/../docker-compose.deps.yml" down -v || true
   fi
 }
 trap cleanup_compose EXIT

@@ -91,16 +91,9 @@ cd Tools
 # Install frontend dependencies
 pnpm install
 
-# Start Postgres and Redis
-docker compose up -d postgres redis
-
-# Start backend (runs migrations automatically)
-cd backend && cargo run &
-
-# Start frontend dev server
-cd frontend && pnpm dev
-```
-
+# Start the full development stack (services, backend, and frontend)
+# This works seamlessly on both Linux and Windows.
+pnpm run dev
 Open **http://localhost:3000** in your browser.
 
 ### Option C — GitHub Pages demo (no backend)

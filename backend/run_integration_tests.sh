@@ -4,8 +4,8 @@ set -euo pipefail
 # Bring up test Postgres and Redis, wait for readiness, run cargo test with env vars set,
 # then tear down the compose stack. Designed for local development CI.
 
-ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
-COMPOSE_FILE="$ROOT_DIR/docker-compose.test.yml"
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+COMPOSE_FILE="$ROOT_DIR/docker-compose.deps.yml"
 
 echo "Starting test services with docker-compose..."
 docker compose -f "$COMPOSE_FILE" up -d
@@ -37,11 +37,11 @@ until docker compose -f "$COMPOSE_FILE" exec -T redis redis-cli ping >/dev/null 
   sleep 1
 done
 
-export TEST_DATABASE_URL="postgres://test:test@127.0.0.1:5432/tools_test"
-export REDIS_URL="redis://127.0.0.1:6379/"
+export TEST_DATABASE_URL="postgres://test:test@127.0.0.1:5433/tools_test"
+export REDIS_URL="redis://127.0.0.1:6380/"
 
 echo "Running cargo test (integration + unit tests)..."
-cd "$ROOT_DIR"
+cd "$ROOT_DIR/backend"
 cargo test -- --nocapture
 
 RESULT=$?

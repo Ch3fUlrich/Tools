@@ -55,16 +55,16 @@ Uses pre-built images from GitHub Container Registry — no source code required
 
 ```bash
 # Start with defaults (port 8080, latest image)
-docker compose -f docker/docker-compose.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 
 # Custom port
-NGINX_PORT=9000 docker compose -f docker/docker-compose.yml up -d
+NGINX_PORT=9000 docker compose -f docker-compose.prod.yml up -d
 
 # Pin a specific release version
-TOOLS_VERSION=v1.2.3 NGINX_PORT=8080 docker compose -f docker/docker-compose.yml up -d
+TOOLS_VERSION=v1.2.3 NGINX_PORT=8080 docker compose -f docker-compose.prod.yml up -d
 ```
 
-**Or create `docker/.env` for persistent config:**
+**Or create `.env` for persistent config:**
 ```env
 NGINX_PORT=9000
 TOOLS_VERSION=v1.2.3
@@ -73,7 +73,7 @@ GITHUB_REPOSITORY_OWNER=ch3fulrich
 
 Then:
 ```bash
-docker compose -f docker/docker-compose.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 ---
