@@ -1323,7 +1323,7 @@ pub async fn calculate_plates(Json(req): Json<PlateCalcRequest>) -> impl IntoRes
 pub async fn stats_energy(
     AuthenticatedUser(user): AuthenticatedUser,
     Extension(pool): Extension<Arc<PgPool>>,
-    Query(params): Query<StatsFilterParams>,
+    Query(_params): Query<StatsFilterParams>,
 ) -> impl IntoResponse {
     match sqlx::query(
         "SELECT ws.started_at::date as day, SUM(wse.energy_kcal) as total_energy
@@ -1356,7 +1356,7 @@ pub async fn stats_energy(
 pub async fn stats_volume(
     AuthenticatedUser(user): AuthenticatedUser,
     Extension(pool): Extension<Arc<PgPool>>,
-    Query(params): Query<StatsFilterParams>,
+    Query(_params): Query<StatsFilterParams>,
 ) -> impl IntoResponse {
     match sqlx::query(
         "SELECT ws.started_at::date as day, SUM(wse.weight_kg * wse.reps) as total_volume
@@ -1389,7 +1389,7 @@ pub async fn stats_volume(
 pub async fn stats_muscle_energy(
     AuthenticatedUser(user): AuthenticatedUser,
     Extension(pool): Extension<Arc<PgPool>>,
-    Query(params): Query<StatsFilterParams>,
+    Query(_params): Query<StatsFilterParams>,
 ) -> impl IntoResponse {
     // Get all completed session sets with their exercise muscle mappings
     match sqlx::query(

@@ -33,7 +33,7 @@ pub struct SegmentMassFractions;
 
 impl SegmentMassFractions {
     pub const HEAD_NECK: f64 = 0.081;
-    pub const TRUNK: f64 = 0.430;
+    pub const TRUNK: f64 = 0.497;
     pub const UPPER_ARM: f64 = 0.028; // per arm
     pub const LOWER_ARM_HAND: f64 = 0.022; // per arm
     pub const UPPER_LEG: f64 = 0.100; // per leg
@@ -432,7 +432,7 @@ pub fn attribute_muscle_energy(
         *pool_sums.entry(m.involvement.clone()).or_insert(0.0) += m.activation_fraction;
     }
 
-    mappings
+    let mut energies: Vec<MuscleEnergy> = mappings
         .iter()
         .map(|m| {
             let pool_frac = pool_fraction(&m.involvement);
@@ -445,7 +445,17 @@ pub fn attribute_muscle_energy(
                 share_fraction: share,
             }
         })
-        .collect()
+        .collect();
+
+    // Normalize so all energy is distributed even when some pools (e.g. stabilizers) are absent.
+    let total_share: f64 = energies.iter().map(|e| e.share_fraction).sum();
+    if total_share > 0.0 && (total_share - 1.0).abs() > 1e-9 {
+        for e in &mut energies {
+            e.share_fraction /= total_share;
+            e.energy_kcal = total_energy_kcal * e.share_fraction;
+        }
+    }
+    energies
 }
 
 /// Estimate 1-rep max from a set using the Epley formula.
