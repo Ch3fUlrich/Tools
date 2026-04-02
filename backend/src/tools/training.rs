@@ -565,7 +565,7 @@ mod tests {
     #[test]
     fn test_segment_masses_proportional_to_body_weight() {
         let masses = compute_segment_masses(80.0);
-        assert!((masses.trunk - 34.4).abs() < 0.1);
+        assert!((masses.trunk - 39.76).abs() < 0.1); // 0.497 * 80
         assert!((masses.upper_arm - 2.24).abs() < 0.1);
         assert!((masses.upper_leg - 8.0).abs() < 0.1);
     }
