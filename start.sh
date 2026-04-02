@@ -85,7 +85,7 @@ run_docker_compose() {
     # Start the test services (Postgres + Redis) if docker is available
     if command -v docker >/dev/null 2>&1; then
         echo "🚢 Starting docker-compose test services..."
-        docker compose -f backend/docker-compose.test.yml up -d || true
+        docker compose -f docker-compose.deps.yml up -d || true
     else
         echo "⚠️  docker not available; skipping docker-compose startup"
     fi
@@ -103,7 +103,7 @@ cleanup() {
     fi
     # Ensure docker compose stack is torn down if we brought it up
     if command -v docker >/dev/null 2>&1; then
-        docker compose -f backend/docker-compose.test.yml down -v || true
+        docker compose -f docker-compose.deps.yml down -v || true       
     fi
     echo "👋 Goodbye!"
     exit 0

@@ -34,7 +34,7 @@ async fn test_http_endpoints() {
 
     let app = tools_backend::app::build_app(pool.clone(), session_store);
 
-    let server = TestServer::new(app).unwrap();
+    let server = TestServer::new(app);
 
     // 1) Test root
     let resp = server.get("/").await;
@@ -81,7 +81,7 @@ async fn test_http_error_responses() {
     };
 
     let app = tools_backend::app::build_app(pool.clone(), session_store);
-    let server = TestServer::new(app).unwrap();
+    let server = TestServer::new(app);
 
     // Test invalid JSON - should be 400 Bad Request, but axum might return 415 for wrong content type
     let resp = server.post("/api/tools/fat-loss").text("invalid json").await;
@@ -136,7 +136,7 @@ async fn test_fat_loss_api_validation() {
     };
 
     let app = tools_backend::app::build_app(pool.clone(), session_store);
-    let server = TestServer::new(app).unwrap();
+    let server = TestServer::new(app);
 
     // Test valid fat loss calculation (calculate percentage from deficit and weight loss)
     let body = r#"{"kcal_deficit":3500.0,"weight_loss_kg":0.5}"#;

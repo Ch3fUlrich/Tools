@@ -26,17 +26,11 @@ asdf install         # reads .tool-versions
 ## First-Time Setup
 
 ```bash
-# 1. Install all frontend dependencies (from repo root)
+# 1. Install all dependencies (from repo root)
 pnpm install
 
-# 2. Compile backend
-cd backend && cargo build
-
-# 3. Start infrastructure (Postgres + Redis)
-docker compose up -d postgres redis
-
-# 4. Run DB migrations (happens automatically on backend startup)
-cd backend && cargo run
+# 2. Start the full development stack
+pnpm run dev
 ```
 
 The backend auto-runs migrations via SQLx when it starts. No manual migration command is needed.
@@ -101,17 +95,20 @@ cargo test --workspace --lib
 
 ### Full Stack
 
+The recommended way to start the complete local environment (Frontend UI, Dockerized Rust Backend, DB Services) from the repository root is:
+
 ```bash
-# Start everything (frontend dev server + backend)
+pnpm run dev
+```
+
+This leverages `concurrently` to stream all output into a single terminal.
+
+**Legacy / Native Options:**
+```bash
+# Start everything natively (requires Rust/Cargo installed locally)
 ./start.sh
 
-# Start just backend
-./start.sh backend
-
-# Start just frontend
-./start.sh frontend
-
-# Start all services via Docker
+# Start all services via Docker compose
 docker compose up -d
 ```
 

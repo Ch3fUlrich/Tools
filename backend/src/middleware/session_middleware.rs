@@ -1,6 +1,5 @@
 use crate::tools::auth::AuthUser;
 use crate::tools::session::SessionStore;
-use axum::async_trait;
 use axum::extract::FromRequestParts;
 use axum::http::StatusCode;
 use axum::http::{header, request::Parts};
@@ -11,7 +10,6 @@ use tokio::sync::Mutex;
 
 pub struct AuthenticatedUser(pub AuthUser);
 
-#[async_trait]
 impl<S> FromRequestParts<S> for AuthenticatedUser
 where
     S: Send + Sync,

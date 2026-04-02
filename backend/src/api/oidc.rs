@@ -9,8 +9,7 @@ use openidconnect::{
     AuthenticationFlow, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
     RedirectUrl, TokenResponse,
 };
-use rand::rngs::OsRng;
-use rand::RngCore;
+use rand::Rng;
 use serde::Deserialize;
 use sqlx::PgPool;
 use sqlx::Row;
@@ -97,10 +96,10 @@ pub async fn start(
 
     // generate state and nonce
     let mut state_bytes = [0u8; 16];
-    OsRng.fill_bytes(&mut state_bytes);
+    rand::rng().fill_bytes(&mut state_bytes);
     let state = URL_SAFE_NO_PAD.encode(state_bytes);
     let mut nonce_bytes = [0u8; 16];
-    OsRng.fill_bytes(&mut nonce_bytes);
+    rand::rng().fill_bytes(&mut nonce_bytes);
     let nonce = URL_SAFE_NO_PAD.encode(nonce_bytes);
 
     if let Some(store_arc) = store {
