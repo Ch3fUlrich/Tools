@@ -12,14 +12,15 @@
 /* Enhanced base styles with modern design tokens */
 :root, html, body {
   /* Include a generic fallback to satisfy stylelint and ensure predictable rendering */
-  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Ensure consistent box-sizing and width so theme toggles don't affect layout metrics */
 *, *::before, *::after {
   /* checkbox borders: default and checked stronger contrast for accessibility */
-  --checkbox-border: rgba(15,23,42,0.18);
-  --checkbox-checked-border: rgba(15,23,42,0.32);
+  --checkbox-border: rgb(15 23 42 / 18%);
+  --checkbox-checked-border: rgb(15 23 42 / 32%);
+
   box-sizing: border-box;
 }
 
@@ -34,52 +35,60 @@ html { scrollbar-gutter: stable; }
 html, body, #__next {
   background: var(--bg);
   color: var(--fg);
-  --checkbox-border: rgba(255,255,255,0.14);
-  --checkbox-checked-border: rgba(255,255,255,0.24);
+
+  --checkbox-border: rgb(255 255 255 / 14%);
+  --checkbox-checked-border: rgb(255 255 255 / 24%);
+
   /* ensure the root fills the viewport so page background always spans fully */
   min-height: 100vh;
+
   /* prevent mobile browsers from auto-scaling text and remove tap highlight to reduce warnings */
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   margin: 0; /* remove default browser margin so background spans full viewport */
   padding: 0;
+
   /* Smooth transitions for theme changes */
   transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ─── Header gradient variables (theme-aware) ─── */
 :root {
-  --header-bg: linear-gradient(to right, rgba(237,233,254,0.92), rgba(245,243,255,0.92), rgba(250,244,255,0.92));
-  --header-border: rgba(167,139,250,0.30);
-  --header-shadow: 0 1px 8px 0 rgba(109,40,217,0.08);
+  --header-bg: linear-gradient(to right, rgb(237 233 254 / 92%), rgb(245 243 255 / 92%), rgb(250 244 255 / 92%));
+  --header-border: rgb(167 139 250 / 30%);
+  --header-shadow: 0 1px 8px 0 rgb(109 40 217 / 8%);
 }
+
 .dark {
   --header-bg: linear-gradient(to right, #0d0b1a, #130f2a, #0d0b1a);
-  --header-border: rgba(109,40,217,0.45);
-  --header-shadow: 0 1px 12px 0 rgba(109,40,217,0.28);
+  --header-border: rgb(109 40 217 / 45%);
+  --header-shadow: 0 1px 12px 0 rgb(109 40 217 / 28%);
 }
 
 /* Light mode — clean white with purple accents */
 :root {
   --bg: #f8f7ff;
-  --bg-secondary: #ffffff;
+  --bg-secondary: #fff;
   --fg: #1a1035;
   --fg-secondary: #3b3060;
-  --input-bg: rgba(109,40,217,0.04);
-  --input-border: rgba(109,40,217,0.12);
-  --input-focus: rgba(109,40,217,0.14);
+  --input-bg: rgb(109 40 217 / 4%);
+  --input-border: rgb(109 40 217 / 12%);
+  --input-focus: rgb(109 40 217 / 14%);
+
   /* Checkbox border colors for light theme */
-  --checkbox-border: rgba(109,40,217,0.22);
-  --checkbox-checked-border: rgba(109,40,217,0.38);
+  --checkbox-border: rgb(109 40 217 / 22%);
+  --checkbox-checked-border: rgb(109 40 217 / 38%);
   --muted: #6b7280;
   --accent: #7c3aed;
   --accent-hover: #6d28d9;
-  --card-bg: #ffffff;
-  --card-border: rgba(109,40,217,0.08);
-  --shadow-soft: 0 4px 20px -4px rgba(109,40,217,0.10);
+  --card-bg: #fff;
+  --card-border: rgb(109 40 217 / 8%);
+  --shadow-soft: 0 4px 20px -4px rgb(109 40 217 / 10%);
   --gradient-primary: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
   --gradient-secondary: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+
   border-color: var(--checkbox-checked-border);
+
   --success: #10b981;
   --error: #ef4444;
   --warning: #f59e0b;
@@ -91,18 +100,19 @@ html, body, #__next {
   --bg-secondary: #130f2a;
   --fg: #ede8ff;
   --fg-secondary: #c4b8f0;
-  --input-bg: rgba(139,92,246,0.07);
-  --input-border: rgba(139,92,246,0.18);
-  --input-focus: rgba(139,92,246,0.22);
+  --input-bg: rgb(139 92 246 / 7%);
+  --input-border: rgb(139 92 246 / 18%);
+  --input-focus: rgb(139 92 246 / 22%);
+
   /* Checkbox borders in dark mode */
-  --checkbox-border: rgba(139,92,246,0.40);
-  --checkbox-checked-border: rgba(139,92,246,0.60);
+  --checkbox-border: rgb(139 92 246 / 40%);
+  --checkbox-checked-border: rgb(139 92 246 / 60%);
   --muted: #9d91c4;
   --accent: #a78bfa;
   --accent-hover: #8b5cf6;
-  --card-bg: rgba(255,255,255,0.03);
-  --card-border: rgba(139,92,246,0.14);
-  --shadow-soft: 0 4px 24px -4px rgba(0,0,0,0.50);
+  --card-bg: rgb(255 255 255 / 3%);
+  --card-border: rgb(139 92 246 / 14%);
+  --shadow-soft: 0 4px 24px -4px rgb(0 0 0 / 50%);
   --gradient-primary: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
   --gradient-secondary: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
   --success: #34d399;
@@ -113,18 +123,18 @@ html, body, #__next {
 /* Optional explicit light class so we can force light when needed */
 .light {
   --bg: #fafafa;
-  --bg-secondary: #ffffff;
+  --bg-secondary: #fff;
   --fg: #1f2937;
   --fg-secondary: #374151;
-  --input-bg: rgba(15,23,42,0.04);
-  --input-border: rgba(15,23,42,0.08);
-  --input-focus: rgba(79,70,229,0.12);
+  --input-bg: rgb(15 23 42 / 4%);
+  --input-border: rgb(15 23 42 / 8%);
+  --input-focus: rgb(79 70 229 / 12%);
   --muted: #6b7280;
   --accent: #4f46e5;
   --accent-hover: #4338ca;
-  --card-bg: #ffffff;
-  --card-border: rgba(0,0,0,0.06);
-  --shadow-soft: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
+  --card-bg: #fff;
+  --card-border: rgb(0 0 0 / 6%);
+  --shadow-soft: 0 4px 20px -4px rgb(0 0 0 / 8%);
   --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   --success: #10b981;
@@ -156,10 +166,8 @@ html, body, #__next {
   max-width: 72rem;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
+  padding: 2rem 1.5rem;
+
   /* make the main container fill the viewport height (minus header) so backgrounds extend to the bottom */
   min-height: calc(100vh - 64px);
 }
@@ -179,6 +187,7 @@ html, body, #__next {
   color: var(--fg);
   border: 1px solid var(--card-border);
   box-shadow: var(--shadow-soft);
+
   /* only transition non-layout properties to avoid page "zoom" when theme changes */
   transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -199,7 +208,7 @@ html, body, #__next {
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px -8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 30px -8px rgb(0 0 0 / 15%);
 }
 
 /* ─── Reusable popup panel (info tooltips, mobile menu, etc.) ─── */
@@ -207,7 +216,7 @@ html, body, #__next {
   background: var(--bg-secondary);
   border: 1px solid var(--card-border);
   border-radius: 0.875rem;
-  box-shadow: 0 8px 32px -8px rgba(0,0,0,0.32), 0 0 0 1px rgba(139,92,246,0.08);
+  box-shadow: 0 8px 32px -8px rgb(0 0 0 / 32%), 0 0 0 1px rgb(139 92 246 / 8%);
   backdrop-filter: blur(16px);
   color: var(--fg);
 }
@@ -244,7 +253,7 @@ html, body, #__next {
 
 .tool-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px -8px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 12px 40px -8px rgb(139 92 246 / 20%);
 }
 
 /* Enhanced Buttons with modern design */
@@ -278,7 +287,7 @@ html, body, #__next {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 20%), transparent);
   transition: left 0.5s;
 }
 
@@ -305,7 +314,7 @@ html, body, #__next {
 
 .btn-icon:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 8px 25px rgb(139 92 246 / 15%);
 }
 
 /* Theme toggle specific styling */
@@ -324,7 +333,7 @@ html, body, #__next {
 
 .btn-theme-toggle:hover {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 8px 25px rgb(245 158 11 / 20%);
 }
 
 /* Profile button variant */
@@ -345,7 +354,7 @@ html, body, #__next {
 
 .btn-profile:hover {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 8px 25px rgb(139 92 246 / 15%);
 }
 
 /* Brand / main page tile button */
@@ -360,14 +369,14 @@ html, body, #__next {
   color: #fff;
   font-weight: 700;
   box-shadow: var(--shadow-soft);
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgb(0 0 0 / 10%);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center;
 }
 
 .btn-brand:hover {
   transform: translateY(-2px) scale(1.08);
-  box-shadow: 0 12px 35px -8px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 12px 35px -8px rgb(139 92 246 / 30%);
 }
 
 .btn-brand:active {
@@ -393,10 +402,7 @@ html, body, #__next {
 .btn-nav::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: var(--gradient-primary);
   opacity: 0;
   transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -404,7 +410,7 @@ html, body, #__next {
 }
 
 .btn-nav:hover {
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 8px 25px rgb(139 92 246 / 15%);
   border-color: var(--accent);
   transform: translateY(-2px);
 }
@@ -416,7 +422,9 @@ html, body, #__next {
 /* Responsive nav behavior */
 .nav-item {
   container-type: inline-size;
+
   --label-threshold: 90px;
+
   padding-left: 0.75rem;
   padding-right: 0.75rem;
   box-sizing: border-box;
@@ -424,8 +432,16 @@ html, body, #__next {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nav-label { display: inline; }
-.nav-emoji { display: inline; }
+.nav-label {
+  display: inline;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.nav-emoji {
+  display: inline;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 @container (max-width: calc(var(--label-threshold) - 1px)) {
   .nav-label { display: none; }
@@ -434,7 +450,7 @@ html, body, #__next {
 
 .nav-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 8px 25px rgb(139 92 246 / 15%);
 }
 
 .nav-item:active { 
@@ -445,7 +461,7 @@ html, body, #__next {
 .nav-item[data-collapse="true"] .nav-emoji { display: inline !important; }
 
 @supports not (container-type: inline-size) {
-  @media (max-width: 760px) {
+  @media (width <= 760px) {
     .nav-label { display: none; }
     .nav-emoji { display: inline; }
   }
@@ -464,28 +480,17 @@ html, body, #__next {
 .nav-responsive { display: flex; }
 .mobile-dropdown { display: none; }
 
-@media (max-width: calc(var(--collapse-threshold) - 1px)) {
+@media (width <= calc(var(--collapse-threshold) - 1px)) {
   .nav-responsive { display: none !important; }
   .mobile-dropdown { display: block !important; }
 }
 
 /* Always collapse to hamburger on small phones (≤ 540px), regardless of JS threshold */
-@media (max-width: 540px) {
+@media (width <= 540px) {
   .nav-responsive { display: none !important; }
   .mobile-dropdown { display: block !important; }
   .desktop-only { display: none !important; }
   .mobile-only { display: block !important; }
-}
-
-.nav-label {
-  display: inline;
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  transform-origin: center;
-}
-
-.nav-emoji {
-  display: inline;
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-item[data-collapse="true"] .nav-label {
@@ -509,13 +514,13 @@ html, body, #__next {
   color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
-  box-shadow: 0 6px 20px -6px rgba(79,70,229,0.3);
-  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 6px 20px -6px rgb(79 70 229 / 30%);
+  border: 1px solid rgb(0 0 0 / 10%);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px -8px rgba(79,70,229,0.4);
+  box-shadow: 0 10px 30px -8px rgb(79 70 229 / 40%);
 }
 
 .btn-ghost {
@@ -532,7 +537,7 @@ html, body, #__next {
 .btn-ghost:hover {
   transform: translateY(-2px);
   background: var(--input-bg);
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.1);
+  box-shadow: 0 8px 25px rgb(139 92 246 / 10%);
 }
 
 .btn-success {
@@ -545,13 +550,13 @@ html, body, #__next {
   color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
-  box-shadow: 0 6px 20px -6px rgba(16,185,129,0.3);
-  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 6px 20px -6px rgb(16 185 129 / 30%);
+  border: 1px solid rgb(0 0 0 / 10%);
 }
 
 .btn-success:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px -8px rgba(16,185,129,0.4);
+  box-shadow: 0 10px 30px -8px rgb(16 185 129 / 40%);
 }
 
 .btn-danger {
@@ -564,13 +569,13 @@ html, body, #__next {
   color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
-  box-shadow: 0 6px 20px -6px rgba(239,68,68,0.3);
-  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 6px 20px -6px rgb(239 68 68 / 30%);
+  border: 1px solid rgb(0 0 0 / 10%);
 }
 
 .btn-danger:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px -8px rgba(239,68,68,0.4);
+  box-shadow: 0 10px 30px -8px rgb(239 68 68 / 40%);
 }
 
 /* Enhanced form inputs */
@@ -598,7 +603,7 @@ html, body, #__next {
 
 .form-input:hover {
   border-color: var(--accent);
-  box-shadow: 0 4px 20px -4px rgba(139, 92, 246, 0.1);
+  box-shadow: 0 4px 20px -4px rgb(139 92 246 / 10%);
 }
 
 .form-input::placeholder,
@@ -642,25 +647,25 @@ textarea::placeholder {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.modern-checkbox:hover .box {
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
 .modern-checkbox input:checked + .box {
   background: var(--gradient-primary);
   border-color: var(--accent);
   transform: scale(1.1);
 }
 
-.modern-checkbox input + .box svg { 
-  color: transparent; 
+.modern-checkbox input + .box svg {
+  color: transparent;
   transform: scale(0);
 }
 
-.modern-checkbox input:checked + .box svg { 
-  color: #fff; 
+.modern-checkbox input:checked + .box svg {
+  color: #fff;
   transform: scale(1);
-}
-
-.modern-checkbox:hover .box {
-  border-color: var(--accent);
-  transform: scale(1.05);
 }
 
 /* Enhanced number input styles */
@@ -726,15 +731,15 @@ textarea::placeholder {
   height: 40px;
   border-radius: 0.75rem;
   background: transparent;
-  border: 1px solid rgba(239,68,68,0.2);
-  color: rgba(239,68,68,0.8);
+  border: 1px solid rgb(239 68 68 / 20%);
+  color: rgb(239 68 68 / 80%);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .remove-btn:hover {
-  background: rgba(239,68,68,0.1);
+  background: rgb(239 68 68 / 10%);
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(239,68,68,0.2);
+  box-shadow: 0 8px 25px rgb(239 68 68 / 20%);
 }
 
 /* Enhanced dice button group */
@@ -769,7 +774,7 @@ textarea::placeholder {
 
 .die-btn:hover { 
   transform: translateY(-2px) scale(1.05); 
-  box-shadow: 0 12px 30px -8px rgba(139, 92, 246, 0.25); 
+  box-shadow: 0 12px 30px -8px rgb(139 92 246 / 25%); 
   border-color: var(--accent); 
   background: var(--gradient-primary);
   color: #fff;
@@ -795,7 +800,7 @@ textarea::placeholder {
 .btn-signin:hover {
   background: var(--gradient-primary);
   color: #fff;
-  box-shadow: 0 10px 30px -8px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 10px 30px -8px rgb(139 92 246 / 30%);
   transform: translateY(-2px);
   border-color: transparent;
 }
@@ -815,7 +820,7 @@ textarea::placeholder {
 .op-btn:hover { 
   background: var(--input-bg);
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px -4px rgba(139, 92, 246, 0.1);
+  box-shadow: 0 4px 15px -4px rgb(139 92 246 / 10%);
 }
 
 .op-btn.active { 
@@ -823,7 +828,7 @@ textarea::placeholder {
   color: #fff; 
   border-color: var(--accent);
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px -4px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 15px -4px rgb(139 92 246 / 30%);
 }
 
 .op-btn.active.danger { 
@@ -843,7 +848,7 @@ textarea::placeholder {
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 9999px;
-  border: 2.5px solid currentColor;
+  border: 2.5px solid currentcolor;
   border-top-color: transparent;
   animation: spin 0.8s linear infinite;
 }
@@ -861,17 +866,17 @@ textarea::placeholder {
   border-radius: 0.75rem;
   background: var(--gradient-primary);
   color: #fff;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgb(0 0 0 / 10%);
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 600;
-  box-shadow: 0 6px 20px -6px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 6px 20px -6px rgb(139 92 246 / 30%);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .file-browse-label:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px -8px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 10px 30px -8px rgb(139 92 246 / 40%);
 }
 
 /* Enhanced checkbox styling */
@@ -920,11 +925,13 @@ textarea::placeholder {
 
 .form-textarea:hover {
   border-color: var(--accent);
-  box-shadow: 0 4px 20px -4px rgba(139, 92, 246, 0.1);
+  box-shadow: 0 4px 20px -4px rgb(139 92 246 / 10%);
 }
 
 /* Ensure native inputs follow theme */
-input, textarea, select, .form-input, .form-textarea {
+input,
+textarea,
+select {
   color: var(--fg);
 }
 
@@ -983,17 +990,17 @@ input, textarea, select, .form-input, .form-textarea {
   justify-content: center;
   font-weight: 700;
   color: #fff;
-  box-shadow: 0 4px 15px -4px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 15px -4px rgb(139 92 246 / 30%);
 }
 
 /* Hide number input spinners */
-input[type=number]::-webkit-outer-spin-button,
-input[type=number]::-webkit-inner-spin-button {
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-input[type=number] {
+input[type="number"] {
   appearance: textfield;
   -moz-appearance: textfield;
 }
@@ -1047,7 +1054,7 @@ input[type=number] {
 .mobile-only { display: none; }
 .desktop-only { display: flex; }
 
-@media (max-width: calc(var(--collapse-threshold) - 1px)) {
+@media (width <= calc(var(--collapse-threshold) - 1px)) {
   .mobile-only { display: block !important; }
   .desktop-only { display: none !important; }
 }
@@ -1107,12 +1114,12 @@ input[type=number] {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 30%), transparent);
   animation: shimmer 1.5s infinite;
 }
 
 /* Enhanced mobile responsiveness */
-@media (max-width: 640px) {
+@media (width <= 640px) {
   .site-container {
     padding-left: 1rem;
     padding-right: 1rem;

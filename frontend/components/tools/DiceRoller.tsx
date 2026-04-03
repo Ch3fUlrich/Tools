@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import DiceIcon from '../icons/DiceIcon';
-import DieFaceIcon from '../icons/DieFaceIcon';
 // DieSelect removed per UX change: we show a compact die symbol instead of a dropdown
 import ModernCheckbox from '@/components/ui/ModernCheckbox';
 import Button from '@/components/ui/Button';
