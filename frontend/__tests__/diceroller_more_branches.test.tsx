@@ -26,9 +26,9 @@ describe('DiceRoller extra branches', () => {
       rolls: [
         {
           sum: 7,
-          average: 7,
-          perDie: [ { original: [3, 4], final: 7 } ],
-          used: [7],
+          average: 3.5,
+          perDie: [ { original: [3], final: 3 }, { original: [4], final: 4 } ],
+          used: [3, 4],
         },
       ],
       history: [7],

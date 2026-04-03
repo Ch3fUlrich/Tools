@@ -314,7 +314,9 @@ export interface ToleranceCalculationRequest {
 export interface BloodLevelPoint {
   time: string;
   substance: string;
-  amountMg: number;
+  amount_mg: number;
+  /** @deprecated use amount_mg */
+  amountMg?: number;
 }
 
 export interface ToleranceCalculationResponse {

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import DiceIcon from '../icons/DiceIcon';
-import DieFaceIcon from '../icons/DieFaceIcon';
 // DieSelect removed per UX change: we show a compact die symbol instead of a dropdown
 import ModernCheckbox from '@/components/ui/ModernCheckbox';
 import Button from '@/components/ui/Button';
@@ -62,6 +61,35 @@ type DiceConfig = {
 };
 
 // DIE_FACES was removed — we now display a consistent die emoji in the dropdown labels (e.g. "🎲 D6 (6)").
+
+// Returns "D6" for a unique die type, or "1. D6" / "2. D6" when multiple configs share the same sides
+function getDieLabel(rollIndex: number, configs: DiceConfig[]): string {
+  const cfgIndex = Math.min(rollIndex, configs.length - 1);
+  const sides = configs[cfgIndex]?.sides ?? 6;
+  const typeName = `D${sides}`;
+  const sameTypeIndexes = configs.map((c, j) => (c.sides === sides ? j : -1)).filter(j => j >= 0);
+  if (sameTypeIndexes.length > 1) {
+    const rank = sameTypeIndexes.indexOf(cfgIndex) + 1;
+    return `${rank}. ${typeName}`;
+  }
+  return typeName;
+}
+
+// Compute exact probability distribution for numDice×sides using dynamic programming
+function computeSumDist(numDice: number, sides: number): Map<number, number> {
+  let dist = new Map<number, number>([[0, 1]]);
+  for (let d = 0; d < numDice; d++) {
+    const next = new Map<number, number>();
+    for (const [s, w] of dist) {
+      for (let f = 1; f <= sides; f++) {
+        const ns = s + f;
+        next.set(ns, (next.get(ns) ?? 0) + w);
+      }
+    }
+    dist = next;
+  }
+  return dist;
+}
 
 export const DiceRoller: React.FC = () => {
   const [diceConfigs, setDiceConfigs] = useState<DiceConfig[]>([
@@ -393,103 +421,119 @@ const onRoll = async () => {
         {/* Results Panel */}
           <div className="xl:col-span-2 space-y-6">
           {lastResult ? (
-            <div className="card bg-white animate-scale-in" style={{ animationDelay: '100ms' }}>
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center">
-                <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full mr-4"></div>
-                Latest Roll Results
-              </h2>
+            <div className="card animate-scale-in" style={{ animationDelay: '100ms' }}>
+              {/* Header: title + grand total */}
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold flex items-center" style={{ color: 'var(--fg)' }}>
+                  <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full mr-4 flex-shrink-0" />
+                  Latest Roll Results
+                </h2>
+                <div className="text-right">
+                  <div className="text-3xl font-bold tabular-nums" style={{ color: 'var(--accent)' }}>
+                    {lastResult.rolls.reduce((t, r) => t + r.sum, 0)}
+                  </div>
+                  <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>grand total</div>
+                </div>
+              </div>
 
-              <div className="space-y-6">
-                {lastResult.rolls.map((r, i) => (
-                  <div key={i} className="border border-slate-200 dark:border-slate-600 rounded-xl p-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-medium text-slate-900 dark:text-white">Roll {i+1}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{r.sum}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</div>
-                      </div>
-                    </div>
-
-                    {/* Dice Results Table */}
-                    <div className="mb-4">
-                      <h4 className="font-medium text-slate-900 dark:text-white mb-3 text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">Dice Results</h4>
-                        <div className="overflow-x-auto">
-                        <table className="w-full text-sm border border-slate-200 dark:border-slate-600 rounded-lg">
-                          <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-700">
-                              <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Die #</th>
-                              <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Type</th>
-                              <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Rolls</th>
-                              <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Final</th>
-                            </tr>
-                          </thead>
-                          <tbody>
+              {/* Dice Results table */}
+              <h4 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>Dice Results</h4>
+              <div className="overflow-x-auto mb-4">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
+                      <th className="text-left py-1.5 pr-4 text-xs font-medium" style={{ color: 'var(--muted)', width: '22%' }}>Die</th>
+                      <th className="text-left py-1.5 pr-4 text-xs font-medium" style={{ color: 'var(--muted)' }}>Values</th>
+                      <th className="text-right py-1.5 text-xs font-medium" style={{ color: 'var(--muted)', width: '12%' }}>Sum</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lastResult.rolls.map((r, i) => {
+                      const cfg = diceConfigs[Math.min(i, diceConfigs.length - 1)];
+                      const label = getDieLabel(i, diceConfigs);
+                      return (
+                        <tr key={i} style={{ borderBottom: '1px solid var(--card-border)' }}>
+                          <td className="py-2 pr-4">
+                            <span className="inline-flex items-center justify-center text-xs font-semibold rounded px-1.5 py-0.5"
+                              style={{ background: 'var(--accent)', color: 'white' }}>{label}</span>
+                            {cfg.count > 1 && (
+                              <span className="ml-1 text-xs" style={{ color: 'var(--muted)' }}>×{cfg.count}</span>
+                            )}
+                          </td>
+                          <td className="py-2 pr-4 font-mono">
                             {r.perDie.map((d, idx) => (
-                              <tr key={idx} className="border-t border-slate-200 dark:border-slate-600">
-                                <td className="px-3 py-2 text-slate-900 dark:text-white tabular-nums">{idx + 1}</td>
-                                <td className="px-3 py-2 text-slate-600 dark:text-slate-400">
-                                  {diceConfigs.length > 0 ? (
-                                    <div className="flex items-center gap-3">
-                                      <DieFaceIcon sides={diceConfigs[Math.min(idx, diceConfigs.length - 1)].sides} className="die-icon" />
-                                      <span className="text-sm">
-                                        {diceConfigs[Math.min(idx, diceConfigs.length - 1)].dieType.toUpperCase()}{diceConfigs[Math.min(idx, diceConfigs.length - 1)].dieType === 'custom' ? `(${diceConfigs[Math.min(idx, diceConfigs.length - 1)].sides})` : ''}
-                                      </span>
-                                    </div>
-                                  ) : 'D6'}
-                                </td>
-                                <td className="px-3 py-2 text-slate-600 dark:text-slate-400 tabular-nums">
-                                  {d.original.length > 1 ? d.original.join(' → ') : d.original[0]}
-                                </td>
-                                <td className="px-3 py-2 font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{d.final}</td>
-                              </tr>
+                              <span key={idx} className="mr-2">
+                                {d.original.length > 1 ? (
+                                  <span className="text-xs" style={{ color: 'var(--muted)' }}>{d.original.join(' → ')}</span>
+                                ) : (
+                                  <span style={{ color: 'var(--fg)' }}>{d.final}</span>
+                                )}
+                              </span>
                             ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                          </td>
+                          <td className="py-2 text-right font-bold tabular-nums" style={{ color: 'var(--accent)' }}>
+                            {r.sum}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      {/* Statistics */}
-                      <div>
-                        <h4 className="font-medium text-slate-900 dark:text-white mb-3 text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">Statistics</h4>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
-                            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">{r.average.toFixed(2)}</div>
-                            <div className="text-xs text-blue-600 dark:text-blue-300 mt-1 uppercase tracking-wider">Average</div>
-                          </div>
-                          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4">
-                            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 tabular-nums">{Math.min(...r.used)}–{Math.max(...r.used)}</div>
-                            <div className="text-xs text-purple-600 dark:text-purple-300 mt-1 uppercase tracking-wider">Range</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Charts - conditionally shown */}
-                      {showCharts && (
-                        <div>
-                          <h4 className="font-medium text-slate-900 dark:text-white mb-3 text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">Charts</h4>
-                          <div className="space-y-2">
-                            <div className="h-16">
-                              <Boxplot values={r.used} className="w-full h-full" />
-                            </div>
-                            <div className="h-12">
-                              <Histogram values={r.used} className="w-full h-full" />
-                            </div>
-                          </div>
+              {/* Per-roll stats + charts */}
+              <div className="space-y-4">
+                {lastResult.rolls.map((r, i) => {
+                  const cfg = diceConfigs[Math.min(i, diceConfigs.length - 1)];
+                  return (
+                    <div key={i}>
+                      {r.used.length > 0 && (
+                        <div className="flex gap-4 text-xs mb-2" style={{ color: 'var(--muted)' }}>
+                          <span>avg {r.average.toFixed(1)}</span>
+                          <span>min {Math.min(...r.used)}</span>
+                          <span>max {Math.max(...r.used)}</span>
                         </div>
                       )}
+                      {showCharts && r.used.length > 1 && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="h-8"><Boxplot values={r.used} className="w-full h-full" /></div>
+                          <div className="h-12"><Histogram values={r.used} className="w-full h-full" /></div>
+                        </div>
+                      )}
+                      {/* Probability distribution (theoretical vs actual) */}
+                      {showCharts && cfg.count >= 2 && cfg.sides <= 20 && (() => {
+                        const dist = computeSumDist(cfg.count, cfg.sides);
+                        const vals = Array.from(dist.entries()).sort((a, b) => a[0] - b[0]);
+                        const maxW = Math.max(...vals.map(([, w]) => w));
+                        const barW = 90 / vals.length;
+                        return (
+                          <div className="mt-2">
+                            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>probability (normalized)</p>
+                            <svg viewBox="0 0 100 28" className="w-full h-8">
+                              {vals.map(([s, w], idx) => {
+                                const h = Math.max(1, (w / maxW) * 20);
+                                const x = 5 + idx * barW;
+                                const isActual = s === r.sum;
+                                return (
+                                  <rect key={s} x={x} y={22 - h} width={Math.max(0.5, barW - 0.5)} height={h}
+                                    fill={isActual ? 'white' : 'var(--accent)'} opacity={isActual ? 1 : 0.45} rx="0.5" />
+                                );
+                              })}
+                              <text x="50" y="27" fontSize="3" textAnchor="middle" fill="currentColor" opacity="0.5">sum {r.sum} of {cfg.count}×D{cfg.sides}</text>
+                            </svg>
+                          </div>
+                        );
+                      })()}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : (
-            <div className="card bg-slate-50 dark:bg-slate-800/50 text-center animate-fade-in-up">
-              <DiceIcon className="!w-12 !h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">Ready to Roll</h3>
-              <p className="text-slate-500 dark:text-slate-400">Configure your dice and click "Roll Dice" to get started!</p>
+            <div className="card text-center animate-fade-in-up" style={{ background: 'var(--input-bg)' }}>
+              <DiceIcon className="!w-12 !h-12 mx-auto mb-4" style={{ color: 'var(--muted)' } as React.CSSProperties} />
+              <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--fg)' }}>Ready to Roll</h3>
+              <p style={{ color: 'var(--muted)' }}>Configure your dice and click "Roll Dice" to get started!</p>
             </div>
           )}
 

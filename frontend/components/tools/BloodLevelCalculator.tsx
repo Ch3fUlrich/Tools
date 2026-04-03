@@ -109,20 +109,20 @@ const BloodLevelCalculator: React.FC = () => {
 
         <div className="space-y-4">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm border border-slate-200 dark:border-slate-600 rounded-lg min-w-[760px]">
+            <table className="w-full text-sm rounded-lg min-w-[760px]" style={{ border: '1px solid var(--card-border)' }}>
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-700">
-                  <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Substance</th>
-                  <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Time</th>
-                  <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Type</th>
-                  <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Time After Meal</th>
-                  <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Dosage (mg)</th>
-                  <th className="px-3 py-2 text-left text-slate-700 dark:text-slate-300">Actions</th>
+                <tr style={{ background: 'var(--input-bg)' }}>
+                  <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Substance</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Time</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Type</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Time After Meal</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Dosage (mg)</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {intakes.map((intake, index) => (
-                  <tr key={index} className="border-t border-slate-200 dark:border-slate-600">
+                  <tr key={index} style={{ borderTop: '1px solid var(--card-border)' }}>
                     <td className="px-3 py-2">
                       <select
                         value={intake.substance}
@@ -131,7 +131,7 @@ const BloodLevelCalculator: React.FC = () => {
                       >
                         <option value="">Select substance...</option>
                         {substances.map((sub) => (
-                          <option key={sub.id} value={sub.name}>
+                          <option key={sub.id} value={sub.id}>
                             {sub.name}
                           </option>
                         ))}
@@ -235,12 +235,12 @@ const BloodLevelCalculator: React.FC = () => {
                 .filter(bl => bl.substance === substance)
                 .map(bl => ({
                   time: bl.time,
-                  value: bl.amountMg,
+                  value: bl.amount_mg,
                 }));
 
               return (
                 <div key={substance} className="space-y-3">
-                  <h3 className="text-lg font-medium text-slate-900 dark:text-white">
+                  <h3 className="text-lg font-medium" style={{ color: 'var(--fg)' }}>
                     {substance} Blood Levels
                   </h3>
                   <LineChart
@@ -257,18 +257,18 @@ const BloodLevelCalculator: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
               {Array.from(new Set(bloodLevels.map(bl => bl.substance))).map(substance => {
                 const substanceLevels = bloodLevels.filter(bl => bl.substance === substance);
-                const maxLevel = Math.max(...substanceLevels.map(bl => bl.amountMg));
-                const currentLevel = substanceLevels[substanceLevels.length - 1]?.amountMg || 0;
+                const maxLevel = Math.max(...substanceLevels.map(bl => bl.amount_mg));
+                const currentLevel = substanceLevels[substanceLevels.length - 1]?.amount_mg || 0;
 
                 return (
-                  <div key={substance} className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                  <div key={substance} className="rounded-xl p-4" style={{ background: 'rgba(59,130,246,0.10)', border: '1px solid rgba(59,130,246,0.3)' }}>
                     <div className="flex justify-between items-center">
-                      <span className="font-medium text-blue-900 dark:text-blue-100">{substance}</span>
-                      <span className="text-sm text-blue-700 dark:text-blue-300 font-semibold">
+                      <span className="font-medium" style={{ color: 'var(--fg)' }}>{substance}</span>
+                      <span className="text-sm font-semibold" style={{ color: '#3b82f6' }}>
                         Now: {currentLevel.toFixed(2)} mg
                       </span>
                     </div>
-                    <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                    <div className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
                       Peak: {maxLevel.toFixed(2)} mg
                     </div>
                   </div>
@@ -277,10 +277,10 @@ const BloodLevelCalculator: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-700/50 rounded-xl p-12 flex items-center justify-center">
+          <div className="rounded-xl p-12 flex items-center justify-center" style={{ background: 'var(--input-bg)' }}>
             <div className="text-center">
               <span className="text-5xl mb-4 block">📊</span>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">
+              <p className="text-sm" style={{ color: 'var(--muted)' }}>
                 Add substance intakes above and calculate to see blood level graphs
               </p>
             </div>

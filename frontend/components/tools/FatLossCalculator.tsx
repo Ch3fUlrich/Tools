@@ -41,8 +41,9 @@ export const FatLossCalculator: React.FC = () => {
     setResult(null);
 
     try {
+      // Backend expects weekly kcal deficit; UI collects daily value
       const response = await calculateFatLoss({
-        kcal_deficit: parseFloat(kcalDeficit),
+        kcal_deficit: parseFloat(kcalDeficit) * 7,
         weight_loss_kg: parseFloat(weightLoss),
       });
       setResult(response);
@@ -178,68 +179,51 @@ export const FatLossCalculator: React.FC = () => {
             <CardSection title="Body Composition Results" gradient="from-green-500 to-emerald-600" className="animate-scale-in" delay="200ms">
 
               <div className="space-y-6">
-                {/* Enhanced Fat Loss Result */}
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-lg">🔥</span>
-                      </div>
-                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Fat Loss</span>
+                {/* Fat Loss + Muscle Loss two-column stats */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.3)' }}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🔥</span>
+                      <span className="text-sm font-medium" style={{ color: 'var(--fg)' }}>Fat Loss</span>
                     </div>
-                    <span className="text-3xl font-bold text-green-600 dark:text-green-400">
+                    <div className="text-4xl font-bold tabular-nums" style={{ color: '#10b981' }}>
                       {result.fat_loss_percentage?.toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4">
-                    <div
-                      className="bg-gradient-to-r from-green-400 to-emerald-500 h-4 rounded-full transition-all duration-700 ease-out"
-                      style={{ width: `${Math.min(result.fat_loss_percentage || 0, 100)}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-3">
-                    Estimated fat loss from total weight loss
-                  </p>
-                </div>
-
-                {/* Enhanced Muscle Loss Result */}
-                <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-6 border border-orange-200 dark:border-orange-800">
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-lg">💪</span>
-                      </div>
-                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Muscle Loss</span>
                     </div>
-                    <span className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+                    <div className="w-full rounded-full h-2.5" style={{ background: 'rgba(16,185,129,0.15)' }}>
+                      <div className="h-2.5 rounded-full transition-all duration-700 ease-out"
+                        style={{ width: `${Math.min(result.fat_loss_percentage || 0, 100)}%`, background: 'linear-gradient(90deg, #10b981, #059669)' }} />
+                    </div>
+                    <p className="text-xs" style={{ color: 'var(--muted)' }}>from total weight loss</p>
+                  </div>
+
+                  <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(249,115,22,0.10)', border: '1px solid rgba(249,115,22,0.3)' }}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">💪</span>
+                      <span className="text-sm font-medium" style={{ color: 'var(--fg)' }}>Muscle Loss</span>
+                    </div>
+                    <div className="text-4xl font-bold tabular-nums" style={{ color: '#f97316' }}>
                       {result.muscle_loss_percentage?.toFixed(1)}%
-                    </span>
+                    </div>
+                    <div className="w-full rounded-full h-2.5" style={{ background: 'rgba(249,115,22,0.15)' }}>
+                      <div className="h-2.5 rounded-full transition-all duration-700 ease-out"
+                        style={{ width: `${Math.min(result.muscle_loss_percentage || 0, 100)}%`, background: 'linear-gradient(90deg, #f97316, #dc2626)' }} />
+                    </div>
+                    <p className="text-xs" style={{ color: 'var(--muted)' }}>aim to minimize this</p>
                   </div>
-                  <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4">
-                    <div
-                      className="bg-gradient-to-r from-orange-400 to-red-500 h-4 rounded-full transition-all duration-700 ease-out"
-                      style={{ width: `${Math.min(result.muscle_loss_percentage || 0, 100)}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-3">
-                    Estimated muscle loss - aim to minimize this
-                  </p>
                 </div>
 
-                {/* Enhanced Summary */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                      <span className="text-white text-lg">📊</span>
-                    </div>
-                    <h3 className="font-semibold text-blue-900 dark:text-blue-100">Summary</h3>
+                {/* Summary */}
+                <div className="rounded-xl p-4" style={{ background: 'rgba(99,102,241,0.10)', border: '1px solid rgba(99,102,241,0.3)' }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">📊</span>
+                    <h3 className="font-semibold" style={{ color: 'var(--fg)' }}>Summary</h3>
                   </div>
-                  <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--fg-secondary)' }}>
                     {result.fat_loss_percentage && result.fat_loss_percentage > 70
-                      ? "🎉 Excellent! Most of your weight loss is coming from fat. Keep up the good work!"
+                      ? "Excellent! Most of your weight loss is coming from fat. Keep up the good work!"
                       : result.fat_loss_percentage && result.fat_loss_percentage > 50
-                      ? "👍 Good progress! Focus on maintaining muscle mass through resistance training."
-                      : "⚠️ Consider adjusting your approach. Strength training and adequate protein intake can help preserve muscle."
+                      ? "Good progress! Focus on maintaining muscle mass through resistance training."
+                      : "Consider adjusting your approach. Strength training and adequate protein intake can help preserve muscle."
                     }
                   </p>
                 </div>
