@@ -41,12 +41,13 @@ jobs:
       run: pnpm --filter frontend test
 
     - name: Upload frontend coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         # vitest outputs lcov to frontend/coverage/lcov.info when run from frontend dir
         files: frontend/coverage/lcov.info
         fail_ci_if_error: false
         token: ${{ secrets.CODECOV_TOKEN }}
+        slug: Ch3fUlrich/Tools
 
     - name: Upload frontend coverage artifact (fallback)
       if: success()
