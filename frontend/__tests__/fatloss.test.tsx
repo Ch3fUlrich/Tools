@@ -26,7 +26,8 @@ describe('FatLossCalculator', () => {
 
     render(<FatLossCalculator />);
 
-    fireEvent.change(screen.getByLabelText(/Daily Calorie Deficit/i), { target: { value: '3500' } });
+    // UI collects daily deficit; component multiplies by 7 before sending to backend
+    fireEvent.change(screen.getByLabelText(/Daily Calorie Deficit/i), { target: { value: '500' } });
     fireEvent.change(screen.getByLabelText(/Weekly Weight Loss/i), { target: { value: '1' } });
     const form = screen.getByRole('button', { name: /Calculate Composition/i }).closest('form') as HTMLFormElement;
     fireEvent.submit(form);

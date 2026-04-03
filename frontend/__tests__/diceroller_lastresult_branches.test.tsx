@@ -37,14 +37,14 @@ describe('DiceRoller lastResult mapping branches', () => {
     const rollButton = screen.getByText('Roll Dice');
     rollButton.click();
 
-  // expect roll headers and chart/testid counts; ensure per-die joined text exists
-  expect(await screen.findByText(/Roll\s*1/)).toBeInTheDocument();
-  expect(await screen.findByText(/Roll\s*2/)).toBeInTheDocument();
+  // expect Dice Results heading and per-die reroll sequence text
+  expect(await screen.findByText(/Dice Results/)).toBeInTheDocument();
+  expect(await screen.findByText(/Latest Roll Results/)).toBeInTheDocument();
   const boxplots = await screen.findAllByTestId('boxplot');
   const hists = await screen.findAllByTestId('histogram');
   expect(boxplots.length).toBeGreaterThanOrEqual(2);
   expect(hists.length).toBeGreaterThanOrEqual(2);
-  // check a specific per-die joined string appears
+  // check reroll sequence appears (original: [3,1] → shown as "3 → 1")
   expect(screen.getByText(/3 → 1/)).toBeInTheDocument();
   });
 });

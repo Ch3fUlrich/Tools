@@ -15,6 +15,6 @@ describe('FatLossVisualization', () => {
   it('renders current point when provided', () => {
     render(<TestWrapper><FatLossVisualization currentKcalDeficit={500} currentWeightLoss={1.0} currentFatLoss={65} currentMuscleLoss={35} /></TestWrapper>);
     expect(screen.getByText(/Your Point/)).toBeInTheDocument();
-    expect(screen.getByText(/Fat: 65.0%/i)).toBeInTheDocument();
+    expect(screen.getByText(/Fat: 65\.0%/)).toBeInTheDocument();
   });
 });
