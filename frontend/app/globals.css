@@ -443,7 +443,7 @@ html, body, #__next {
   transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@container (max-width: calc(var(--label-threshold) - 1px)) {
+@container (max-width: 89px) {
   .nav-label { display: none; }
   .nav-emoji { display: inline; }
 }

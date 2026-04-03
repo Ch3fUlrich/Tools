@@ -55,7 +55,7 @@ describe('BloodLevelCalculator (consolidated)', () => {
   it('covers branches: loaded substances, error handling and interactions', async () => {
     // Branch: loaded substances and chart title appears
     const getSub = vi.spyOn(api, 'getToleranceSubstances').mockResolvedValueOnce([{ id: 's1', name: 'Sub', halfLifeHours: 2 }]);
-    const calc = vi.spyOn(api, 'calculateTolerance').mockResolvedValueOnce({ blood_levels: [{ time: 't', substance: 'Sub', amountMg: 5 }] });
+    const calc = vi.spyOn(api, 'calculateTolerance').mockResolvedValueOnce({ blood_levels: [{ time: 't', substance: 'Sub', amount_mg: 5 }] });
 
     const { container: c1 } = render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
 
