@@ -52,6 +52,10 @@ describe('DiceRoller extra branches', () => {
   // clicking again toggles off
   fireEvent.click(advButton);
 
+    // enable charts before rolling
+    const showCharts = screen.getByLabelText('Show Charts');
+    fireEvent.click(showCharts);
+
     // click roll
     const rollButton = screen.getByText('Roll Dice');
     fireEvent.click(rollButton);
