@@ -535,7 +535,7 @@ const onRoll = async () => {
                       return (
                         <React.Fragment key={i}>
                           {/* Main result row with all stats as columns */}
-                          <tr style={{ borderBottom: showChartsRow ? 'none' : '1px solid var(--card-border)' }}>
+                          <tr style={{ borderBottom: showChartsRow ? 'none' : '1px solid var(--card-border)', borderTop: i > 0 ? '2px solid var(--accent)' : undefined }}>
                             <td className="py-2 pr-3">
                               <span className="inline-flex items-center justify-center text-xs font-semibold rounded px-1.5 py-0.5"
                                 style={{ background: 'var(--accent)', color: 'white' }}>{label}</span>
@@ -573,18 +573,18 @@ const onRoll = async () => {
                           {/* Charts row — compact single row with all charts side by side */}
                           {showChartsRow && (
                             <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
-                              <td colSpan={7} className="pb-2 pt-1">
+                              <td colSpan={7} className="pb-3 pt-1">
                                 <div className="grid gap-3" style={{ gridTemplateColumns: gridCols }}>
                                   {hasBoxHist && (
                                     <div>
                                       <div className="text-xs mb-0.5 font-medium" style={{ color: 'var(--muted)' }}>Spread (box plot)</div>
-                                      <div className="h-8"><Boxplot values={r.used} className="w-full h-full" /></div>
+                                      <div className="h-4"><Boxplot values={r.used} className="w-full h-full" /></div>
                                     </div>
                                   )}
                                   {hasBoxHist && (
                                     <div>
                                       <div className="text-xs mb-0.5 font-medium" style={{ color: 'var(--muted)' }}>Roll frequency</div>
-                                      <div className="h-8"><Histogram values={r.used} className="w-full h-full" /></div>
+                                      <div className="h-4"><Histogram values={r.used} className="w-full h-full" /></div>
                                     </div>
                                   )}
                                   {hasProbChart && (() => {
