@@ -488,21 +488,32 @@ const onRoll = async () => {
                 </div>
               </div>
 
-              {/* Dice Results table with inline stats */}
+              {/* Dice Results table with stat columns */}
               <h4 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>Dice Results</h4>
               <div className="overflow-x-auto mb-4">
                 <table className="w-full text-sm">
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
-                      <th className="text-left py-1.5 pr-4 text-xs font-medium" style={{ color: 'var(--muted)', width: '22%' }}>Die</th>
-                      <th className="text-left py-1.5 pr-4 text-xs font-medium" style={{ color: 'var(--muted)' }}>Values</th>
-                      <th className="text-right py-1.5 text-xs font-medium" style={{ color: 'var(--muted)', width: '12%' }}>Sum</th>
+                      <th className="text-left py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '15%' }}>Die</th>
+                      <th className="text-left py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)' }}>Values</th>
+                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Avg</th>
+                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Min</th>
+                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Max</th>
+                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '9%' }}>
+                        Prob
+                        <span
+                          title="Normalized probability: 1.0 = most probable sum for this die combination. Shows how likely your exact result is relative to the most common outcome."
+                          style={{ cursor: 'help', marginLeft: '0.2rem', opacity: 0.65, fontSize: '0.6rem' }}
+                        >(?)</span>
+                      </th>
+                      <th className="text-right py-1.5 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Sum</th>
                     </tr>
                   </thead>
                   <tbody>
                     {lastResult.rolls.map((r, i) => {
                       const cfg = diceConfigs[Math.min(i, diceConfigs.length - 1)];
                       const label = getDisplayLabel(i, diceConfigs);
+                      const hasValues = r.used.length > 0;
 
                       // Normalized probability (only meaningful for 2+ dice, sides ≤ 20)
                       let normProb: number | null = null;
@@ -513,21 +524,26 @@ const onRoll = async () => {
                         normProb = maxW > 0 ? w / maxW : null;
                       }
 
-                      const hasCharts = showCharts && r.used.length > 1;
+                      const hasBoxHist = showCharts && r.used.length > 1;
                       const hasProbChart = showCharts && cfg.count >= 2 && cfg.sides <= 20;
+                      const showChartsRow = hasBoxHist || hasProbChart;
+
+                      // Grid columns for charts row
+                      const chartCols = (hasBoxHist ? 2 : 0) + (hasProbChart ? 1 : 0);
+                      const gridCols = chartCols === 3 ? '1fr 1fr 1fr' : chartCols === 2 ? '1fr 1fr' : '1fr';
 
                       return (
                         <React.Fragment key={i}>
-                          {/* Main result row */}
-                          <tr style={{ borderBottom: 'none' }}>
-                            <td className="pt-2 pr-4">
+                          {/* Main result row with all stats as columns */}
+                          <tr style={{ borderBottom: showChartsRow ? 'none' : '1px solid var(--card-border)' }}>
+                            <td className="py-2 pr-3">
                               <span className="inline-flex items-center justify-center text-xs font-semibold rounded px-1.5 py-0.5"
                                 style={{ background: 'var(--accent)', color: 'white' }}>{label}</span>
                               {cfg.count > 1 && (
                                 <span className="ml-1 text-xs" style={{ color: 'var(--muted)' }}>×{cfg.count}</span>
                               )}
                             </td>
-                            <td className="pt-2 pr-4 font-mono">
+                            <td className="py-2 pr-3 font-mono">
                               {r.perDie.map((d, idx) => (
                                 <span key={idx} className="mr-2">
                                   {d.original.length > 1 ? (
@@ -538,72 +554,70 @@ const onRoll = async () => {
                                 </span>
                               ))}
                             </td>
-                            <td className="pt-2 text-right font-bold tabular-nums" style={{ color: 'var(--accent)' }}>
+                            <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
+                              {hasValues ? r.average.toFixed(1) : '-'}
+                            </td>
+                            <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
+                              {hasValues ? Math.min(...r.used) : '-'}
+                            </td>
+                            <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
+                              {hasValues ? Math.max(...r.used) : '-'}
+                            </td>
+                            <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
+                              {normProb !== null ? `${(normProb * 100).toFixed(0)}%` : '-'}
+                            </td>
+                            <td className="py-2 text-right font-bold tabular-nums" style={{ color: 'var(--accent)' }}>
                               {r.sum}
                             </td>
                           </tr>
-                          {/* Stats sub-row — always shown when there are values */}
-                          {r.used.length > 0 && (
-                            <tr style={{ borderBottom: (hasCharts || hasProbChart) ? 'none' : '1px solid var(--card-border)' }}>
-                              <td colSpan={3} className="pb-1">
-                                <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--muted)' }}>
-                                  <span>avg {r.average.toFixed(1)}</span>
-                                  <span>·</span>
-                                  <span>min {Math.min(...r.used)}</span>
-                                  <span>·</span>
-                                  <span>max {Math.max(...r.used)}</span>
-                                  {normProb !== null && (
-                                    <>
-                                      <span>·</span>
-                                      <span>
-                                        prob {(normProb * 100).toFixed(0)}%
-                                        <span
-                                          title="Normalized probability: 1.0 = most probable sum for this die combination. Shows how likely your exact result is relative to the most common outcome."
-                                          style={{ cursor: 'help', marginLeft: '0.2rem', opacity: 0.65, fontSize: '0.65rem' }}
-                                        >(?)</span>
-                                      </span>
-                                    </>
+                          {/* Charts row — compact single row with all charts side by side */}
+                          {showChartsRow && (
+                            <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
+                              <td colSpan={7} className="pb-2 pt-1">
+                                <div className="grid gap-3" style={{ gridTemplateColumns: gridCols }}>
+                                  {hasBoxHist && (
+                                    <div>
+                                      <div className="text-xs mb-0.5 font-medium" style={{ color: 'var(--muted)' }}>Spread (box plot)</div>
+                                      <div className="h-8"><Boxplot values={r.used} className="w-full h-full" /></div>
+                                    </div>
                                   )}
+                                  {hasBoxHist && (
+                                    <div>
+                                      <div className="text-xs mb-0.5 font-medium" style={{ color: 'var(--muted)' }}>Roll frequency</div>
+                                      <div className="h-8"><Histogram values={r.used} className="w-full h-full" /></div>
+                                    </div>
+                                  )}
+                                  {hasProbChart && (() => {
+                                    const dist = computeSumDist(cfg.count, cfg.sides);
+                                    const vals = Array.from(dist.entries()).sort((a, b) => a[0] - b[0]);
+                                    const maxW = Math.max(...vals.map(([, w]) => w));
+                                    const barW = 90 / vals.length;
+                                    const minSum = vals[0]?.[0] ?? 0;
+                                    const maxSum = vals[vals.length - 1]?.[0] ?? 0;
+                                    return (
+                                      <div>
+                                        <div className="text-xs mb-0.5 font-medium" style={{ color: 'var(--muted)' }}>Sum probability ({cfg.count}×D{cfg.sides})</div>
+                                        <svg viewBox="0 0 100 26" className="w-full h-8">
+                                          {vals.map(([s, w], idx) => {
+                                            const h = Math.max(1, (w / maxW) * 18);
+                                            const x = 5 + idx * barW;
+                                            const isActual = s === r.sum;
+                                            return (
+                                              <rect key={s} x={x} y={19 - h} width={Math.max(0.5, barW - 0.5)} height={h}
+                                                fill={isActual ? 'white' : 'var(--accent)'} opacity={isActual ? 1 : 0.45} rx="0.5" />
+                                            );
+                                          })}
+                                          <text x="5" y="25" fontSize="3.5" textAnchor="middle" fill="currentColor" opacity="0.5">{minSum}</text>
+                                          <text x="50" y="25" fontSize="3.5" textAnchor="middle" fill="currentColor" opacity="0.7">rolled: {r.sum}</text>
+                                          <text x="95" y="25" fontSize="3.5" textAnchor="middle" fill="currentColor" opacity="0.5">{maxSum}</text>
+                                        </svg>
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                               </td>
                             </tr>
                           )}
-                          {/* Charts sub-row — only when Show Charts is on */}
-                          {hasCharts && (
-                            <tr style={{ borderBottom: hasProbChart ? 'none' : '1px solid var(--card-border)' }}>
-                              <td colSpan={3} className="pb-2">
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div className="h-8"><Boxplot values={r.used} className="w-full h-full" /></div>
-                                  <div className="h-12"><Histogram values={r.used} className="w-full h-full" /></div>
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                          {/* Probability distribution chart — only when Show Charts is on */}
-                          {hasProbChart && (() => {
-                            const dist = computeSumDist(cfg.count, cfg.sides);
-                            const vals = Array.from(dist.entries()).sort((a, b) => a[0] - b[0]);
-                            const maxW = Math.max(...vals.map(([, w]) => w));
-                            const barW = 90 / vals.length;
-                            return (
-                              <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
-                                <td colSpan={3} className="pb-2">
-                                  <svg viewBox="0 0 100 28" className="w-full h-8">
-                                    {vals.map(([s, w], idx) => {
-                                      const h = Math.max(1, (w / maxW) * 20);
-                                      const x = 5 + idx * barW;
-                                      const isActual = s === r.sum;
-                                      return (
-                                        <rect key={s} x={x} y={22 - h} width={Math.max(0.5, barW - 0.5)} height={h}
-                                          fill={isActual ? 'white' : 'var(--accent)'} opacity={isActual ? 1 : 0.45} rx="0.5" />
-                                      );
-                                    })}
-                                    <text x="50" y="27" fontSize="3" textAnchor="middle" fill="currentColor" opacity="0.5">sum {r.sum} of {cfg.count}×D{cfg.sides}</text>
-                                  </svg>
-                                </td>
-                              </tr>
-                            );
-                          })()}
                         </React.Fragment>
                       );
                     })}
