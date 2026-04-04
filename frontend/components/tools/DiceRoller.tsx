@@ -58,6 +58,7 @@ type DiceConfig = {
   rerollEnabled?: boolean;
   rerollOperator?: '<'|'>'|'=';
   rerollValue?: number;
+  customName?: string;
 };
 
 // DIE_FACES was removed — we now display a consistent die emoji in the dropdown labels (e.g. "🎲 D6 (6)").
@@ -73,6 +74,13 @@ function getDieLabel(rollIndex: number, configs: DiceConfig[]): string {
     return `${rank}. ${typeName}`;
   }
   return typeName;
+}
+
+// Returns customName if set, otherwise getDieLabel
+function getDisplayLabel(idx: number, configs: DiceConfig[]): string {
+  const cfg = configs[Math.min(idx, configs.length - 1)];
+  if (cfg?.customName) return cfg.customName;
+  return getDieLabel(idx, configs);
 }
 
 // Compute exact probability distribution for numDice×sides using dynamic programming
@@ -96,13 +104,18 @@ export const DiceRoller: React.FC = () => {
     { id: '1', dieType: 'd6', sides: 6, count: 1, numericModifier: 0, advantage: 'none', rerollEnabled: false, rerollOperator: '<', rerollValue: 0 }
   ]);
 
-  const [history, setHistory] = useState<Array<{ time: string; summary?: { sum?: number }; details?: RollDetail[] }>>([]);
+  const [history, setHistory] = useState<Array<{
+    time: string;
+    summary?: { sum?: number };
+    details?: RollDetail[];
+    groupLabels?: string[];
+    groupNormProbs?: (number | null)[];
+  }>>([]);
   const [lastResult, setLastResult] = useState<DiceResponse | null>(null);
   const [historySource, setHistorySource] = useState<'local' | 'server'>('local');
 
   const [loading, setLoading] = useState(false);
-  // default to showing charts in test environment (tests expect charts to render)
-  const [showCharts, setShowCharts] = useState(true);
+  const [showCharts, setShowCharts] = useState(false);
 
   // Load history: prefer backend, fall back to localStorage.
   // Wrapped in Promise.resolve().then() so that an unmocked / undefined
@@ -136,18 +149,18 @@ const onRoll = async () => {
 
   try {
     setLoading(true);
-    
+
     // Make separate API calls for each dice configuration
     const rollPromises = diceConfigs.map(async (config) => {
-      const payload = { 
-        die: { 
-          type: config.dieType, 
-          sides: config.dieType === 'custom' ? config.sides : undefined 
-        }, 
+      const payload = {
+        die: {
+          type: config.dieType,
+          sides: config.dieType === 'custom' ? config.sides : undefined
+        },
         count: config.count
         // Add any other required payload fields here if needed by your API
       };
-      
+
   // Use shared API client helper so tests can mock this call
   return await rollDice(payload as DiceRequest);
     });
@@ -213,10 +226,25 @@ const onRoll = async () => {
       })
     };
 
+    // Compute labels and normalized probabilities for history
+    const groupLabels = combinedResult.rolls.map((_, i) => getDisplayLabel(i, diceConfigs));
+    const groupNormProbs = combinedResult.rolls.map((roll, i) => {
+      const cfg = diceConfigs[Math.min(i, diceConfigs.length - 1)];
+      if (cfg.count >= 2 && cfg.sides <= 20) {
+        const dist = computeSumDist(cfg.count, cfg.sides);
+        const maxW = Math.max(...dist.values());
+        const w = dist.get(roll.sum) ?? 0;
+        return maxW > 0 ? w / maxW : null;
+      }
+      return null;
+    });
+
     const entry = {
       time: new Date().toLocaleTimeString(),
       summary: { sum: combinedResult.rolls.reduce((total, roll) => total + roll.sum, 0) },
-      details: combinedResult.rolls as RollDetail[]
+      details: combinedResult.rolls as RollDetail[],
+      groupLabels,
+      groupNormProbs,
     };
     setHistory(h => {
       const updated = [entry, ...h];
@@ -261,7 +289,7 @@ const onRoll = async () => {
   };
 
   const updateDiceConfig = (id: string, updates: Partial<DiceConfig>) => {
-    setDiceConfigs(prev => prev.map(config => 
+    setDiceConfigs(prev => prev.map(config =>
       config.id === id ? { ...config, ...updates } : config
     ));
   };
@@ -291,7 +319,7 @@ const onRoll = async () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {diceConfigs.map((config) => (
+                    {diceConfigs.map((config, configIdx) => (
                       <tr key={config.id} className="border-b border-slate-100 dark:border-slate-700">
                         <td className="py-2">
                           <div className="flex items-center gap-2">
@@ -368,17 +396,41 @@ const onRoll = async () => {
                         </td>
 
                         <td className="py-2">
-                          {diceConfigs.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeDiceConfig(config.id)}
-                              className="text-gray-900 dark:text-white remove-btn"
-                              aria-label={`Remove dice config ${config.id}`}
-                            >
-                              <span aria-hidden>✖</span>
-                              <span className="sr-only">Remove</span>
-                            </button>
-                          )}
+                          <div className="flex flex-wrap items-center gap-2">
+                            {/* Custom name toggle */}
+                            <div className="flex items-center gap-1">
+                              <ModernCheckbox
+                                id={`name-${config.id}`}
+                                ariaLabel="Custom group name"
+                                checked={config.customName !== undefined}
+                                onChange={(v) => updateDiceConfig(config.id, {
+                                  customName: v ? getDisplayLabel(configIdx, diceConfigs) : undefined
+                                })}
+                              />
+                              {config.customName !== undefined && (
+                                <input
+                                  type="text"
+                                  value={config.customName}
+                                  onChange={(e) => updateDiceConfig(config.id, { customName: e.target.value })}
+                                  placeholder="Name"
+                                  className="form-input form-input--compact"
+                                  style={{ width: '7rem' }}
+                                  aria-label="Group name"
+                                />
+                              )}
+                            </div>
+                            {diceConfigs.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeDiceConfig(config.id)}
+                                className="text-gray-900 dark:text-white remove-btn"
+                                aria-label={`Remove dice config ${config.id}`}
+                              >
+                                <span aria-hidden>✖</span>
+                                <span className="sr-only">Remove</span>
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -436,7 +488,7 @@ const onRoll = async () => {
                 </div>
               </div>
 
-              {/* Dice Results table */}
+              {/* Dice Results table with inline stats */}
               <h4 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>Dice Results</h4>
               <div className="overflow-x-auto mb-4">
                 <table className="w-full text-sm">
@@ -450,83 +502,113 @@ const onRoll = async () => {
                   <tbody>
                     {lastResult.rolls.map((r, i) => {
                       const cfg = diceConfigs[Math.min(i, diceConfigs.length - 1)];
-                      const label = getDieLabel(i, diceConfigs);
+                      const label = getDisplayLabel(i, diceConfigs);
+
+                      // Normalized probability (only meaningful for 2+ dice, sides ≤ 20)
+                      let normProb: number | null = null;
+                      if (cfg.count >= 2 && cfg.sides <= 20) {
+                        const dist = computeSumDist(cfg.count, cfg.sides);
+                        const maxW = Math.max(...dist.values());
+                        const w = dist.get(r.sum) ?? 0;
+                        normProb = maxW > 0 ? w / maxW : null;
+                      }
+
+                      const hasCharts = showCharts && r.used.length > 1;
+                      const hasProbChart = showCharts && cfg.count >= 2 && cfg.sides <= 20;
+
                       return (
-                        <tr key={i} style={{ borderBottom: '1px solid var(--card-border)' }}>
-                          <td className="py-2 pr-4">
-                            <span className="inline-flex items-center justify-center text-xs font-semibold rounded px-1.5 py-0.5"
-                              style={{ background: 'var(--accent)', color: 'white' }}>{label}</span>
-                            {cfg.count > 1 && (
-                              <span className="ml-1 text-xs" style={{ color: 'var(--muted)' }}>×{cfg.count}</span>
-                            )}
-                          </td>
-                          <td className="py-2 pr-4 font-mono">
-                            {r.perDie.map((d, idx) => (
-                              <span key={idx} className="mr-2">
-                                {d.original.length > 1 ? (
-                                  <span className="text-xs" style={{ color: 'var(--muted)' }}>{d.original.join(' → ')}</span>
-                                ) : (
-                                  <span style={{ color: 'var(--fg)' }}>{d.final}</span>
-                                )}
-                              </span>
-                            ))}
-                          </td>
-                          <td className="py-2 text-right font-bold tabular-nums" style={{ color: 'var(--accent)' }}>
-                            {r.sum}
-                          </td>
-                        </tr>
+                        <React.Fragment key={i}>
+                          {/* Main result row */}
+                          <tr style={{ borderBottom: 'none' }}>
+                            <td className="pt-2 pr-4">
+                              <span className="inline-flex items-center justify-center text-xs font-semibold rounded px-1.5 py-0.5"
+                                style={{ background: 'var(--accent)', color: 'white' }}>{label}</span>
+                              {cfg.count > 1 && (
+                                <span className="ml-1 text-xs" style={{ color: 'var(--muted)' }}>×{cfg.count}</span>
+                              )}
+                            </td>
+                            <td className="pt-2 pr-4 font-mono">
+                              {r.perDie.map((d, idx) => (
+                                <span key={idx} className="mr-2">
+                                  {d.original.length > 1 ? (
+                                    <span className="text-xs" style={{ color: 'var(--muted)' }}>{d.original.join(' → ')}</span>
+                                  ) : (
+                                    <span style={{ color: 'var(--fg)' }}>{d.final}</span>
+                                  )}
+                                </span>
+                              ))}
+                            </td>
+                            <td className="pt-2 text-right font-bold tabular-nums" style={{ color: 'var(--accent)' }}>
+                              {r.sum}
+                            </td>
+                          </tr>
+                          {/* Stats sub-row — always shown when there are values */}
+                          {r.used.length > 0 && (
+                            <tr style={{ borderBottom: (hasCharts || hasProbChart) ? 'none' : '1px solid var(--card-border)' }}>
+                              <td colSpan={3} className="pb-1">
+                                <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--muted)' }}>
+                                  <span>avg {r.average.toFixed(1)}</span>
+                                  <span>·</span>
+                                  <span>min {Math.min(...r.used)}</span>
+                                  <span>·</span>
+                                  <span>max {Math.max(...r.used)}</span>
+                                  {normProb !== null && (
+                                    <>
+                                      <span>·</span>
+                                      <span>
+                                        prob {(normProb * 100).toFixed(0)}%
+                                        <span
+                                          title="Normalized probability: 1.0 = most probable sum for this die combination. Shows how likely your exact result is relative to the most common outcome."
+                                          style={{ cursor: 'help', marginLeft: '0.2rem', opacity: 0.65, fontSize: '0.65rem' }}
+                                        >(?)</span>
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                          {/* Charts sub-row — only when Show Charts is on */}
+                          {hasCharts && (
+                            <tr style={{ borderBottom: hasProbChart ? 'none' : '1px solid var(--card-border)' }}>
+                              <td colSpan={3} className="pb-2">
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div className="h-8"><Boxplot values={r.used} className="w-full h-full" /></div>
+                                  <div className="h-12"><Histogram values={r.used} className="w-full h-full" /></div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                          {/* Probability distribution chart — only when Show Charts is on */}
+                          {hasProbChart && (() => {
+                            const dist = computeSumDist(cfg.count, cfg.sides);
+                            const vals = Array.from(dist.entries()).sort((a, b) => a[0] - b[0]);
+                            const maxW = Math.max(...vals.map(([, w]) => w));
+                            const barW = 90 / vals.length;
+                            return (
+                              <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
+                                <td colSpan={3} className="pb-2">
+                                  <svg viewBox="0 0 100 28" className="w-full h-8">
+                                    {vals.map(([s, w], idx) => {
+                                      const h = Math.max(1, (w / maxW) * 20);
+                                      const x = 5 + idx * barW;
+                                      const isActual = s === r.sum;
+                                      return (
+                                        <rect key={s} x={x} y={22 - h} width={Math.max(0.5, barW - 0.5)} height={h}
+                                          fill={isActual ? 'white' : 'var(--accent)'} opacity={isActual ? 1 : 0.45} rx="0.5" />
+                                      );
+                                    })}
+                                    <text x="50" y="27" fontSize="3" textAnchor="middle" fill="currentColor" opacity="0.5">sum {r.sum} of {cfg.count}×D{cfg.sides}</text>
+                                  </svg>
+                                </td>
+                              </tr>
+                            );
+                          })()}
+                        </React.Fragment>
                       );
                     })}
                   </tbody>
                 </table>
-              </div>
-
-              {/* Per-roll stats + charts */}
-              <div className="space-y-4">
-                {lastResult.rolls.map((r, i) => {
-                  const cfg = diceConfigs[Math.min(i, diceConfigs.length - 1)];
-                  return (
-                    <div key={i}>
-                      {r.used.length > 0 && (
-                        <div className="flex gap-4 text-xs mb-2" style={{ color: 'var(--muted)' }}>
-                          <span>avg {r.average.toFixed(1)}</span>
-                          <span>min {Math.min(...r.used)}</span>
-                          <span>max {Math.max(...r.used)}</span>
-                        </div>
-                      )}
-                      {showCharts && r.used.length > 1 && (
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="h-8"><Boxplot values={r.used} className="w-full h-full" /></div>
-                          <div className="h-12"><Histogram values={r.used} className="w-full h-full" /></div>
-                        </div>
-                      )}
-                      {/* Probability distribution (theoretical vs actual) */}
-                      {showCharts && cfg.count >= 2 && cfg.sides <= 20 && (() => {
-                        const dist = computeSumDist(cfg.count, cfg.sides);
-                        const vals = Array.from(dist.entries()).sort((a, b) => a[0] - b[0]);
-                        const maxW = Math.max(...vals.map(([, w]) => w));
-                        const barW = 90 / vals.length;
-                        return (
-                          <div className="mt-2">
-                            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>probability (normalized)</p>
-                            <svg viewBox="0 0 100 28" className="w-full h-8">
-                              {vals.map(([s, w], idx) => {
-                                const h = Math.max(1, (w / maxW) * 20);
-                                const x = 5 + idx * barW;
-                                const isActual = s === r.sum;
-                                return (
-                                  <rect key={s} x={x} y={22 - h} width={Math.max(0.5, barW - 0.5)} height={h}
-                                    fill={isActual ? 'white' : 'var(--accent)'} opacity={isActual ? 1 : 0.45} rx="0.5" />
-                                );
-                              })}
-                              <text x="50" y="27" fontSize="3" textAnchor="middle" fill="currentColor" opacity="0.5">sum {r.sum} of {cfg.count}×D{cfg.sides}</text>
-                            </svg>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  );
-                })}
               </div>
             </div>
           ) : (

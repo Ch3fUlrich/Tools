@@ -18,6 +18,8 @@ interface DiceEntry {
   label?: string;
   summary?: { sum?: number } | null;
   details?: RollDetail[];
+  groupLabels?: string[];
+  groupNormProbs?: (number | null)[];
 }
 
 interface DiceHistoryProps {
@@ -86,22 +88,37 @@ export const DiceHistory: React.FC<DiceHistoryProps> = ({ entries = [], source =
                 {/* Expanded detail view */}
                 {hasDetails && isOpen && (
                   <div className="px-3 pb-2 border-t" style={{ borderColor: 'var(--card-border)' }}>
-                    {e.details!.map((roll, ri) => (
-                      <div key={ri} className="mt-2">
-                        <div className="flex justify-between text-xs mb-1" style={{ color: 'var(--muted)' }}>
-                          <span>Group {ri + 1}</span>
-                          <span>avg {roll.average.toFixed(1)} · min {Math.min(...roll.used)} · max {Math.max(...roll.used)}</span>
-                        </div>
-                        <div className="font-mono text-xs flex flex-wrap gap-1">
-                          {roll.perDie.map((d, di) => (
-                            <span key={di} className="px-1.5 py-0.5 rounded text-xs tabular-nums"
-                              style={{ background: 'var(--accent)', color: 'white', opacity: 0.85 }}>
-                              {d.original.length > 1 ? `${d.original.join('→')}` : d.final}
+                    {e.details!.map((roll, ri) => {
+                      const groupLabel = e.groupLabels?.[ri] ?? `Group ${ri + 1}`;
+                      const normProb = e.groupNormProbs?.[ri] ?? null;
+                      return (
+                        <div key={ri} className="mt-2">
+                          <div className="flex justify-between text-xs mb-1" style={{ color: 'var(--muted)' }}>
+                            <span>{groupLabel}</span>
+                            <span className="flex items-center gap-2">
+                              <span>avg {roll.average.toFixed(1)} · min {Math.min(...roll.used)} · max {Math.max(...roll.used)}</span>
+                              {normProb !== null && (
+                                <span>
+                                  · prob {(normProb * 100).toFixed(0)}%
+                                  <span
+                                    title="Normalized probability: 1.0 = most probable sum for this die combination. Shows how likely your exact result is relative to the most common outcome."
+                                    style={{ cursor: 'help', marginLeft: '0.2rem', opacity: 0.65, fontSize: '0.65rem' }}
+                                  >(?)</span>
+                                </span>
+                              )}
                             </span>
-                          ))}
+                          </div>
+                          <div className="font-mono text-xs flex flex-wrap gap-1">
+                            {roll.perDie.map((d, di) => (
+                              <span key={di} className="px-1.5 py-0.5 rounded text-xs tabular-nums"
+                                style={{ background: 'var(--accent)', color: 'white', opacity: 0.85 }}>
+                                {d.original.length > 1 ? `${d.original.join('→')}` : d.final}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </li>
