@@ -94,6 +94,7 @@ pnpm install
 # Start the full development stack (services, backend, and frontend)
 # This works seamlessly on both Linux and Windows.
 pnpm run dev
+```
 Open **http://localhost:3000** in your browser.
 
 ### Option C — GitHub Pages demo (no backend)
