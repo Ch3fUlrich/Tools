@@ -11,6 +11,8 @@ interface RollDetail {
   average: number;
   perDie: PerDie[];
   used: number[];
+  rerollCount?: number;
+  rerollConfig?: string;
 }
 
 interface DiceEntry {
@@ -20,14 +22,16 @@ interface DiceEntry {
   details?: RollDetail[];
   groupLabels?: string[];
   groupNormProbs?: (number | null)[];
+  groupActualProbs?: (number | null)[];
 }
 
 interface DiceHistoryProps {
   entries?: DiceEntry[];
   source?: 'local' | 'server';
+  onReset?: () => void;
 }
 
-export const DiceHistory: React.FC<DiceHistoryProps> = ({ entries = [], source = 'local' }) => {
+export const DiceHistory: React.FC<DiceHistoryProps> = ({ entries = [], source = 'local', onReset }) => {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   const toggle = (idx: number) => {
@@ -42,17 +46,35 @@ export const DiceHistory: React.FC<DiceHistoryProps> = ({ entries = [], source =
   return (
     <aside className="rounded-lg p-4" style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)' }}>
       <header className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-6">
           <DiceIcon className="w-5 h-5" style={{ color: 'var(--accent)' } as React.CSSProperties} />
-          <h3 className="text-sm font-semibold" style={{ color: 'var(--fg)' }}>Session History</h3>
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--fg)' }}>Roll History</h3>
         </div>
-        <span className="text-xs px-2 py-0.5 rounded-full" style={{
-          background: source === 'server' ? 'rgba(16,185,129,0.15)' : 'rgba(148,163,184,0.15)',
-          color: source === 'server' ? 'var(--success)' : 'var(--muted)',
-          border: `1px solid ${source === 'server' ? 'rgba(16,185,129,0.3)' : 'rgba(148,163,184,0.3)'}`,
-        }}>
-          {source === 'server' ? 'synced' : 'local'}
-        </span>
+        <div className="flex items-center" style={{ gap: '0.5rem' }}>
+          <span className="text-xs px-2 py-0.5 rounded-full" style={{
+            background: source === 'server' ? 'rgba(16,185,129,0.15)' : 'rgba(148,163,184,0.15)',
+            color: source === 'server' ? 'var(--success)' : 'var(--muted)',
+            border: `1px solid ${source === 'server' ? 'rgba(16,185,129,0.3)' : 'rgba(148,163,184,0.3)'}`,
+          }}>
+            {source === 'server' ? 'synced' : 'local'}
+          </span>
+          {onReset && entries.length > 0 && (
+            <button
+              type="button"
+              onClick={onReset}
+              className="text-xs px-2 py-0.5 rounded"
+              style={{
+                background: 'rgba(239,68,68,0.12)',
+                color: 'var(--error)',
+                border: '1px solid rgba(239,68,68,0.25)',
+                cursor: 'pointer',
+              }}
+              aria-label="Clear history"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </header>
 
       {entries.length === 0 ? (
@@ -85,40 +107,75 @@ export const DiceHistory: React.FC<DiceHistoryProps> = ({ entries = [], source =
                   </span>
                 </button>
 
-                {/* Expanded detail view */}
+                {/* Expanded detail view — same table format as Dice Results */}
                 {hasDetails && isOpen && (
-                  <div className="px-3 pb-2 border-t" style={{ borderColor: 'var(--card-border)' }}>
-                    {e.details!.map((roll, ri) => {
-                      const groupLabel = e.groupLabels?.[ri] ?? `Group ${ri + 1}`;
-                      const normProb = e.groupNormProbs?.[ri] ?? null;
-                      return (
-                        <div key={ri} className="mt-2">
-                          <div className="flex justify-between text-xs mb-1" style={{ color: 'var(--muted)' }}>
-                            <span>{groupLabel}</span>
-                            <span className="flex items-center gap-2">
-                              <span>avg {roll.average.toFixed(1)} · min {Math.min(...roll.used)} · max {Math.max(...roll.used)}</span>
-                              {normProb !== null && (
-                                <span>
-                                  · prob {(normProb * 100).toFixed(0)}%
-                                  <span
-                                    title="Normalized probability: 1.0 = most probable sum for this die combination. Shows how likely your exact result is relative to the most common outcome."
-                                    style={{ cursor: 'help', marginLeft: '0.2rem', opacity: 0.65, fontSize: '0.65rem' }}
-                                  >(?)</span>
-                                </span>
-                              )}
-                            </span>
-                          </div>
-                          <div className="font-mono text-xs flex flex-wrap gap-1">
-                            {roll.perDie.map((d, di) => (
-                              <span key={di} className="px-1.5 py-0.5 rounded text-xs tabular-nums"
-                                style={{ background: 'var(--accent)', color: 'white', opacity: 0.85 }}>
-                                {d.original.length > 1 ? `${d.original.join('→')}` : d.final}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="px-3 pb-3 border-t" style={{ borderColor: 'var(--card-border)' }}>
+                    <div className="overflow-x-auto mt-2">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
+                            <th className="text-left py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '15%' }}>Die</th>
+                            <th className="text-left py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)' }}>Values</th>
+                            <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Avg</th>
+                            <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Min</th>
+                            <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Max</th>
+                            <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Actual</th>
+                            <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Norm</th>
+                            <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '10%' }}>Reroll</th>
+                            <th className="text-right py-1.5 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Sum</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {e.details!.map((roll, ri) => {
+                            const groupLabel = e.groupLabels?.[ri] ?? `Group ${ri + 1}`;
+                            const actualProb = e.groupActualProbs?.[ri] ?? null;
+                            const normProb = e.groupNormProbs?.[ri] ?? null;
+                            const hasValues = roll.used.length > 0;
+                            return (
+                              <tr key={ri} style={{ borderTop: ri > 0 ? '2px solid var(--accent)' : undefined, borderBottom: '1px solid var(--card-border)' }}>
+                                <td className="py-2 pr-3">
+                                  <span className="inline-flex items-center justify-center text-xs font-semibold rounded px-1.5 py-0.5"
+                                    style={{ background: 'var(--accent)', color: 'white' }}>{groupLabel}</span>
+                                </td>
+                                <td className="py-2 pr-3 font-mono">
+                                  <div className="flex flex-wrap gap-1">
+                                    {roll.perDie.map((d, di) => (
+                                      <span key={di} className="px-1.5 py-0.5 rounded text-xs tabular-nums"
+                                        style={{ background: 'rgba(124,58,237,0.15)', color: 'var(--fg)', border: '1px solid var(--card-border)' }}>
+                                        {d.original.length > 1 ? d.original.join(' → ') : d.final}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
+                                  {hasValues ? roll.average.toFixed(1) : '-'}
+                                </td>
+                                <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
+                                  {hasValues ? Math.min(...roll.used) : '-'}
+                                </td>
+                                <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
+                                  {hasValues ? Math.max(...roll.used) : '-'}
+                                </td>
+                                <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
+                                  {actualProb !== null ? `${(actualProb * 100).toFixed(1)}%` : '-'}
+                                </td>
+                                <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
+                                  {normProb !== null ? `${(normProb * 100).toFixed(0)}%` : '-'}
+                                </td>
+                                <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
+                                  {roll.rerollConfig ? (
+                                    <span>{roll.rerollConfig} <span style={{ color: 'var(--accent)' }}>({roll.rerollCount ?? 0}×)</span></span>
+                                  ) : '—'}
+                                </td>
+                                <td className="py-2 text-right font-bold tabular-nums" style={{ color: 'var(--accent)' }}>
+                                  {roll.sum}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </li>

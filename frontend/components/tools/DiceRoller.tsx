@@ -43,6 +43,10 @@ type RollDetail = {
   average: number;
   perDie: PerDie[];
   used: number[];
+  rerollCount?: number;
+  rerollConfig?: string;
+  rawSum?: number;       // sum of dice before modifier
+  totalModifier?: number; // flat group modifier (+/-)
 };
 
 type DieOption = 'd2'|'d3'|'d4'|'d6'|'d8'|'d10'|'d12'|'d20'|'custom';
@@ -58,6 +62,7 @@ type DiceConfig = {
   rerollEnabled?: boolean;
   rerollOperator?: '<'|'>'|'=';
   rerollValue?: number;
+  rerollValuesStr?: string;  // comma-separated values for '=' operator
   customName?: string;
 };
 
@@ -99,9 +104,60 @@ function computeSumDist(numDice: number, sides: number): Map<number, number> {
   return dist;
 }
 
+// Parse comma-separated reroll values string into number array
+function parseRerollValues(str: string): number[] {
+  return str.split(',').map(s => s.trim()).filter(s => s !== '').map(Number).filter(n => Number.isFinite(n));
+}
+
+// Build reroll condition function from config; returns null if reroll not applicable
+function buildRerollCondition(cfg: DiceConfig): ((val: number) => boolean) | null {
+  if (!cfg.rerollEnabled) return null;
+  const op = cfg.rerollOperator || '<';
+  if (op === '=') {
+    const vals = new Set(parseRerollValues(cfg.rerollValuesStr || ''));
+    return vals.size > 0 ? (v: number) => vals.has(v) : null;
+  }
+  if (!Number.isFinite(cfg.rerollValue ?? NaN)) return null;
+  const rv = cfg.rerollValue as number;
+  if (op === '<') return (v: number) => v < rv;
+  if (op === '>') return (v: number) => v > rv;
+  return null;
+}
+
+// Build display string for reroll config (e.g. "< 3" or "= 1, 6")
+function buildRerollConfigStr(cfg: DiceConfig): string {
+  if (!cfg.rerollEnabled) return '';
+  const op = cfg.rerollOperator || '<';
+  if (op === '=') {
+    const vals = parseRerollValues(cfg.rerollValuesStr || '');
+    return vals.length > 0 ? `= ${vals.join(', ')}` : '';
+  }
+  return Number.isFinite(cfg.rerollValue ?? NaN) ? `${op} ${cfg.rerollValue}` : '';
+}
+
+// Compute set of sums achievable using only non-rerollable face values (for prob chart graying)
+function computeCleanSums(numDice: number, sides: number, isRerollable: (v: number) => boolean): Set<number> {
+  const cleanFaces: number[] = [];
+  for (let f = 1; f <= sides; f++) {
+    if (!isRerollable(f)) cleanFaces.push(f);
+  }
+  if (cleanFaces.length === 0) return new Set();
+  let sums = new Set<number>([0]);
+  for (let d = 0; d < numDice; d++) {
+    const next = new Set<number>();
+    for (const s of sums) {
+      for (const f of cleanFaces) {
+        next.add(s + f);
+      }
+    }
+    sums = next;
+  }
+  return sums;
+}
+
 export const DiceRoller: React.FC = () => {
   const [diceConfigs, setDiceConfigs] = useState<DiceConfig[]>([
-    { id: '1', dieType: 'd6', sides: 6, count: 1, numericModifier: 0, advantage: 'none', rerollEnabled: false, rerollOperator: '<', rerollValue: 0 }
+    { id: '1', dieType: 'd6', sides: 6, count: 1, numericModifier: 0, advantage: 'none', rerollEnabled: false, rerollOperator: '<', rerollValue: 0, rerollValuesStr: '' }
   ]);
 
   const [history, setHistory] = useState<Array<{
@@ -110,6 +166,7 @@ export const DiceRoller: React.FC = () => {
     details?: RollDetail[];
     groupLabels?: string[];
     groupNormProbs?: (number | null)[];
+    groupActualProbs?: (number | null)[];
   }>>([]);
   const [lastResult, setLastResult] = useState<DiceResponse | null>(null);
   const [historySource, setHistorySource] = useState<'local' | 'server'>('local');
@@ -173,67 +230,85 @@ const onRoll = async () => {
       summary: { totalRollsRequested: results.length }
     };
 
-    // Apply local modifiers: per-config numeric modifiers and reroll rules
+    // Apply local modifiers: reroll rules per-die, group modifier applied to sum only
     combinedResult = {
       ...combinedResult,
-      rolls: combinedResult.rolls.map((roll, _rollIndex) => {
+      rolls: combinedResult.rolls.map((roll, rollIdx) => {
         // clone roll
         const cloned = JSON.parse(JSON.stringify(roll));
         let anyChanged = false;
-        cloned.perDie = cloned.perDie.map((d: PerDie, idx: number) => {
-          const cfg = diceConfigs[Math.min(idx, diceConfigs.length - 1)];
-          const sides = cfg?.sides || 6;
+        let groupRerollCount = 0;
+        const rollCfg = diceConfigs[Math.min(rollIdx, diceConfigs.length - 1)];
+        const sides = rollCfg?.sides || 6;
+        const rerollCond = buildRerollCondition(rollCfg);
 
+        // Flat group modifier: applied once to the sum (not per-die)
+        const groupModifier = (rollCfg && Number.isFinite(rollCfg.numericModifier ?? NaN) && rollCfg.advantage && rollCfg.advantage !== 'none')
+          ? (rollCfg.advantage === 'adv' ? (rollCfg.numericModifier || 0) : -(rollCfg.numericModifier || 0))
+          : 0;
+
+        cloned.perDie = cloned.perDie.map((d: PerDie) => {
           const originalFinal = d.final;
 
-          // reroll logic: per-config
-          if (cfg?.rerollEnabled && Number.isFinite(cfg.rerollValue || NaN)) {
-            const rv = cfg.rerollValue as number;
-            const cond = (val: number) => {
-              if (cfg.rerollOperator === '<') return val < rv;
-              if (cfg.rerollOperator === '>') return val > rv;
-              if (cfg.rerollOperator === '=') return val === rv;
-              return val === rv;
-            };
-
+          // Reroll logic — uses roll-level config for all dice in this group
+          if (rerollCond) {
             let finalVal = d.final;
             const maxAttempts = 3;
             let attempts = 0;
-            while (cond(finalVal) && attempts < maxAttempts) {
+            while (rerollCond(finalVal) && attempts < maxAttempts) {
               finalVal = Math.floor(Math.random() * sides) + 1;
               attempts += 1;
             }
+            groupRerollCount += attempts;
             d.final = finalVal;
-          }
-
-          // per-config numeric modifier based on advantage/disadvantage setting
-          if (cfg && Number.isFinite(cfg.numericModifier || NaN) && cfg.advantage && cfg.advantage !== 'none') {
-            const delta = cfg.advantage === 'adv' ? (cfg.numericModifier || 0) : -(cfg.numericModifier || 0);
-            d.final = d.final + delta;
           }
 
           if (d.final !== originalFinal) anyChanged = true;
           return d;
         });
 
-        // only recalc summary values if we modified any final values; otherwise keep API-provided summary
-        if (anyChanged) {
-          cloned.sum = cloned.perDie.reduce((s: number, pd: PerDie) => s + pd.final, 0);
+        cloned.rerollCount = groupRerollCount;
+        cloned.rerollConfig = buildRerollConfigStr(rollCfg);
+        cloned.totalModifier = groupModifier;
+
+        // Recalculate raw sum from dice, then add group modifier to sum
+        if (anyChanged || groupModifier !== 0) {
+          cloned.rawSum = cloned.perDie.reduce((s: number, pd: PerDie) => s + pd.final, 0);
           cloned.used = cloned.perDie.map((pd: PerDie) => pd.final);
-          cloned.average = cloned.perDie.reduce((s: number, pd: PerDie) => s + pd.final, 0) / cloned.perDie.length;
+          cloned.average = cloned.perDie.length > 0 ? cloned.rawSum / cloned.perDie.length : 0;
+          cloned.sum = cloned.rawSum + groupModifier;
+        } else {
+          cloned.rawSum = cloned.sum; // no changes, rawSum = API-provided sum
         }
         return cloned;
       })
     };
 
-    // Compute labels and normalized probabilities for history
+    // Compute labels, actual and normalized probabilities for history
+    // Use rawSum (before modifier) for probability calculations
     const groupLabels = combinedResult.rolls.map((_, i) => getDisplayLabel(i, diceConfigs));
-    const groupNormProbs = combinedResult.rolls.map((roll, i) => {
+    const groupActualProbs = (combinedResult.rolls as RollDetail[]).map((roll, i) => {
       const cfg = diceConfigs[Math.min(i, diceConfigs.length - 1)];
-      if (cfg.count >= 2 && cfg.sides <= 20) {
+      const rawSum = roll.rawSum ?? roll.sum;
+      if (cfg.count === 1) {
+        return 1 / cfg.sides;
+      } else if (cfg.count >= 2 && cfg.sides <= 20) {
+        const dist = computeSumDist(cfg.count, cfg.sides);
+        const totalCombinations = Math.pow(cfg.sides, cfg.count);
+        const w = dist.get(rawSum) ?? 0;
+        return totalCombinations > 0 ? w / totalCombinations : null;
+      }
+      return null;
+    });
+    const groupNormProbs = (combinedResult.rolls as RollDetail[]).map((roll, i) => {
+      const cfg = diceConfigs[Math.min(i, diceConfigs.length - 1)];
+      const rawSum = roll.rawSum ?? roll.sum;
+      if (cfg.count === 1) {
+        return 1; // normalized: all faces equally likely → peak = 100%
+      } else if (cfg.count >= 2 && cfg.sides <= 20) {
         const dist = computeSumDist(cfg.count, cfg.sides);
         const maxW = Math.max(...dist.values());
-        const w = dist.get(roll.sum) ?? 0;
+        const w = dist.get(rawSum) ?? 0;
         return maxW > 0 ? w / maxW : null;
       }
       return null;
@@ -245,6 +320,7 @@ const onRoll = async () => {
       details: combinedResult.rolls as RollDetail[],
       groupLabels,
       groupNormProbs,
+      groupActualProbs,
     };
     setHistory(h => {
       const updated = [entry, ...h];
@@ -275,7 +351,8 @@ const onRoll = async () => {
       advantage: 'none',
       rerollEnabled: false,
       rerollOperator: '<',
-      rerollValue: 0
+      rerollValue: 0,
+      rerollValuesStr: ''
     }]);
   };
 
@@ -387,18 +464,32 @@ const onRoll = async () => {
                                     <button key={op} type="button" onClick={() => updateDiceConfig(config.id, { rerollOperator: op })} className={`text-gray-900 dark:text-white op-btn ${config.rerollOperator === op ? 'active' : ''}`} aria-pressed={config.rerollOperator === op}>{op}</button>
                                   ))}
                                 </div>
-                                <div style={{minWidth:'5rem'}}>
-                                  <NumberInput placeholder="value" value={String(config.rerollValue ?? 0)} onChange={(v) => updateDiceConfig(config.id, { rerollValue: Number(v || 0) })} step={1} className="form-input--compact" />
-                                </div>
+                                {config.rerollOperator === '=' ? (
+                                  <div style={{minWidth:'6rem'}}>
+                                    <input
+                                      type="text"
+                                      placeholder="1,3,6"
+                                      value={config.rerollValuesStr ?? ''}
+                                      onChange={(e) => updateDiceConfig(config.id, { rerollValuesStr: e.target.value })}
+                                      className="form-input form-input--compact"
+                                      style={{ width: '7rem' }}
+                                      aria-label="Reroll values"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div style={{minWidth:'5rem'}}>
+                                    <NumberInput placeholder="value" value={String(config.rerollValue ?? 0)} onChange={(v) => updateDiceConfig(config.id, { rerollValue: Number(v || 0) })} step={1} className="form-input--compact" />
+                                  </div>
+                                )}
                               </>
                             )}
                           </div>
                         </td>
 
                         <td className="py-2">
-                          <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex flex-wrap items-center" style={{ gap: '1rem' }}>
                             {/* Custom name toggle */}
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-2">
                               <ModernCheckbox
                                 id={`name-${config.id}`}
                                 ariaLabel="Custom group name"
@@ -406,6 +497,7 @@ const onRoll = async () => {
                                 onChange={(v) => updateDiceConfig(config.id, {
                                   customName: v ? getDisplayLabel(configIdx, diceConfigs) : undefined
                                 })}
+                                label={<span className="text-xs" style={{ color: 'var(--muted)' }}>Name</span>}
                               />
                               {config.customName !== undefined && (
                                 <input
@@ -499,28 +591,36 @@ const onRoll = async () => {
                       <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Avg</th>
                       <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Min</th>
                       <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Max</th>
-                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '9%' }}>
-                        Prob
-                        <span
-                          title="Normalized probability: 1.0 = most probable sum for this die combination. Shows how likely your exact result is relative to the most common outcome."
-                          style={{ cursor: 'help', marginLeft: '0.2rem', opacity: 0.65, fontSize: '0.6rem' }}
-                        >(?)</span>
-                      </th>
+                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Actual</th>
+                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Norm</th>
+                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '10%' }}>Reroll</th>
                       <th className="text-right py-1.5 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Sum</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {lastResult.rolls.map((r, i) => {
+                    {(lastResult.rolls as RollDetail[]).map((r, i) => {
                       const cfg = diceConfigs[Math.min(i, diceConfigs.length - 1)];
                       const label = getDisplayLabel(i, diceConfigs);
                       const hasValues = r.used.length > 0;
+                      const rerollCond = buildRerollCondition(cfg);
+                      const grayFaces = rerollCond
+                        ? new Set(Array.from({ length: cfg.sides }, (_, fi) => fi + 1).filter(v => rerollCond(v)))
+                        : undefined;
+                      const rawSum = r.rawSum ?? r.sum;
+                      const totalModifier = r.totalModifier ?? 0;
 
-                      // Normalized probability (only meaningful for 2+ dice, sides ≤ 20)
+                      // Compute both actual and normalized probability using rawSum (before modifier)
+                      let actualProb: number | null = null;
                       let normProb: number | null = null;
-                      if (cfg.count >= 2 && cfg.sides <= 20) {
+                      if (cfg.count === 1) {
+                        actualProb = 1 / cfg.sides;
+                        // norm for single die is trivially 100% — not shown
+                      } else if (cfg.count >= 2 && cfg.sides <= 20) {
                         const dist = computeSumDist(cfg.count, cfg.sides);
+                        const w = dist.get(rawSum) ?? 0;
+                        const totalCombinations = Math.pow(cfg.sides, cfg.count);
                         const maxW = Math.max(...dist.values());
-                        const w = dist.get(r.sum) ?? 0;
+                        actualProb = totalCombinations > 0 ? w / totalCombinations : null;
                         normProb = maxW > 0 ? w / maxW : null;
                       }
 
@@ -553,6 +653,11 @@ const onRoll = async () => {
                                   )}
                                 </span>
                               ))}
+                              {totalModifier !== 0 && (
+                                <span className="text-xs font-semibold tabular-nums" style={{ color: 'var(--accent)' }}>
+                                  {totalModifier > 0 ? '+' : ''}{totalModifier}
+                                </span>
+                              )}
                             </td>
                             <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
                               {hasValues ? r.average.toFixed(1) : '-'}
@@ -564,7 +669,15 @@ const onRoll = async () => {
                               {hasValues ? Math.max(...r.used) : '-'}
                             </td>
                             <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
+                              {actualProb !== null ? `${(actualProb * 100).toFixed(1)}%` : '-'}
+                            </td>
+                            <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
                               {normProb !== null ? `${(normProb * 100).toFixed(0)}%` : '-'}
+                            </td>
+                            <td className="py-2 pr-3 text-right tabular-nums text-xs" style={{ color: 'var(--muted)' }}>
+                              {r.rerollConfig ? (
+                                <span>{r.rerollConfig} <span style={{ color: 'var(--accent)' }}>({r.rerollCount ?? 0}×)</span></span>
+                              ) : '—'}
                             </td>
                             <td className="py-2 text-right font-bold tabular-nums" style={{ color: 'var(--accent)' }}>
                               {r.sum}
@@ -573,18 +686,18 @@ const onRoll = async () => {
                           {/* Charts row — compact single row with all charts side by side */}
                           {showChartsRow && (
                             <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
-                              <td colSpan={7} className="pb-3 pt-1">
+                              <td colSpan={9} className="pb-3 pt-1">
                                 <div className="grid gap-3" style={{ gridTemplateColumns: gridCols }}>
                                   {hasBoxHist && (
                                     <div>
-                                      <div className="text-xs mb-0.5 font-medium" style={{ color: 'var(--muted)' }}>Spread (box plot)</div>
+                                      <div className="text-xs mb-0.5 font-medium" style={{ color: 'var(--muted)' }}>Spread</div>
                                       <div className="h-4"><Boxplot values={r.used} className="w-full h-full" /></div>
                                     </div>
                                   )}
                                   {hasBoxHist && (
                                     <div>
-                                      <div className="text-xs mb-0.5 font-medium" style={{ color: 'var(--muted)' }}>Roll frequency</div>
-                                      <div className="h-4"><Histogram values={r.used} className="w-full h-full" /></div>
+                                      <div className="text-xs mb-0.5 font-medium" style={{ color: 'var(--muted)' }}>Frequency</div>
+                                      <div className="h-4"><Histogram values={r.used} grayValues={grayFaces} className="w-full h-full" /></div>
                                     </div>
                                   )}
                                   {hasProbChart && (() => {
@@ -594,21 +707,26 @@ const onRoll = async () => {
                                     const barW = 90 / vals.length;
                                     const minSum = vals[0]?.[0] ?? 0;
                                     const maxSum = vals[vals.length - 1]?.[0] ?? 0;
+                                    const cleanSums = rerollCond
+                                      ? computeCleanSums(cfg.count, cfg.sides, rerollCond)
+                                      : null;
                                     return (
                                       <div>
-                                        <div className="text-xs mb-0.5 font-medium" style={{ color: 'var(--muted)' }}>Sum probability ({cfg.count}×D{cfg.sides})</div>
+                                        <div className="text-xs mb-0.5 font-medium" style={{ color: 'var(--muted)' }}>Probability ({cfg.count}×D{cfg.sides})</div>
                                         <svg viewBox="0 0 100 26" className="w-full h-8">
                                           {vals.map(([s, w], idx) => {
                                             const h = Math.max(1, (w / maxW) * 18);
                                             const x = 5 + idx * barW;
-                                            const isActual = s === r.sum;
+                                            const isActual = s === rawSum; // highlight rawSum bar
+                                            const isGrayed = cleanSums !== null && !cleanSums.has(s);
                                             return (
                                               <rect key={s} x={x} y={19 - h} width={Math.max(0.5, barW - 0.5)} height={h}
-                                                fill={isActual ? 'white' : 'var(--accent)'} opacity={isActual ? 1 : 0.45} rx="0.5" />
+                                                fill={isGrayed ? 'var(--muted)' : (isActual ? 'white' : 'var(--accent)')}
+                                                opacity={isGrayed ? 0.35 : (isActual ? 1 : 0.45)} rx="0.5" />
                                             );
                                           })}
                                           <text x="5" y="25" fontSize="3.5" textAnchor="middle" fill="currentColor" opacity="0.5">{minSum}</text>
-                                          <text x="50" y="25" fontSize="3.5" textAnchor="middle" fill="currentColor" opacity="0.7">rolled: {r.sum}</text>
+                                          <text x="50" y="25" fontSize="3.5" textAnchor="middle" fill="currentColor" opacity="0.7">rolled: {rawSum}{totalModifier !== 0 ? (totalModifier > 0 ? `+${totalModifier}` : `${totalModifier}`) : ''}</text>
                                           <text x="95" y="25" fontSize="3.5" textAnchor="middle" fill="currentColor" opacity="0.5">{maxSum}</text>
                                         </svg>
                                       </div>
@@ -635,11 +753,16 @@ const onRoll = async () => {
 
           {/* History */}
           <div className="card animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center">
-              <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-violet-600 rounded-full mr-4"></div>
-              Roll History
-            </h2>
-            <DiceHistory entries={history} source={historySource} />
+            <DiceHistory
+              entries={history}
+              source={historySource}
+              onReset={() => {
+                setHistory([]);
+                if (typeof window !== 'undefined') {
+                  try { localStorage.removeItem(LS_HISTORY_KEY); } catch { /* ignore */ }
+                }
+              }}
+            />
           </div>
         </div>
       </div>
