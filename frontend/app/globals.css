@@ -480,7 +480,7 @@ html, body, #__next {
 .nav-responsive { display: flex; }
 .mobile-dropdown { display: none; }
 
-@media (max-width: calc(var(--collapse-threshold) - 1px)) {
+@media (width <= 760px) {
   .nav-responsive { display: none !important; }
   .mobile-dropdown { display: block !important; }
 }
@@ -1054,7 +1054,7 @@ input[type="number"] {
 .mobile-only { display: none; }
 .desktop-only { display: flex; }
 
-@media (max-width: calc(var(--collapse-threshold) - 1px)) {
+@media (width <= 760px) {
   .mobile-only { display: block !important; }
   .desktop-only { display: none !important; }
 }

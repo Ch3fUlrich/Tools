@@ -36,7 +36,7 @@ export default function Header() {
       const navExtra = 48; // breathing room
       const totalNeededEmoji = brandW + rightW + totalGaps + navItems.length * emojiW + navExtra;
 
-      // set CSS variable so the media query uses a dynamic threshold
+      // Keep the measured collapse point available to CSS/diagnostics.
       try {
         document.documentElement.style.setProperty('--collapse-threshold', `${Math.ceil(totalNeededEmoji)}px`);
       } catch {
