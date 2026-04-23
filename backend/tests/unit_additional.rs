@@ -7,8 +7,10 @@ use serde_json::json;
 #[tokio::test]
 async fn test_verify_password_roundtrip() {
     // Create a password hash using the same Argon2 logic used in the app
-    use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
-    use rand_core::OsRng;
+    use argon2::{
+        password_hash::{rand_core::OsRng, SaltString},
+        Argon2, PasswordHasher,
+    };
 
     let password = "correcthorsebatterystaple";
     let salt = SaltString::generate(&mut OsRng);

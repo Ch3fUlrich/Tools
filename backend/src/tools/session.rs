@@ -3,6 +3,7 @@ use redis::AsyncCommands;
 use redis::Client as RedisClient;
 use redis::ErrorKind as RedisErrorKind;
 use redis::RedisError;
+use redis::ServerErrorKind;
 use std::time::Duration;
 // Note: earlier iterations used boxed futures; current helpers use concrete retry loops.
 // Keep imports minimal.
@@ -46,6 +47,10 @@ pub struct SessionStore {
     pub namespace: String,
 }
 
+fn is_retryable_redis_error(err: &RedisError) -> bool {
+    err.is_io_error() || err.kind() == RedisErrorKind::Server(ServerErrorKind::TryAgain)
+}
+
 impl SessionStore {
     pub async fn new(redis_url: &str, namespace: &str) -> Result<Self, redis::RedisError> {
         let client = RedisClient::open(redis_url)?;
@@ -84,11 +89,8 @@ impl SessionStore {
                     if attempt >= max_attempts {
                         return Err(e);
                     }
-                    match e.kind() {
-                        RedisErrorKind::IoError | RedisErrorKind::TryAgain => {
-                            // retry
-                        }
-                        _ => return Err(e),
+                    if !is_retryable_redis_error(&e) {
+                        return Err(e);
                     }
                     let jitter = rand::random::<u8>() as u64 % 20;
                     sleep(Duration::from_millis(backoff_ms + jitter)).await;
@@ -113,9 +115,8 @@ impl SessionStore {
                     if attempt >= max_attempts {
                         return Err(e);
                     }
-                    match e.kind() {
-                        RedisErrorKind::IoError | RedisErrorKind::TryAgain => {}
-                        _ => return Err(e),
+                    if !is_retryable_redis_error(&e) {
+                        return Err(e);
                     }
                     let jitter = rand::random::<u8>() as u64 % 20;
                     sleep(Duration::from_millis(backoff_ms + jitter)).await;
@@ -140,9 +141,8 @@ impl SessionStore {
                     if attempt >= max_attempts {
                         return Err(e);
                     }
-                    match e.kind() {
-                        RedisErrorKind::IoError | RedisErrorKind::TryAgain => {}
-                        _ => return Err(e),
+                    if !is_retryable_redis_error(&e) {
+                        return Err(e);
                     }
                     let jitter = rand::random::<u8>() as u64 % 20;
                     sleep(Duration::from_millis(backoff_ms + jitter)).await;
@@ -172,9 +172,8 @@ impl SessionStore {
                     if attempt >= max_attempts {
                         return Err(e);
                     }
-                    match e.kind() {
-                        RedisErrorKind::IoError | RedisErrorKind::TryAgain => {}
-                        _ => return Err(e),
+                    if !is_retryable_redis_error(&e) {
+                        return Err(e);
                     }
                     let jitter = rand::random::<u8>() as u64 % 20;
                     sleep(Duration::from_millis(backoff_ms + jitter)).await;
@@ -230,9 +229,8 @@ impl SessionStore {
                     if attempt >= max_attempts {
                         return Err(e);
                     }
-                    match e.kind() {
-                        RedisErrorKind::IoError | RedisErrorKind::TryAgain => {}
-                        _ => return Err(e),
+                    if !is_retryable_redis_error(&e) {
+                        return Err(e);
                     }
                     let jitter = rand::random::<u8>() as u64 % 20;
                     sleep(Duration::from_millis(backoff_ms + jitter)).await;
@@ -254,7 +252,7 @@ impl SessionStore {
         let payload = serde_json::to_string(&data).map_err(|e| {
             // RedisError does not implement From<(ErrorKind, String)> directly; use the (ErrorKind, &str, String) tuple form
             redis::RedisError::from((
-                redis::ErrorKind::TypeError,
+                redis::ErrorKind::UnexpectedReturnType,
                 "session serialize error",
                 e.to_string(),
             ))
@@ -277,7 +275,7 @@ impl SessionStore {
         if let Some(s) = raw {
             let data: SessionData = serde_json::from_str(&s).map_err(|e| {
                 redis::RedisError::from((
-                    redis::ErrorKind::TypeError,
+                    redis::ErrorKind::UnexpectedReturnType,
                     "session deserialize error",
                     e.to_string(),
                 ))

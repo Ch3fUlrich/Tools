@@ -9,7 +9,7 @@ use openidconnect::{
     AuthenticationFlow, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
     RedirectUrl, TokenResponse,
 };
-use rand::Rng;
+use rand::RngCore;
 use serde::Deserialize;
 use sqlx::PgPool;
 use sqlx::Row;
