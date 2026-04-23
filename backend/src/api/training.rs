@@ -20,6 +20,7 @@ pub struct PaginationParams {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct StatsFilterParams {
     pub from: Option<String>,
     pub to: Option<String>,
@@ -28,6 +29,7 @@ pub struct StatsFilterParams {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct ExerciseFilterParams {
     pub equipment: Option<String>,
     pub muscle: Option<String>,
@@ -302,18 +304,18 @@ pub async fn list_exercises(
         Ok(rows) => {
             let exercises: Vec<serde_json::Value> = rows.iter().filter(|row| {
                 // Apply filters in Rust
-                let matches_equipment = params.equipment.as_ref().map_or(true, |eq| {
+                let matches_equipment = params.equipment.as_ref().is_none_or(|eq| {
                     row.try_get::<String, _>("equipment").ok().as_deref() == Some(eq.as_str())
                 });
-                let matches_pattern = params.pattern.as_ref().map_or(true, |p| {
+                let matches_pattern = params.pattern.as_ref().is_none_or(|p| {
                     row.try_get::<String, _>("movement_pattern").ok().as_deref() == Some(p.as_str())
                 });
-                let matches_difficulty = params.difficulty.as_ref().map_or(true, |d| {
+                let matches_difficulty = params.difficulty.as_ref().is_none_or(|d| {
                     row.try_get::<String, _>("difficulty").ok().as_deref() == Some(d.as_str())
                 });
-                let matches_search = params.search.as_ref().map_or(true, |s| {
+                let matches_search = params.search.as_ref().is_none_or(|s| {
                     row.try_get::<String, _>("name").ok()
-                        .map_or(false, |n| n.to_lowercase().contains(&s.to_lowercase()))
+                        .is_some_and(|n| n.to_lowercase().contains(&s.to_lowercase()))
                 });
                 matches_equipment && matches_pattern && matches_difficulty && matches_search
             }).map(|row| {
@@ -815,13 +817,13 @@ pub async fn list_sessions(
             let sessions: Vec<serde_json::Value> = rows.iter().filter(|row| {
                 // Apply date filters
                 let started: Option<chrono::DateTime<chrono::Utc>> = row.try_get("started_at").ok();
-                let matches_from = params.from.as_ref().map_or(true, |f| {
+                let matches_from = params.from.as_ref().is_none_or(|f| {
                     chrono::DateTime::parse_from_rfc3339(f).ok()
-                        .map_or(true, |from| started.map_or(false, |s| s >= from))
+                        .is_none_or(|from| started.is_some_and(|s| s >= from))
                 });
-                let matches_to = params.to.as_ref().map_or(true, |t| {
+                let matches_to = params.to.as_ref().is_none_or(|t| {
                     chrono::DateTime::parse_from_rfc3339(t).ok()
-                        .map_or(true, |to| started.map_or(false, |s| s <= to))
+                        .is_none_or(|to| started.is_some_and(|s| s <= to))
                 });
                 matches_from && matches_to
             }).map(|row| {

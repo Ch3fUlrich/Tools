@@ -1,10 +1,9 @@
 use argon2::PasswordHasher;
 use argon2::PasswordVerifier;
 use argon2::{
-    password_hash::{PasswordHash, SaltString},
+    password_hash::{rand_core::OsRng, PasswordHash, SaltString},
     Argon2,
 };
-use rand_core::OsRng;
 use sqlx::PgPool;
 use sqlx::Row;
 use uuid::Uuid;

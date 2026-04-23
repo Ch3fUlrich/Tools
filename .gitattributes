@@ -1,0 +1,3 @@
+backend/**/*.rs text eol=lf
+backend/**/*.toml text eol=lf
+backend/**/*.sql text eol=lf

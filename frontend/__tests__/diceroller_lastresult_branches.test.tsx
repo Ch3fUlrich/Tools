@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 
 // Mock rollDice API to return multiple rolls
@@ -33,6 +33,11 @@ import DiceRoller from '@/components/tools/DiceRoller';
 describe('DiceRoller lastResult mapping branches', () => {
   test('renders multiple roll entries and per-die rows', async () => {
     render(<DiceRoller />);
+
+    // enable charts before rolling
+    const showChartsCheckbox = screen.getByLabelText('Show Charts');
+    fireEvent.click(showChartsCheckbox);
+
     // click Roll button to cause mockRollDice to populate lastResult
     const rollButton = screen.getByText('Roll Dice');
     rollButton.click();
