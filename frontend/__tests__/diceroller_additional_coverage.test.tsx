@@ -40,9 +40,9 @@ describe('DiceRoller targeted branches for coverage', () => {
     const eqButton = screen.getByRole('button', { name: '=' });
     fireEvent.click(eqButton);
 
-    // set reroll value input (placeholder 'value') - pick first occurrence
-    const valueInputs = screen.getAllByPlaceholderText('value');
-    fireEvent.change(valueInputs[0], { target: { value: '2' } });
+    // set reroll value input (= operator uses comma-separated text input)
+    const rerollValuesInput = screen.getByLabelText('Reroll values');
+    fireEvent.change(rerollValuesInput, { target: { value: '2' } });
 
     // click Roll
     fireEvent.click(screen.getByRole('button', { name: /Roll Dice/i }));

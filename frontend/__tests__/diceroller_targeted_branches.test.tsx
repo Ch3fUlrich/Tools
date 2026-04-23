@@ -36,8 +36,8 @@ describe('DiceRoller targeted branches', () => {
     const eqBtn = screen.getByRole('button', { name: '=' });
     fireEvent.click(eqBtn);
 
-    // set reroll value to 1
-    const rerollInput = screen.getByPlaceholderText('value');
+    // set reroll value to 1 (= operator uses comma-separated text input)
+    const rerollInput = screen.getByLabelText('Reroll values');
     fireEvent.change(rerollInput, { target: { value: '1' } });
 
     // perform roll
