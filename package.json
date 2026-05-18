@@ -27,5 +27,10 @@
     "format": "pnpm run format:frontend && pnpm run format:backend",
     "format:frontend": "cd frontend && npx prettier --write .",
     "format:backend": "cd backend && cargo fmt"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": "8.5.10"
+    }
   }
 }

@@ -18,5 +18,8 @@ describe('TimelineBuilder', () => {
     expect(settingsFrame).toBeInTheDocument();
     expect(timelineFrame).toHaveAttribute('sandbox', expect.stringContaining('allow-scripts'));
     expect(settingsFrame).toHaveAttribute('sandbox', expect.stringContaining('allow-scripts'));
+    expect(screen.getAllByRole('button', { name: 'Default' })).toHaveLength(2);
+    expect(screen.getByRole('button', { name: 'Resize Timeline right edge' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Resize Timeline Settings Table bottom edge' })).toBeInTheDocument();
   });
 });

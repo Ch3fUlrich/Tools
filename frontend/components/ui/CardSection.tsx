@@ -1,6 +1,13 @@
 "use client";
 
 import React from 'react';
+import ResizableCardSection, { type CardSizePreset } from '@/components/ui/ResizableCardSection';
+
+const defaultPresets: CardSizePreset[] = [
+  { label: 'Compact', width: 640, height: 420 },
+  { label: 'Default' },
+  { label: 'Expanded', width: 1120, height: 760 },
+];
 
 interface Props {
   title: string;
@@ -20,15 +27,14 @@ interface Props {
  */
 export default function CardSection({ title, gradient, children, className = '', delay }: Props) {
   return (
-    <div
-      className={`card animate-fade-in-up ${className}`}
-      style={delay ? { animationDelay: delay } : undefined}
+    <ResizableCardSection
+      title={title}
+      gradient={gradient}
+      presets={defaultPresets}
+      className={className}
+      delay={delay}
     >
-      <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
-        <div className={`w-1 h-8 bg-gradient-to-b ${gradient} rounded-full flex-shrink-0`} aria-hidden="true" />
-        {title}
-      </h2>
       {children}
-    </div>
+    </ResizableCardSection>
   );
 }

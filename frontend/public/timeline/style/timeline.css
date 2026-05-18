@@ -1283,6 +1283,10 @@ html[data-embed-panel="timeline"] .timeline-frame {
   background: transparent;
 }
 
+html[data-embed-panel="timeline"] .timeline-svg {
+  min-width: 0;
+}
+
 html[data-embed-panel="settings"] .timeline-frame,
 html[data-embed-panel="timeline"] .timeline-inspector {
   display: none;
@@ -1301,5 +1305,5 @@ html[data-embed-panel="settings"] .timeline-inspector h2 {
 }
 
 html[data-embed-panel="settings"] .inspector-table-wrap {
-  max-height: 460px;
+  max-height: none;
 }

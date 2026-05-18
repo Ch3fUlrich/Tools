@@ -9,6 +9,7 @@ export default function TimelineBuilderPage() {
       emoji="🧭"
       gradientFrom="from-cyan-400"
       gradientTo="to-teal-500"
+      maxWidthClassName="max-w-[1600px]"
     >
       <TimelineBuilder />
     </ToolPage>

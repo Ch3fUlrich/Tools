@@ -5,6 +5,7 @@ import DiceIcon from '../icons/DiceIcon';
 // DieSelect removed per UX change: we show a compact die symbol instead of a dropdown
 import ModernCheckbox from '@/components/ui/ModernCheckbox';
 import Button from '@/components/ui/Button';
+import CardSection from '@/components/ui/CardSection';
 import Counter from '@/components/ui/Counter';
 import NumberInput from '@/components/ui/NumberInput';
 import { rollDice, saveDiceRoll, getDiceHistory } from '../../lib/api/client';
@@ -376,12 +377,7 @@ const onRoll = async () => {
   <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Controls Panel */}
   <div className="xl:col-span-2">
-          <div className="card animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center">
-              <div className="w-1 h-8 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-full mr-4"></div>
-              Dice Configuration
-            </h2>
-
+          <CardSection title="Dice Configuration" gradient="from-indigo-500 to-purple-600" delay="100ms">
             {/* Dice Configuration Table */}
             <div className="space-y-4">
               <div className="overflow-x-auto">
@@ -559,19 +555,15 @@ const onRoll = async () => {
                 )}
               </Button>
             </div>
-          </div>
+          </CardSection>
         </div>
 
         {/* Results Panel */}
           <div className="xl:col-span-2 space-y-6">
           {lastResult ? (
-            <div className="card animate-scale-in" style={{ animationDelay: '100ms' }}>
+            <CardSection title="Latest Roll Results" gradient="from-green-500 to-emerald-600" className="animate-scale-in" delay="100ms">
               {/* Header: title + grand total */}
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold flex items-center" style={{ color: 'var(--fg)' }}>
-                  <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full mr-4 flex-shrink-0" />
-                  Latest Roll Results
-                </h2>
+              <div className="flex justify-end items-center mb-4">
                 <div className="text-right">
                   <div className="text-3xl font-bold tabular-nums" style={{ color: 'var(--accent)' }}>
                     {lastResult.rolls.reduce((t, r) => t + r.sum, 0)}
@@ -742,17 +734,16 @@ const onRoll = async () => {
                   </tbody>
                 </table>
               </div>
-            </div>
+            </CardSection>
           ) : (
-            <div className="card text-center animate-fade-in-up" style={{ background: 'var(--input-bg)' }}>
+            <CardSection title="Ready to Roll" gradient="from-indigo-500 to-purple-600" className="text-center">
               <DiceIcon className="!w-12 !h-12 mx-auto mb-4" style={{ color: 'var(--muted)' } as React.CSSProperties} />
-              <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--fg)' }}>Ready to Roll</h3>
               <p style={{ color: 'var(--muted)' }}>Configure your dice and click "Roll Dice" to get started!</p>
-            </div>
+            </CardSection>
           )}
 
           {/* History */}
-          <div className="card animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+          <CardSection title="History" gradient="from-indigo-500 to-purple-600" delay="200ms">
             <DiceHistory
               entries={history}
               source={historySource}
@@ -763,7 +754,7 @@ const onRoll = async () => {
                 }
               }}
             />
-          </div>
+          </CardSection>
         </div>
       </div>
     </div>
