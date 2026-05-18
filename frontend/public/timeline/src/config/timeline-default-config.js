@@ -1,0 +1,755 @@
+/**
+ * Generated fallback for direct file:// browser use.
+ * Source of truth: configs/timeline-default-config.json
+ */
+window.TIMELINE_DEFAULT_CONFIG = {
+  "canvas": {
+    "viewBox": "0 0 1480 940",
+    "width": 1480,
+    "height": 940
+  },
+  "stageEditing": {
+    "minWidth": 56,
+    "boundaryTopY": 93.982,
+    "boundaryBottomY": 757.589
+  },
+  "stageLabels": {
+    "y": 114,
+    "fill": "color-mix(in srgb, var(--text) 90%, transparent)",
+    "class": "svg-window-label"
+  },
+  "arrows": {
+    "mainArrow": {
+      "id": "mainArrow",
+      "markerWidth": 18,
+      "markerHeight": 18,
+      "refX": 18,
+      "refY": 9,
+      "path": "M0 0L18 9L0 18Z",
+      "fill": "var(--track)"
+    },
+    "humanArrow": {
+      "id": "humanArrow",
+      "markerWidth": 11,
+      "markerHeight": 11,
+      "refX": 11,
+      "refY": 5.5,
+      "path": "M0 0L11 5.5L0 11Z",
+      "fill": "var(--human)"
+    },
+    "mouseArrow": {
+      "id": "mouseArrow",
+      "markerWidth": 11,
+      "markerHeight": 11,
+      "refX": 11,
+      "refY": 5.5,
+      "path": "M0 0L11 5.5L0 11Z",
+      "fill": "var(--mouse)"
+    }
+  },
+  "mainAxis": {
+    "x1": 130,
+    "x2": 1325,
+    "y": 570.581,
+    "strokeWidth": 6,
+    "strokeLinecap": "round",
+    "stroke": "var(--track)",
+    "markerEnd": "url(#mainArrow)"
+  },
+  "developmentWindows": [
+    {
+      "x": 130,
+      "y": 93.982,
+      "width": 127.692,
+      "height": 663.607,
+      "rx": 18,
+      "fill": "var(--window-1)",
+      "opacity": 0.28,
+      "label": "Stage 1",
+      "humanLabel": "Neonatal",
+      "mouseLabel": "P2",
+      "stageName": "Neonatal",
+      "stageLabelY": 151.305
+    },
+    {
+      "x": 257.692,
+      "y": 93.982,
+      "width": 195.623,
+      "height": 663.607,
+      "rx": 18,
+      "fill": "var(--window-2)",
+      "opacity": 0.24,
+      "label": "Stage 2",
+      "humanLabel": "Infancy",
+      "mouseLabel": "Week 3",
+      "stageName": "Infancy",
+      "stageLabelY": 151.305
+    },
+    {
+      "x": 453.315,
+      "y": 93.982,
+      "width": 214.255,
+      "height": 663.607,
+      "rx": 18,
+      "fill": "var(--window-3)",
+      "opacity": 0.22,
+      "label": "Stage 3",
+      "humanLabel": "Toddler",
+      "mouseLabel": "Week 4",
+      "stageName": "Toddler",
+      "stageLabelY": 151.305
+    },
+    {
+      "x": 667.57,
+      "y": 93.982,
+      "width": 257.163,
+      "height": 663.607,
+      "rx": 18,
+      "fill": "var(--window-4)",
+      "opacity": 0.22,
+      "label": "Stage 4",
+      "humanLabel": "Early childhood",
+      "mouseLabel": "Week 5",
+      "stageName": "Early childhood",
+      "stageLabelY": 151.305
+    },
+    {
+      "x": 924.733,
+      "y": 93.982,
+      "width": 390.267,
+      "height": 663.607,
+      "rx": 18,
+      "fill": "var(--window-5)",
+      "opacity": 0.22,
+      "label": "Stage 5",
+      "humanLabel": "Later childhood",
+      "mouseLabel": "Weeks 7–11",
+      "stageName": "Later childhood",
+      "stageLabelY": 151.305
+    }
+  ],
+  "windowLabels": [
+    {
+      "stageIndex": 0,
+      "x": 193.846,
+      "y": 151.305,
+      "text": "Neonatal",
+      "class": "svg-window-label",
+      "fill": "color-mix(in srgb, var(--text) 90%, transparent)"
+    },
+    {
+      "stageIndex": 1,
+      "x": 355.50350000000003,
+      "y": 151.305,
+      "text": "Infancy",
+      "class": "svg-window-label",
+      "fill": "color-mix(in srgb, var(--text) 90%, transparent)"
+    },
+    {
+      "stageIndex": 2,
+      "x": 560.4425,
+      "y": 151.305,
+      "text": "Toddler",
+      "class": "svg-window-label",
+      "fill": "color-mix(in srgb, var(--text) 90%, transparent)"
+    },
+    {
+      "stageIndex": 3,
+      "x": 796.1515,
+      "y": 151.305,
+      "text": "Early childhood",
+      "class": "svg-window-label",
+      "fill": "color-mix(in srgb, var(--text) 90%, transparent)"
+    },
+    {
+      "stageIndex": 4,
+      "x": 1119.8664999999999,
+      "y": 151.305,
+      "text": "Later childhood",
+      "class": "svg-window-label",
+      "fill": "color-mix(in srgb, var(--text) 90%, transparent)"
+    }
+  ],
+  "axisRanges": [
+    {
+      "id": "humans-range",
+      "title": "",
+      "titleX": 130,
+      "titleY": 64.982,
+      "lineStartX": 130,
+      "lineEndX": 1315,
+      "lineY": 80.982,
+      "lineStroke": "color-mix(in srgb, var(--human) 75%, var(--text))",
+      "lineWidth": 1.8,
+      "tickDirection": "down",
+      "tickSize": 10,
+      "labelOffset": 12,
+      "tickStroke": "color-mix(in srgb, var(--text) 55%, transparent)",
+      "tickWidth": 1.5,
+      "titleClass": "svg-range-title",
+      "tickLabelClass": "svg-range-axis",
+      "ticks": [
+        {
+          "stageEdge": 0,
+          "label": "0 mo"
+        },
+        {
+          "stageEdge": 1,
+          "label": "6 mo"
+        },
+        {
+          "stageEdge": 2,
+          "label": "2 y"
+        },
+        {
+          "stageEdge": 3,
+          "label": "4 y"
+        },
+        {
+          "stageEdge": 4,
+          "label": "6 y"
+        },
+        {
+          "stageEdge": 5,
+          "label": "11 y+"
+        }
+      ],
+      "hidden": false
+    },
+    {
+      "id": "mice-range",
+      "title": "",
+      "titleX": 130,
+      "titleY": 939.589,
+      "lineStartX": 130,
+      "lineEndX": 1315,
+      "lineY": 792.589,
+      "lineStroke": "color-mix(in srgb, var(--mouse) 75%, var(--text))",
+      "lineWidth": 1.8,
+      "tickDirection": "up",
+      "tickSize": 10,
+      "labelOffset": 14,
+      "tickStroke": "color-mix(in srgb, var(--text) 55%, transparent)",
+      "tickWidth": 1.5,
+      "titleClass": "svg-range-title",
+      "tickLabelClass": "svg-range-axis",
+      "ticks": [
+        {
+          "stageEdge": 0,
+          "label": "P2"
+        },
+        {
+          "stageEdge": 1,
+          "label": "P21"
+        },
+        {
+          "stageEdge": 2,
+          "label": "P28"
+        },
+        {
+          "stageEdge": 3,
+          "label": "P35"
+        },
+        {
+          "stageEdge": 4,
+          "label": "P49"
+        },
+        {
+          "stageEdge": 5,
+          "label": "P77"
+        }
+      ],
+      "hidden": false
+    }
+  ],
+  "axisLabels": [
+    {
+      "x": 82,
+      "y": 332.282,
+      "text": "Humans",
+      "class": "svg-tag",
+      "fill": "var(--human)",
+      "transform": "rotate(-90 82 332.282)",
+      "hidden": false
+    },
+    {
+      "x": 82,
+      "y": 664.085,
+      "text": "Mice",
+      "class": "svg-tag",
+      "fill": "var(--mouse)",
+      "transform": "rotate(-90 82 664.085)",
+      "hidden": false
+    }
+  ],
+  "humanNodes": [],
+  "mouseNodes": [
+    {
+      "x": 229.116,
+      "yNode": 722.834,
+      "yAxis": 570.581,
+      "title": "30min delay",
+      "ageRange": "P17",
+      "stroke": "var(--mouse)",
+      "strokeWidth": 3,
+      "markerId": "mouseArrow",
+      "titleFill": "",
+      "ageFill": "",
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "x": 209.068,
+      "yNode": 682.548,
+      "yAxis": 570.581,
+      "title": "Object What",
+      "ageRange": "P14",
+      "stroke": "var(--mouse)",
+      "strokeWidth": 3,
+      "markerId": "mouseArrow",
+      "titleFill": "",
+      "ageFill": "",
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    }
+  ],
+  "humanRangeBlocks": [
+    {
+      "xStart": 128.887,
+      "xEnd": 257.983,
+      "y": 527.274,
+      "height": 40,
+      "title": "Object What",
+      "ageRange": "0 mo -> 6 mo",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 387.725,
+      "xEnd": 794.663,
+      "y": 524.088,
+      "height": 40,
+      "title": "Context what-where",
+      "ageRange": "18 mo -> 5 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 453.802,
+      "xEnd": 796.488,
+      "y": 385.011,
+      "height": 40,
+      "title": "Allocentric single spatial what-where",
+      "ageRange": "2 y -> 5 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 559.529,
+      "xEnd": 1080.677,
+      "y": 164.792,
+      "height": 40,
+      "title": "Strategic recall",
+      "ageRange": "3 y -> 8 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 366.372,
+      "xEnd": 560.443,
+      "y": 435.262,
+      "height": 40,
+      "title": "Spontaneous recall",
+      "ageRange": "16 mo -> 3 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 926.101,
+      "xEnd": 1315.928,
+      "y": 520.429,
+      "height": 40,
+      "title": "Autonoetic recall (\"mental time travel\")",
+      "ageRange": "6 y -> 11 y+",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 192.918,
+      "xEnd": 256.764,
+      "y": 480.428,
+      "height": 40,
+      "title": "24h delay",
+      "ageRange": "3 mo -> 6 mo",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 193.454,
+      "xEnd": 322.901,
+      "y": 436.219,
+      "height": 40,
+      "title": "3m delay retention",
+      "ageRange": "3 mo -> 12 mo",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 558.995,
+      "xEnd": 666.123,
+      "y": 480.488,
+      "height": 40,
+      "title": "30min delay",
+      "ageRange": "3 y -> 4 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 668.329,
+      "xEnd": 925.971,
+      "y": 479.708,
+      "height": 40,
+      "title": "24h delay what-where retention",
+      "ageRange": "4 y -> 6 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 669.515,
+      "xEnd": 926.37,
+      "y": 429.911,
+      "height": 40,
+      "title": "1w delay what-where retention",
+      "ageRange": "4 y -> 6 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 562.179,
+      "xEnd": 797.937,
+      "y": 335.147,
+      "height": 40,
+      "title": "Allocentric multi spatial what-where",
+      "ageRange": "3 y -> 5 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 614.214,
+      "xEnd": 1005.864,
+      "y": 291.096,
+      "height": 40,
+      "title": "Spatial -Temporal discrimination",
+      "ageRange": "3.5 y -> 7 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 388.106,
+      "xEnd": 667.57,
+      "y": 250.329,
+      "height": 40,
+      "title": "What-When encoding (simple action seq.)",
+      "ageRange": "18 mo -> 4 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 667.57,
+      "xEnd": 1002.787,
+      "y": 250.581,
+      "height": 40,
+      "title": "What-When encoding (complex order)",
+      "ageRange": "4 y -> 7 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 668.407,
+      "xEnd": 1082.206,
+      "y": 208.297,
+      "height": 40,
+      "title": "What-When encoding (full 3 obj. order)",
+      "ageRange": "4 y -> 8 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 924.539,
+      "xEnd": 1080.417,
+      "y": 361.059,
+      "height": 40,
+      "title": "W-W-W encoding",
+      "ageRange": "6 y -> 8 y",
+      "fill": "var(--human-soft)",
+      "stroke": "var(--human)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    }
+  ],
+  "mouseRangeBlocks": [
+    {
+      "xStart": 230.809,
+      "xEnd": 453.315,
+      "y": 583.404,
+      "height": 40,
+      "title": "24h delay",
+      "ageRange": "P17 -> P28",
+      "fill": "var(--mouse-soft)",
+      "stroke": "var(--mouse)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 339.59,
+      "xEnd": 451.375,
+      "y": 677.306,
+      "height": 40,
+      "title": "What-Where 24h delay",
+      "ageRange": "P24 -> P28",
+      "fill": "var(--mouse-soft)",
+      "stroke": "var(--mouse)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 207.567,
+      "xEnd": 669.459,
+      "y": 628.659,
+      "height": 40,
+      "title": "Context what-where",
+      "ageRange": "P14 -> P35",
+      "fill": "var(--mouse-soft)",
+      "stroke": "var(--mouse)",
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 454.756,
+      "xEnd": 670.082,
+      "y": 714.902,
+      "height": 40,
+      "title": "Allocentric spatial what-where",
+      "ageRange": "P28 -> P35",
+      "fill": "var(--mouse-soft)",
+      "stroke": "var(--mouse)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 667.57,
+      "xEnd": 924.733,
+      "y": 584.088,
+      "height": 40,
+      "title": "W-W-W encoding",
+      "ageRange": "P35 -> P49",
+      "fill": "var(--mouse-soft)",
+      "stroke": "var(--mouse)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 871.43,
+      "xEnd": 1176.46,
+      "y": 631.629,
+      "height": 40,
+      "title": "Recall limits",
+      "ageRange": "P46 -> P67",
+      "fill": "var(--mouse-soft)",
+      "stroke": "var(--mouse)",
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    }
+  ],
+  "nodes": {
+    "connectorStrokeWidth": 3,
+    "circleRadius": 5,
+    "titleClass": "svg-title",
+    "ageClass": "svg-age",
+    "titleFontSize": 16,
+    "ageFontSize": 13
+  },
+  "blocks": {
+    "defaultHeight": 34,
+    "minWidth": 28,
+    "strokeWidth": 1.9,
+    "cornerRadius": 8,
+    "titleClass": "svg-title",
+    "ageClass": "svg-age",
+    "titleFontSize": 16,
+    "ageFontSize": 13,
+    "titleInsideOffsetY": 14,
+    "ageInsideOffsetY": 28
+  },
+  "humanAxisTicks": [
+    {
+      "x": 170,
+      "label": "6 mo"
+    },
+    {
+      "x": 410,
+      "label": "2 y"
+    },
+    {
+      "x": 570,
+      "label": "3 y"
+    },
+    {
+      "x": 720,
+      "label": "4 y"
+    },
+    {
+      "x": 870,
+      "label": "5 y"
+    },
+    {
+      "x": 1015,
+      "label": "6 y"
+    },
+    {
+      "x": 1120,
+      "label": "8 y"
+    },
+    {
+      "x": 1255,
+      "label": "11 y"
+    }
+  ],
+  "axisTicks": {
+    "enabled": false,
+    "y1": 432,
+    "y2": 448,
+    "strokeWidth": 2,
+    "stroke": "color-mix(in srgb, var(--text) 36%, transparent)",
+    "labelY": 472,
+    "labelClass": "svg-axis"
+  },
+  "alignmentNote": {
+    "rect": {
+      "x": 140,
+      "y": 847.589,
+      "width": 1185,
+      "height": 62,
+      "rx": 10,
+      "fill": "var(--surface-2)",
+      "opacity": 0.88,
+      "stroke": "var(--divider)"
+    },
+    "lines": [
+      {
+        "x": 158,
+        "y": 871.589,
+        "text": "Mouse windows are aligned approximately to the human developmental bands.",
+        "class": "svg-axis-faint"
+      },
+      {
+        "x": 158,
+        "y": 893.589,
+        "text": "Source: Based on data from Episodic memory development: Bridging animal and human research. Bevandić et al. 2024 (https://doi.org/10.1016/j.neuron.2024.01.020)",
+        "class": "svg-axis-faint"
+      }
+    ]
+  },
+  "customGroups": [],
+  "layoutMode": "dual"
+};

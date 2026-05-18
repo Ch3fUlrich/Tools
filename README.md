@@ -58,6 +58,16 @@ Analyzes a JSON export from an N26 bank account and produces a spending breakdow
 
 ---
 
+### 🧭 Timeline Builder
+Builds editable visual timelines with stages, arrows, range blocks, legend groups, and export/import support.
+
+**Why this exists:** Timelines are useful for research summaries, project plans, and comparisons across domains, but they often need exact visual tuning after the first draft. This builder keeps the figure editable in the browser and lets you export the result as image, SVG, PDF, or setup JSON.
+
+**Inputs:** direct editor controls or imported setup JSON.
+**Output:** an editable timeline figure with export options.
+
+---
+
 ## Quick Start
 
 ### Option A — Docker (recommended)

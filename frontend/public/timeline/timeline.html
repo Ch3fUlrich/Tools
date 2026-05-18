@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timeline Builder</title>
+  <link rel="stylesheet" href="./style/timeline.css" />
+</head>
+<body>
+  <a class="sr-only" href="#timeline">Skip to timeline</a>
+  <main class="page">
+    <section class="shell" aria-labelledby="page-title">
+      <header class="topbar" data-page-copy-root>
+        <div>
+          <div class="eyebrow" data-page-copy="eyebrow">Timeline builder</div>
+          <h1 id="page-title" data-page-copy="title">Editable visual timeline</h1>
+          <p class="lede" data-page-copy="description">Use this page to build timelines with editable stages, arrows, blocks, labels, colors, and styles. The current figure is an example comparing episodic-like memory development across humans and mice.</p>
+        </div>
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" title="Toggle theme">
+          <span aria-hidden="true">◐</span>
+          <span class="sr-only">Toggle color theme</span>
+        </button>
+      </header>
+
+      <section class="timeline-wrap">
+        <div class="timeline-frame">
+          <div class="timeline-toolbar">
+            <div>Timeline figure</div>
+            <div class="timeline-toolbar-actions">
+              <div class="timeline-add-actions" aria-label="Add timeline elements">
+                <button type="button" class="editor-btn editor-btn-ghost" data-toolbar-add-type="arrow">Add arrow</button>
+                <button type="button" class="editor-btn editor-btn-ghost" data-toolbar-add-type="block">Add block</button>
+                <button type="button" class="editor-btn editor-btn-ghost" data-toolbar-add-type="stage">Add stage</button>
+                <button type="button" class="editor-btn editor-btn-ghost" data-toolbar-group>Group</button>
+                <button type="button" class="editor-btn editor-btn-ghost" data-toolbar-new-figure>New figure</button>
+              </div>
+              <div class="timeline-view-actions" aria-label="Timeline view controls">
+                <button type="button" class="editor-btn editor-btn-ghost" data-timeline-zoom-out aria-label="Zoom out">−</button>
+                <button type="button" class="editor-btn editor-btn-ghost" data-timeline-zoom-reset>100%</button>
+                <button type="button" class="editor-btn editor-btn-ghost" data-timeline-zoom-in aria-label="Zoom in">+</button>
+                <button type="button" class="editor-btn editor-btn-ghost" data-timeline-view-reset>Reset view</button>
+                <button type="button" class="editor-btn editor-btn-ghost" data-history-toggle>History</button>
+              </div>
+              <div class="timeline-export-actions" aria-label="Export and import timeline">
+                <details class="timeline-export-menu" data-export-menu>
+                    <summary class="editor-btn editor-btn-ghost">Export</summary>
+                    <div class="timeline-export-menu-list" role="menu" aria-label="Export timeline">
+                      <button type="button" class="editor-btn editor-btn-ghost" data-timeline-export="pdf" role="menuitem">PDF</button>
+                      <button type="button" class="editor-btn editor-btn-ghost" data-timeline-export="png" role="menuitem">PNG</button>
+                      <button type="button" class="editor-btn editor-btn-ghost" data-timeline-export="jpg" role="menuitem">JPG</button>
+                      <button type="button" class="editor-btn editor-btn-ghost" data-timeline-export="svg" role="menuitem">SVG</button>
+                      <button type="button" class="editor-btn editor-btn-ghost" data-timeline-export="json" role="menuitem">Setup JSON</button>
+                    </div>
+                  </details>
+                <button type="button" class="editor-btn editor-btn-ghost" data-timeline-import-trigger>Import</button>
+                <input class="sr-only" type="file" accept="application/json,.json" data-timeline-import />
+              </div>
+            </div>
+          </div>
+          <details class="timeline-usage" data-timeline-usage>
+            <summary class="timeline-usage-summary">
+              <span>How to use the editor</span>
+              <span class="timeline-usage-summary-meta">Click for shortcuts and controls</span>
+            </summary>
+            <div class="timeline-usage-body">
+              <ul class="timeline-usage-list">
+                <li>
+                  <span class="timeline-usage-key">Click</span>
+                  <span>Select one element.</span>
+                </li>
+                <li>
+                  <span class="timeline-usage-key">Shift + Click</span>
+                  <span>Multi-select blocks and arrows.</span>
+                </li>
+                <li>
+                  <span class="timeline-usage-key">Group</span>
+                  <span>Bundle the current selection so members share a legend chip and can be styled together.</span>
+                </li>
+                <li>
+                  <span class="timeline-usage-key">Drag</span>
+                  <span>Move blocks, arrows, stage borders, the center axis, or top/bottom age brackets.</span>
+                </li>
+                <li>
+                  <span class="timeline-usage-key">Double-click</span>
+                  <span>Edit blocks, arrows, legend chips, stage labels, or page copy.</span>
+                </li>
+                <li>
+                  <span class="timeline-usage-key">Arrow keys</span>
+                  <span>Nudge the active selection.</span>
+                </li>
+                <li>
+                  <span class="timeline-usage-key">Ctrl + Scroll</span>
+                  <span>Zoom the full figure around the pointer.</span>
+                </li>
+                <li>
+                  <span class="timeline-usage-key">Ctrl + Drag</span>
+                  <span>Pan the full figure inside the viewport.</span>
+                </li>
+                <li>
+                  <span class="timeline-usage-key">Ctrl + Z / Ctrl + Y</span>
+                  <span>Undo and redo timeline changes.</span>
+                </li>
+                <li>
+                  <span class="timeline-usage-key">History</span>
+                  <span>Open the change list and restore an earlier figure state.</span>
+                </li>
+                <li>
+                  <span class="timeline-usage-key">Delete</span>
+                  <span>Remove the selected element.</span>
+                </li>
+                <li>
+                  <span class="timeline-usage-key">Esc</span>
+                  <span>Close open menus and editors.</span>
+                </li>
+              </ul>
+            </div>
+          </details>
+          <div class="legend-strip" data-timeline-legend aria-label="Legend"></div>
+          <div id="timeline" class="timeline-scroller" tabindex="0" aria-label="Horizontally scrollable development timeline">
+            <figure style="margin:0;">
+              <!-- SVG is generated dynamically from timeline-default-config.json via timeline-generator.js -->
+              <figcaption class="sr-only">Shared developmental timeline with humans above the central axis and mice below it, with colored bands indicating broad windows from neonatal to later child phases.</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <section class="timeline-inspector panel" data-timeline-inspector aria-label="Timeline settings table">
+          <h2>Timeline settings table</h2>
+          <p class="editor-help">Filter, sort, and expand rows to edit arrows, ranges, and stages. Use Add to open inline editors for new elements.</p>
+
+          <div class="inspector-add-controls">
+            <label class="editor-field">
+              <span>Add element type</span>
+              <select data-inspector-add-type>
+                <option value="arrow">Arrow</option>
+                <option value="block">Range block</option>
+                <option value="stage">Stage</option>
+              </select>
+            </label>
+            <button type="button" class="editor-btn" data-inspector-add-open>Add</button>
+            <div class="editor-status" data-editor-status>Editor ready.</div>
+          </div>
+
+          <div class="inspector-controls">
+            <label class="editor-field">
+              <span>Type filter</span>
+              <select data-inspector-filter-type>
+                <option value="all">All</option>
+                <option value="arrow">Arrows</option>
+                <option value="block">Range blocks</option>
+                <option value="stage">Stages</option>
+              </select>
+            </label>
+            <label class="editor-field inspector-search-field">
+              <span>Search</span>
+              <input type="text" data-inspector-filter-text placeholder="Search label, age, or color" />
+            </label>
+          </div>
+
+          <div class="inspector-table-wrap">
+            <table class="inspector-table">
+              <thead>
+                <tr>
+                  <th><button type="button" class="inspector-sort" data-inspector-sort="kind">Type</button></th>
+                  <th><button type="button" class="inspector-sort" data-inspector-sort="group">Group</button></th>
+                  <th><button type="button" class="inspector-sort" data-inspector-sort="label">Label</button></th>
+                  <th><button type="button" class="inspector-sort" data-inspector-sort="x">Age / Start</button></th>
+                  <th><button type="button" class="inspector-sort" data-inspector-sort="y">Y / End age / Width</button></th>
+                </tr>
+              </thead>
+              <tbody data-inspector-body></tbody>
+            </table>
+          </div>
+
+          <div class="inspector-empty" data-inspector-empty hidden>No rows match the current filter.</div>
+        </section>
+      </section>
+
+    </section>
+  </main>
+
+  <script src="./src/config/timeline-default-config.js"></script>
+  <script src="./src/config/timeline-presets.js"></script>
+  <script src="./src/config/timeline-config.js"></script>
+  <script src="./src/render/timeline-generator.js"></script>
+  <script src="./src/export/timeline-exporter.js"></script>
+  <script src="./src/editor/timeline-editor.js"></script>
+
+  <div class="floating-editor" data-floating-editor hidden>
+    <div class="floating-editor-head">
+      <h3 data-floating-title>Edit</h3>
+      <button type="button" class="floating-editor-close" data-floating-cancel aria-label="Close editor">×</button>
+    </div>
+    <div class="floating-editor-body" data-floating-body></div>
+    <div class="floating-editor-actions">
+      <button type="button" class="editor-btn" data-floating-save>Save</button>
+      <button type="button" class="editor-btn editor-btn-ghost" data-floating-cancel>Cancel</button>
+    </div>
+  </div>
+
+  <aside class="timeline-history-panel" data-history-panel hidden aria-label="Timeline history">
+    <div class="timeline-history-head">
+      <div>
+        <h2>History</h2>
+        <p>Review changes and restore an earlier figure state.</p>
+      </div>
+      <button type="button" class="floating-editor-close" data-history-close aria-label="Close history">×</button>
+    </div>
+    <ol class="timeline-history-list" data-history-list></ol>
+  </aside>
+
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const toggle = document.querySelector('[data-theme-toggle]');
+      const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      let theme = preferDark ? 'dark' : 'light';
+      const update = () => {
+        root.setAttribute('data-theme', theme);
+        toggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      };
+      update();
+      toggle.addEventListener('click', () => {
+        theme = theme === 'dark' ? 'light' : 'dark';
+        update();
+      });
+    })();
+  </script>
+</body>
+</html>

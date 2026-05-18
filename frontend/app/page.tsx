@@ -63,6 +63,15 @@ export default function Home() {
       emoji: '💪',
       animationDelay: '400ms',
     },
+    {
+      title: 'Timeline Builder',
+      href: '/tools/timeline',
+      description: 'Create editable visual timelines with stages, markers, range blocks, presets, and export options.',
+      gradient: 'linear-gradient(135deg, #22d3ee 0%, #14b8a6 100%)',
+      glowColor: 'rgba(34,211,238,0.25)',
+      emoji: '🧭',
+      animationDelay: '500ms',
+    },
   ];
 
   const filtered = tools.filter(t =>
