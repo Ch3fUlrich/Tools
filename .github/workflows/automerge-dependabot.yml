@@ -1,7 +1,7 @@
 name: Automerge Dependabot
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, synchronize]
     branches: [ main ]
 
@@ -10,18 +10,31 @@ permissions:
   pull-requests: write
 
 jobs:
-  enable-automerge:
+  automerge-low-risk-updates:
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
     steps:
-      - name: Auto-approve Dependabot PRs
-        run: gh pr review --approve "$PR_URL" || echo "Approval unavailable for this token; continuing."
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-approve low-risk Dependabot PRs
+        if: contains(fromJSON('["version-update:semver-patch", "version-update:semver-minor"]'), steps.metadata.outputs.update-type)
+        run: gh pr review --approve "$PR_URL" --body "Auto-approved low-risk $UPDATE_TYPE dependency update."
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge for low-risk Dependabot PRs
+        if: contains(fromJSON('["version-update:semver-patch", "version-update:semver-minor"]'), steps.metadata.outputs.update-type)
+        run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Enable auto-merge for Dependabot PRs
-        run: gh pr merge --auto --squash "$PR_URL" || echo "Repository auto-merge is disabled or unavailable; continuing."
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Leave major updates for manual review
+        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        run: echo "Major dependency update detected; skipping auto-approval and auto-merge."

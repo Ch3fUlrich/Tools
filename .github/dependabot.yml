@@ -5,25 +5,17 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
-    # Only open PRs for semantic version updates (major, minor, patch)
-    allow:
-      - dependency-type: "all"
-        update-type: "version-update:semver-patch"
-      - dependency-type: "all"
-        update-type: "version-update:semver-minor"
-      - dependency-type: "all"
-        update-type: "version-update:semver-major"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
 
   - package-ecosystem: "cargo"
     directory: "/backend"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
-    # Only open PRs for semantic version updates (major, minor, patch)
-    allow:
-      - dependency-type: "all"
-        update-type: "version-update:semver-patch"
-      - dependency-type: "all"
-        update-type: "version-update:semver-minor"
-      - dependency-type: "all"
-        update-type: "version-update:semver-major"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
