@@ -2,14 +2,12 @@ name: Frontend CI
 
 on:
   push:
-    branches: [ '**' ]
+    branches-ignore: [ main ]
     paths:
       - 'frontend/**'
-      - '.github/workflows/frontend.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'frontend/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
       - '.github/workflows/frontend.yml'
 
 jobs:
@@ -17,15 +15,13 @@ jobs:
     name: Test & Lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: latest
+      uses: pnpm/action-setup@v6
 
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: '24'
         cache: 'pnpm'
@@ -58,35 +54,12 @@ jobs:
     
     - name: Run ESLint
       run: pnpm --filter frontend run lint
+
+    - name: Run Stylelint
+      run: pnpm --filter frontend run lint:css
     
     - name: Build
       run: pnpm --filter frontend run build
     
     - name: Check for build artifacts
       run: test -d frontend/.next
-
-  build:
-    name: Build Production
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: latest
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '24'
-        cache: 'pnpm'
-        cache-dependency-path: pnpm-lock.yaml
-
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-    
-    - name: Build for production
-      run: pnpm --filter frontend run build
-      env:
-        NODE_ENV: production

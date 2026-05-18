@@ -74,6 +74,7 @@ body {
   color: var(--text);
   background: var(--bg);
 }
+
 img, svg { display: block; max-width: 100%; }
 button { font: inherit; }
 a, button, input, textarea, select { transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease; }
@@ -1254,4 +1255,51 @@ a, button, input, textarea, select { transition: background-color .18s ease, bor
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+html[data-embed-panel],
+html[data-embed-panel] body {
+  min-height: 0;
+  background: transparent;
+}
+
+html[data-embed-panel] .page,
+html[data-embed-panel] .shell {
+  background: transparent;
+  overflow: visible;
+}
+
+html[data-embed-panel] .topbar {
+  display: none;
+}
+
+html[data-embed-panel] .timeline-wrap {
+  padding: 0;
+}
+
+html[data-embed-panel="timeline"] .timeline-frame {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+html[data-embed-panel="settings"] .timeline-frame,
+html[data-embed-panel="timeline"] .timeline-inspector {
+  display: none;
+}
+
+html[data-embed-panel="settings"] .timeline-inspector {
+  margin-top: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+html[data-embed-panel="settings"] .timeline-inspector h2 {
+  display: none;
+}
+
+html[data-embed-panel="settings"] .inspector-table-wrap {
+  max-height: 460px;
 }

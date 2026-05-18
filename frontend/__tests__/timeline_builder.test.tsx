@@ -5,11 +5,18 @@ import TimelineBuilder from '@/components/tools/TimelineBuilder';
 vi.mock('@/lib/api/client', () => ({}));
 
 describe('TimelineBuilder', () => {
-  it('embeds the standalone timeline editor', () => {
+  it('splits the standalone timeline editor into timeline and settings cards', () => {
     render(<TimelineBuilder />);
 
-    const frame = screen.getByTitle('Timeline builder editor');
-    expect(frame).toBeInTheDocument();
-    expect(frame).toHaveAttribute('sandbox', expect.stringContaining('allow-scripts'));
+    expect(screen.getByRole('heading', { name: 'Timeline' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Timeline Settings Table' })).toBeInTheDocument();
+
+    const timelineFrame = screen.getByTitle('Timeline builder preview');
+    const settingsFrame = screen.getByTitle('Timeline builder settings table');
+
+    expect(timelineFrame).toBeInTheDocument();
+    expect(settingsFrame).toBeInTheDocument();
+    expect(timelineFrame).toHaveAttribute('sandbox', expect.stringContaining('allow-scripts'));
+    expect(settingsFrame).toHaveAttribute('sandbox', expect.stringContaining('allow-scripts'));
   });
 });

@@ -4,7 +4,7 @@ use axum::http::{header, HeaderMap, StatusCode};
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine as _;
 use openidconnect::core::{CoreClient, CoreProviderMetadata};
-use openidconnect::reqwest::async_http_client;
+use openidconnect::reqwest::{redirect, Client, ClientBuilder};
 use openidconnect::{
     AuthenticationFlow, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
     RedirectUrl, TokenResponse,
@@ -15,6 +15,13 @@ use sqlx::PgPool;
 use sqlx::Row;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+
+fn build_oidc_http_client() -> Result<Client, openidconnect::reqwest::Error> {
+    ClientBuilder::new()
+        // Following redirects during discovery/token exchange can open SSRF risks.
+        .redirect(redirect::Policy::none())
+        .build()
+}
 
 #[derive(Deserialize)]
 pub struct OidcCallbackQuery {
@@ -69,8 +76,18 @@ pub async fn start(
         }
     };
 
+    let http_client = match build_oidc_http_client() {
+        Ok(client) => client,
+        Err(e) => {
+            return axum::http::Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(format!("OIDC HTTP client failed: {e}"))
+                .unwrap()
+        }
+    };
+
     let provider_metadata =
-        match CoreProviderMetadata::discover_async(issuer_url, async_http_client).await {
+        match CoreProviderMetadata::discover_async(issuer_url, &http_client).await {
             Ok(m) => m,
             Err(e) => {
                 return axum::http::Response::builder()
@@ -183,8 +200,18 @@ pub async fn callback(
         }
     };
 
+    let http_client = match build_oidc_http_client() {
+        Ok(client) => client,
+        Err(e) => {
+            return axum::http::Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(format!("OIDC HTTP client failed: {e}"))
+                .unwrap()
+        }
+    };
+
     let provider_metadata =
-        match CoreProviderMetadata::discover_async(issuer_url, async_http_client).await {
+        match CoreProviderMetadata::discover_async(issuer_url, &http_client).await {
             Ok(m) => m,
             Err(e) => {
                 return axum::http::Response::builder()
@@ -210,11 +237,17 @@ pub async fn callback(
     });
 
     // Exchange code for token
-    let token_response = match client
-        .exchange_code(AuthorizationCode::new(q.code.clone()))
-        .request_async(async_http_client)
-        .await
-    {
+    let token_request = match client.exchange_code(AuthorizationCode::new(q.code.clone())) {
+        Ok(req) => req,
+        Err(e) => {
+            return axum::http::Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(format!("OIDC token request setup failed: {e}"))
+                .unwrap()
+        }
+    };
+
+    let token_response = match token_request.request_async(&http_client).await {
         Ok(t) => t,
         Err(e) => {
             return axum::http::Response::builder()

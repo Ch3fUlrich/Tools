@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Timeline Builder</title>
+  <script>
+    (function () {
+      const panel = new URLSearchParams(window.location.search).get('panel');
+      if (panel === 'timeline' || panel === 'settings') {
+        document.documentElement.dataset.embedPanel = panel;
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="./style/timeline.css" />
 </head>
 <body>
@@ -185,6 +193,7 @@
   <script src="./src/render/timeline-generator.js"></script>
   <script src="./src/export/timeline-exporter.js"></script>
   <script src="./src/editor/timeline-editor.js"></script>
+  <script src="./src/editor/timeline-embed-sync.js"></script>
 
   <div class="floating-editor" data-floating-editor hidden>
     <div class="floating-editor-head">
@@ -213,17 +222,25 @@
     (function () {
       const root = document.documentElement;
       const toggle = document.querySelector('[data-theme-toggle]');
+      const params = new URLSearchParams(window.location.search);
+      const requestedTheme = params.get('theme');
       const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      let theme = preferDark ? 'dark' : 'light';
+      let theme = requestedTheme === 'dark' || requestedTheme === 'light'
+        ? requestedTheme
+        : preferDark ? 'dark' : 'light';
       const update = () => {
         root.setAttribute('data-theme', theme);
-        toggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+        if (toggle) {
+          toggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+        }
       };
       update();
-      toggle.addEventListener('click', () => {
-        theme = theme === 'dark' ? 'light' : 'dark';
-        update();
-      });
+      if (toggle) {
+        toggle.addEventListener('click', () => {
+          theme = theme === 'dark' ? 'light' : 'dark';
+          update();
+        });
+      }
     })();
   </script>
 </body>
