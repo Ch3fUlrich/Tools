@@ -132,6 +132,14 @@ export default function Header() {
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🧪</span>
               <span className="nav-label truncate">Blood Level</span>
             </Link>
+            <Link
+              href="/tools/timeline"
+              className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`}
+              aria-label="Timeline Builder"
+            >
+              <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🧭</span>
+              <span className="nav-label truncate">Timeline</span>
+            </Link>
           </nav>
         </div>
 
@@ -166,6 +174,9 @@ export default function Header() {
                 </Link>
                 <Link href="/tools/bloodlevel" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
                   <span className="mr-3">🧪</span>Blood Level Calculator
+                </Link>
+                <Link href="/tools/timeline" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                  <span className="mr-3">🧭</span>Timeline Builder
                 </Link>
                 <div style={{margin:'0.5rem 0', borderTop:'1px solid var(--card-border)'}}></div>
                 <Link href="/auth" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>

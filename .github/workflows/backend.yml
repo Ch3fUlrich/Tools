@@ -2,12 +2,7 @@ name: Backend CI
 
 on:
   push:
-    branches: [ '**' ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend.yml'
-  pull_request:
-    branches: [ main ]
+    branches-ignore: [ main ]
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
@@ -20,7 +15,7 @@ jobs:
     name: Test & Lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
@@ -57,7 +52,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable

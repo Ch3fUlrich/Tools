@@ -9,6 +9,8 @@ type Props = {
   gradientFrom?: string;
   /** Tailwind gradient end, e.g. "to-cyan-600" */
   gradientTo?: string;
+  /** Optional max-width override for tools that need a wider canvas. */
+  maxWidthClassName?: string;
   children: React.ReactNode;
 };
 
@@ -26,12 +28,13 @@ export default function ToolPage({
   emoji,
   gradientFrom = 'from-purple-500',
   gradientTo = 'to-pink-600',
+  maxWidthClassName = 'max-w-7xl',
   children,
 }: Props) {
   return (
     <div className="min-h-screen" style={{background:'var(--bg)'}}>
-      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-        <div className="rounded-2xl overflow-hidden animate-fade-in-up" style={{background:'var(--card-bg)',border:'1px solid var(--card-border)',boxShadow:'var(--shadow-soft)'}}>
+      <main id="main-content" className={`tool-page-main ${maxWidthClassName} w-fit min-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16`}>
+        <div className="tool-page-frame w-fit min-w-full rounded-2xl overflow-hidden animate-fade-in-up" style={{background:'var(--card-bg)',border:'1px solid var(--card-border)',boxShadow:'var(--shadow-soft)'}}>
           {/* Tool header — the only <h1> on the page */}
           <div className="px-6 lg:px-8 pt-8 pb-6 text-center">
             <div className="flex items-center justify-center gap-4 mb-4">
