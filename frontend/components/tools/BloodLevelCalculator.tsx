@@ -103,13 +103,13 @@ const BloodLevelCalculator: React.FC = () => {
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-8">
+    <div className="bloodlevel-tool p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8">
       {/* Input Panel */}
       <CardSection title="Substance Intake" gradient="from-red-500 to-rose-600" delay="100ms">
 
         <div className="space-y-4">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm rounded-lg min-w-[760px]" style={{ border: '1px solid var(--card-border)' }}>
+          <div className="bloodlevel-intake-table">
+            <table className="w-full text-sm rounded-lg" style={{ border: '1px solid var(--card-border)' }}>
               <thead>
                 <tr style={{ background: 'var(--input-bg)' }}>
                   <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Substance</th>
@@ -123,8 +123,9 @@ const BloodLevelCalculator: React.FC = () => {
               <tbody>
                 {intakes.map((intake, index) => (
                   <tr key={index} style={{ borderTop: '1px solid var(--card-border)' }}>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2" data-label="Substance">
                       <select
+                        aria-label={`Substance for intake ${index + 1}`}
                         value={intake.substance}
                         onChange={(e) => updateIntake(index, { substance: e.target.value })}
                         className="form-input text-sm"
@@ -137,16 +138,18 @@ const BloodLevelCalculator: React.FC = () => {
                         ))}
                       </select>
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2" data-label="Time">
                       <input
+                        aria-label={`Time for intake ${index + 1}`}
                         type="datetime-local"
                         value={intake.time.slice(0, 16)}
                         onChange={(e) => updateIntake(index, { time: new Date(e.target.value).toISOString() })}
                         className="form-input text-sm"
                       />
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2" data-label="Type">
                       <select
+                        aria-label={`Intake type for intake ${index + 1}`}
                         value={intake.intakeType}
                         onChange={(e) => updateIntake(index, { intakeType: e.target.value })}
                         className="form-input text-sm"
@@ -157,8 +160,9 @@ const BloodLevelCalculator: React.FC = () => {
                         <option value="topical">Topical</option>
                       </select>
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2" data-label="After meal">
                       <NumberInput
+                        id={`time-after-meal-${index}`}
                         value={intake.timeAfterMeal ? String(intake.timeAfterMeal) : ''}
                         onChange={(v) => updateIntake(index, { timeAfterMeal: v ? Number(v) : null })}
                         step={1}
@@ -167,8 +171,9 @@ const BloodLevelCalculator: React.FC = () => {
                         className="form-input--compact"
                       />
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2" data-label="Dosage">
                       <NumberInput
+                        id={`dosage-${index}`}
                         value={String(intake.dosageMg)}
                         onChange={(v) => updateIntake(index, { dosageMg: Number(v) })}
                         step={0.1}
@@ -177,7 +182,7 @@ const BloodLevelCalculator: React.FC = () => {
                         className="form-input--compact"
                       />
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2 bloodlevel-actions-cell" data-label="Actions">
                       {intakes.length > 1 && (
                         <button
                           type="button"
@@ -248,7 +253,7 @@ const BloodLevelCalculator: React.FC = () => {
                     width={400}
                     height={200}
                     color="#3b82f6"
-                    className="w-full"
+                    className="bloodlevel-chart"
                   />
                 </div>
               );
@@ -277,7 +282,7 @@ const BloodLevelCalculator: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="rounded-xl p-12 flex items-center justify-center" style={{ background: 'var(--input-bg)' }}>
+          <div className="bloodlevel-empty-state rounded-xl p-12 flex items-center justify-center" style={{ background: 'var(--input-bg)' }}>
             <div className="text-center">
               <span className="text-5xl mb-4 block">📊</span>
               <p className="text-sm" style={{ color: 'var(--muted)' }}>

@@ -1307,3 +1307,100 @@ html[data-embed-panel="settings"] .timeline-inspector h2 {
 html[data-embed-panel="settings"] .inspector-table-wrap {
   max-height: none;
 }
+
+@media (max-width: 640px) {
+  html[data-embed-panel="timeline"] .timeline-usage {
+    display: none;
+  }
+
+  html[data-embed-panel="timeline"] .timeline-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  html[data-embed-panel="timeline"] .timeline-toolbar-actions,
+  html[data-embed-panel="timeline"] .timeline-add-actions,
+  html[data-embed-panel="timeline"] .timeline-view-actions,
+  html[data-embed-panel="timeline"] .timeline-export-actions {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  html[data-embed-panel="timeline"] .timeline-add-actions .editor-btn,
+  html[data-embed-panel="timeline"] .timeline-view-actions .editor-btn,
+  html[data-embed-panel="timeline"] .timeline-export-actions .editor-btn {
+    min-height: 34px;
+    padding: 6px 9px;
+  }
+
+  html[data-embed-panel="timeline"] .timeline-scroller {
+    overflow: visible;
+    padding: 0;
+  }
+
+  html[data-embed-panel="timeline"] .timeline-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  html[data-embed-panel="timeline"] .legend-strip {
+    padding: 8px 0 10px;
+    overflow: visible;
+  }
+
+  html[data-embed-panel="settings"] .inspector-add-controls,
+  html[data-embed-panel="settings"] .inspector-controls {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-embed-panel="settings"] .inspector-table-wrap {
+    overflow: visible;
+  }
+
+  html[data-embed-panel="settings"] .inspector-table,
+  html[data-embed-panel="settings"] .inspector-table tbody,
+  html[data-embed-panel="settings"] .inspector-table tr,
+  html[data-embed-panel="settings"] .inspector-table td {
+    display: block;
+    width: 100%;
+  }
+
+  html[data-embed-panel="settings"] .inspector-table thead {
+    display: none;
+  }
+
+  html[data-embed-panel="settings"] .inspector-table tr {
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--divider);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+  }
+
+  html[data-embed-panel="settings"] .inspector-table td {
+    padding: 6px 0;
+    border-bottom: 0;
+  }
+
+  html[data-embed-panel="settings"] .inspector-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: var(--text-xs);
+    font-weight: 700;
+  }
+
+  html[data-embed-panel="settings"] .inspector-expand {
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  html[data-embed-panel="settings"] .inspector-expand td::before {
+    display: none;
+  }
+}

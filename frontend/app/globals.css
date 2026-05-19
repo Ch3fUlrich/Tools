@@ -185,6 +185,90 @@ html, body, #__next {
   max-width: none;
 }
 
+.resizable-card {
+  max-width: 100%;
+}
+
+.resizable-card[data-has-explicit-size="true"] {
+  width: var(--card-width);
+  max-width: none;
+}
+
+.resizable-card__body[data-has-explicit-height="true"] {
+  height: var(--card-body-height);
+  min-height: var(--card-body-min-height);
+  max-height: var(--card-body-max-height);
+  overflow: auto;
+}
+
+.resizable-card-header {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.resizable-card-title {
+  min-width: 0;
+  margin: 0;
+}
+
+.resizable-card-settings {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.resizable-card-settings__trigger {
+  color: var(--muted);
+  border-color: var(--input-border);
+  background: var(--input-bg);
+  cursor: pointer;
+  list-style: none;
+}
+
+.resizable-card-settings__trigger::-webkit-details-marker {
+  display: none;
+}
+
+.resizable-card-settings__trigger:hover {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+.resizable-card-settings[open] .resizable-card-settings__trigger {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+.resizable-card-settings__panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 30;
+  width: min(16rem, calc(100vw - 3rem));
+  padding: 0.75rem;
+}
+
+.resizable-card-settings__label {
+  margin-bottom: 0.5rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.resizable-card-settings__presets {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.resizable-card-settings__preset {
+  justify-content: flex-start;
+}
+
 .header-container {
   max-width: 72rem;
   margin-left: auto;
@@ -358,6 +442,38 @@ html, body, #__next {
 .resize-handle-sw {
   bottom: -5px;
   left: -5px;
+}
+
+.bloodlevel-intake-table {
+  overflow-x: auto;
+}
+
+.bloodlevel-intake-table table {
+  min-width: 760px;
+}
+
+.bloodlevel-chart {
+  width: 100%;
+  overflow: hidden;
+}
+
+.timeline-builder-shell {
+  width: 100%;
+}
+
+.timeline-embed-frame {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+}
+
+.timeline-figure-card .resizable-card__body[data-has-explicit-height="true"] {
+  overflow: hidden;
+}
+
+.timeline-settings-card .resizable-card__body[data-has-explicit-height="true"] {
+  overflow: hidden;
 }
 
 /* Enhanced Buttons with modern design */
@@ -1230,6 +1346,15 @@ input[type="number"] {
     padding-left: 1rem;
     padding-right: 1rem;
   }
+
+  .tool-page-main,
+  .tool-page-frame,
+  .tool-page-main:has(.resizable-card[data-has-explicit-size="true"]),
+  .tool-page-frame:has(.resizable-card[data-has-explicit-size="true"]) {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
   
   .header-container {
     padding-left: 1rem;
@@ -1244,6 +1369,110 @@ input[type="number"] {
   .card {
     padding: 1.25rem;
     border-radius: 0.75rem;
+  }
+
+  .resizable-card[data-has-explicit-size="true"] {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .resizable-card__body[data-has-explicit-height="true"] {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .resizable-card .resize-handle {
+    display: none;
+  }
+
+  .bloodlevel-tool {
+    padding: 0.75rem;
+  }
+
+  .bloodlevel-intake-table {
+    overflow: visible;
+  }
+
+  .bloodlevel-intake-table table,
+  .bloodlevel-intake-table tbody,
+  .bloodlevel-intake-table tr,
+  .bloodlevel-intake-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .bloodlevel-intake-table table {
+    min-width: 0;
+    border: 0 !important;
+  }
+
+  .bloodlevel-intake-table thead {
+    display: none;
+  }
+
+  .bloodlevel-intake-table tr {
+    margin-bottom: 0.875rem;
+    padding: 0.9rem;
+    border: 1px solid var(--card-border) !important;
+    border-radius: 0.75rem;
+    background: var(--input-bg);
+  }
+
+  .bloodlevel-intake-table td {
+    padding: 0.45rem 0 !important;
+    border: 0;
+  }
+
+  .bloodlevel-intake-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .bloodlevel-actions-cell {
+    padding-top: 0.75rem !important;
+  }
+
+  .bloodlevel-actions-cell::before {
+    display: none !important;
+  }
+
+  .bloodlevel-actions-cell .remove-btn {
+    width: 100%;
+    min-height: 2.5rem;
+  }
+
+  .bloodlevel-empty-state {
+    padding: 2rem 1rem;
+  }
+
+  .timeline-builder-shell {
+    padding: 0.75rem;
+  }
+
+  .timeline-builder-shell .resizable-card h2 {
+    font-size: 1.125rem;
+    line-height: 1.35;
+  }
+
+  .timeline-figure-card .resizable-card__body[data-has-explicit-height="true"],
+  .timeline-settings-card .resizable-card__body[data-has-explicit-height="true"] {
+    overflow: visible;
+  }
+
+  .timeline-embed-frame--figure {
+    height: clamp(680px, 174vw, 860px);
+    min-height: clamp(680px, 174vw, 860px);
+  }
+
+  .timeline-embed-frame--settings {
+    height: clamp(1200px, 240vh, 2000px);
+    min-height: clamp(1200px, 240vh, 2000px);
   }
   
   .tool-card {

@@ -5713,11 +5713,11 @@
       const xLabel = row.xLabel || roundToThree(row.x);
 
       tr.innerHTML = `
-        <td><span class="inspector-kind ${kindClass}">${escapeHtml(row.kind)}</span></td>
-        <td>${escapeHtml(row.group)}</td>
-        <td>${escapeHtml(row.label)}</td>
-        <td>${escapeHtml(xLabel)}</td>
-        <td>${escapeHtml(yLabel)}</td>
+        <td data-label="Type"><span class="inspector-kind ${kindClass}">${escapeHtml(row.kind)}</span></td>
+        <td data-label="Group">${escapeHtml(row.group)}</td>
+        <td data-label="Label">${escapeHtml(row.label)}</td>
+        <td data-label="Age / Start">${escapeHtml(xLabel)}</td>
+        <td data-label="Y / End age / Width">${escapeHtml(yLabel)}</td>
       `;
 
       state.ui.inspectorBody.appendChild(tr);

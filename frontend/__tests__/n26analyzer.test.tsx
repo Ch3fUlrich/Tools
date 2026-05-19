@@ -104,7 +104,7 @@ describe('N26Analyzer', () => {
     expect(screen.getByText('+150.75 €')).toBeInTheDocument();
 
     // Check category totals - look for Food in the category totals section
-    const categoryTotalsSection = screen.getByText('Category Totals').closest('div');
+    const categoryTotalsSection = screen.getByText('Category Totals').closest('.resizable-card');
     expect(categoryTotalsSection).toHaveTextContent('Food');
     expect(categoryTotalsSection).toHaveTextContent('-45.50 €');
     expect(categoryTotalsSection).toHaveTextContent('Transport');
