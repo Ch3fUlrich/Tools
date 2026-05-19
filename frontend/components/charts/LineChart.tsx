@@ -24,7 +24,7 @@ export const LineChart: React.FC<LineChartProps> = ({
 }) => {
   if (!data || data.length === 0) {
     return (
-      <div className={`flex items-center justify-center text-gray-900 dark:text-white ${className}`} style={{ width, height }}>
+      <div className={`flex items-center justify-center text-gray-900 dark:text-white ${className}`} style={{ width: '100%', maxWidth: width, height }}>
         <p className="text-gray-500 dark:text-gray-400">No data to display</p>
       </div>
     );
@@ -41,7 +41,7 @@ export const LineChart: React.FC<LineChartProps> = ({
 
   if (validData.length === 0) {
     return (
-      <div className={`flex items-center justify-center text-gray-900 dark:text-white ${className}`} style={{ width, height }}>
+      <div className={`flex items-center justify-center text-gray-900 dark:text-white ${className}`} style={{ width: '100%', maxWidth: width, height }}>
         <p className="text-gray-500 dark:text-gray-400">No valid data to display</p>
       </div>
     );
@@ -115,7 +115,13 @@ export const LineChart: React.FC<LineChartProps> = ({
           {title}
         </h3>
       )}
-  <svg width={width} height={height} className="border border-gray-200 dark:border-gray-700 rounded text-gray-600 dark:text-gray-400">
+  <svg
+    width={width}
+    height={height}
+    viewBox={`0 0 ${width} ${height}`}
+    className="border border-gray-200 dark:border-gray-700 rounded text-gray-600 dark:text-gray-400"
+    style={{ width: '100%', maxWidth: width, height: 'auto', display: 'block' }}
+  >
         {/* Grid lines */}
         {xTicks.map((tick, i) => (
           <line

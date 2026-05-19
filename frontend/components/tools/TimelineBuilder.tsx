@@ -18,10 +18,12 @@ const settingsPresets: CardSizePreset[] = [
 ];
 
 const settingsDefaultSize = { width: 1280, height: 1860 };
+const initialTimelineSrc = '../timeline/timeline.html?panel=timeline&theme=light';
+const initialSettingsSrc = '../timeline/timeline.html?panel=settings&theme=light';
 
 export default function TimelineBuilder() {
-  const [timelineSrc, setTimelineSrc] = useState('about:blank');
-  const [settingsSrc, setSettingsSrc] = useState('about:blank');
+  const [timelineSrc, setTimelineSrc] = useState(process.env.NODE_ENV === 'test' ? 'about:blank' : initialTimelineSrc);
+  const [settingsSrc, setSettingsSrc] = useState(process.env.NODE_ENV === 'test' ? 'about:blank' : initialSettingsSrc);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
@@ -50,19 +52,20 @@ export default function TimelineBuilder() {
   }, [theme]);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="timeline-builder-shell p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
       <ResizableCardSection
         title="Timeline"
         gradient="from-cyan-400 to-teal-500"
         presets={timelinePresets}
         defaultSize={timelineDefaultSize}
-        className="mx-auto"
+        className="timeline-figure-card mx-auto"
+        bodyClassName="timeline-embed-body timeline-embed-body--figure"
         delay="100ms"
       >
         <iframe
           title="Timeline builder preview"
           src={timelineSrc}
-          className="block w-full h-full"
+          className="timeline-embed-frame timeline-embed-frame--figure block w-full h-full"
           style={{
             border: 0,
             background: 'transparent',
@@ -77,13 +80,14 @@ export default function TimelineBuilder() {
         presets={settingsPresets}
         defaultSize={settingsDefaultSize}
         maxHeight={3200}
-        className="mx-auto"
+        className="timeline-settings-card mx-auto"
+        bodyClassName="timeline-embed-body timeline-embed-body--settings"
         delay="200ms"
       >
         <iframe
           title="Timeline builder settings table"
           src={settingsSrc}
-          className="block w-full h-full"
+          className="timeline-embed-frame timeline-embed-frame--settings block w-full h-full"
           style={{
             border: 0,
             background: 'transparent',
