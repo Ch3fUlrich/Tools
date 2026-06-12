@@ -42,11 +42,9 @@ describe('ToleranceCalculator', () => {
     expect(selects.length).toBeGreaterThan(0);
     fireEvent.change(selects[0], { target: { value: 'TestSub' } });
 
-    // set dosage input (number inputs are role spinbutton)
-    const inputs = screen.getAllByRole('spinbutton');
-    if (inputs.length > 0) {
-      fireEvent.change(inputs[0], { target: { value: '10' } });
-    }
+    // set the dosage input (targeted via its placeholder)
+    const dosageInputs = screen.getAllByPlaceholderText('mg');
+    fireEvent.change(dosageInputs[0], { target: { value: '10' } });
 
     // Run calculation
     const calcBtn = screen.getByRole('button', { name: /Calculate Blood Levels/i });

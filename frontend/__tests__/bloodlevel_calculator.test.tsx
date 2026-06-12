@@ -42,8 +42,8 @@ describe('BloodLevelCalculator (consolidated)', () => {
   expect(selects.length).toBeGreaterThan(0);
   fireEvent.change(selects[0], { target: { value: 'TestSub' } });
 
-  const inputs = within(container).getAllByRole('spinbutton');
-  if (inputs.length > 0) fireEvent.change(inputs[0], { target: { value: '10' } });
+  const dosageInputs = within(container).getAllByPlaceholderText('mg');
+  fireEvent.change(dosageInputs[0], { target: { value: '10' } });
 
   const calcBtn = within(container).getByRole('button', { name: /Calculate Blood Levels|calculate blood levels/i });
   fireEvent.click(calcBtn);
