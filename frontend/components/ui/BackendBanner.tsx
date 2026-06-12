@@ -1,24 +1,32 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useBackendStatus, checkBackend } from '@/lib/api/backendStatus';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function BackendBanner() {
-  const [offline, setOffline] = useState(false);
+  const status = useBackendStatus();
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // Skip check if no API URL is configured (e.g. GitHub Pages demo)
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3000);
-    fetch(`${API_BASE_URL}/api/health`, { signal: controller.signal })
-      .then((r) => { clearTimeout(timer); if (!r.ok) setOffline(true); })
-      .catch(() => setOffline(true));
-    return () => { controller.abort(); clearTimeout(timer); };
+    void checkBackend();
+
+    // Re-probe when the tab regains focus or the network comes back, so the
+    // banner clears (and tools switch back to the backend) without a reload.
+    const recheck = () => void checkBackend(true);
+    window.addEventListener('online', recheck);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void checkBackend();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('online', recheck);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
-  if (!offline || dismissed) return null;
+  if (status !== 'offline' || dismissed) return null;
 
   return (
     <div style={{background:'rgba(251,191,36,0.08)', borderBottom:'1px solid rgba(245,158,11,0.3)', padding:'0.375rem 1rem'}}>
@@ -29,10 +37,12 @@ export default function BackendBanner() {
               d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
           </svg>
           <span style={{overflow:'hidden'}}>
-            <strong>Backend unavailable.</strong>
+            <strong>No backend connected.</strong>
             {' '}
             <span style={{opacity:0.85}}>
-              {API_BASE_URL === '' ? 'Static demo — no backend connected.' : 'Calculations require a running backend.'}
+              {API_BASE_URL === ''
+                ? 'Calculations run locally in your browser; accounts and history are unavailable.'
+                : 'Calculations run locally in your browser until the backend is reachable again.'}
             </span>
           </span>
         </div>

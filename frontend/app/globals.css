@@ -461,19 +461,21 @@ html, body, #__next {
   width: 100%;
 }
 
+/* Single full-editor embed: fills the viewport height and can be resized
+   vertically by dragging its lower edge (native CSS resize handle). */
+.timeline-embed-card {
+  height: clamp(560px, 78vh, 1400px);
+  min-height: 420px;
+  resize: vertical;
+  overflow: hidden;
+}
+
 .timeline-embed-frame {
   display: block;
   width: 100%;
+  height: 100%;
   border: 0;
   background: transparent;
-}
-
-.timeline-figure-card .resizable-card__body[data-has-explicit-height="true"] {
-  overflow: hidden;
-}
-
-.timeline-settings-card .resizable-card__body[data-has-explicit-height="true"] {
-  overflow: hidden;
 }
 
 /* Enhanced Buttons with modern design */
@@ -831,6 +833,12 @@ input::placeholder,
 textarea::placeholder {
   color: var(--muted);
   opacity: 0.8;
+}
+
+/* Hide the native clear (✕) on search inputs — the app renders its own */
+.form-input[type='search']::-webkit-search-cancel-button,
+.form-input[type='search']::-webkit-search-decoration {
+  appearance: none;
 }
 
 /* Modern checkbox styles */
@@ -1455,26 +1463,10 @@ input[type="number"] {
     padding: 0.75rem;
   }
 
-  .timeline-builder-shell .resizable-card h2 {
-    font-size: 1.125rem;
-    line-height: 1.35;
+  .timeline-embed-card {
+    height: clamp(560px, 82vh, 1100px);
   }
 
-  .timeline-figure-card .resizable-card__body[data-has-explicit-height="true"],
-  .timeline-settings-card .resizable-card__body[data-has-explicit-height="true"] {
-    overflow: visible;
-  }
-
-  .timeline-embed-frame--figure {
-    height: clamp(680px, 174vw, 860px);
-    min-height: clamp(680px, 174vw, 860px);
-  }
-
-  .timeline-embed-frame--settings {
-    height: clamp(1200px, 240vh, 2000px);
-    min-height: clamp(1200px, 240vh, 2000px);
-  }
-  
   .tool-card {
     padding: 1.25rem;
     border-radius: 0.75rem;

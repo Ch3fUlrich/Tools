@@ -1,9 +1,10 @@
 "use client";
 
-/* global HTMLDivElement, getComputedStyle, Element, ResizeObserver */
+/* global HTMLDivElement, HTMLDetailsElement, getComputedStyle, Element, ResizeObserver, KeyboardEvent, MouseEvent, Node */
 import Link from 'next/link';
 import React, { useEffect, useRef } from 'react';
 import UserControls from '@/components/layout/UserControls';
+import { useAuth } from '@/components/auth/AuthContext';
 
 export default function Header() {
   const siteRef = useRef<HTMLDivElement | null>(null);
@@ -11,6 +12,29 @@ export default function Header() {
   const brandRef = useRef<HTMLDivElement | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
   const rightRef = useRef<HTMLDivElement | null>(null);
+  const dropdownRef = useRef<HTMLDetailsElement | null>(null);
+  const { isAuthenticated } = useAuth();
+
+  const closeDropdown = () => dropdownRef.current?.removeAttribute('open');
+
+  // Close the mobile dropdown on outside click or Escape — <details> keeps
+  // itself open otherwise, even after navigating.
+  useEffect(() => {
+    const onPointerDown = (e: MouseEvent) => {
+      if (dropdownRef.current?.open && !dropdownRef.current.contains(e.target as Node)) {
+        closeDropdown();
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeDropdown();
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     function compute() {
@@ -140,6 +164,14 @@ export default function Header() {
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🧭</span>
               <span className="nav-label truncate">Timeline</span>
             </Link>
+            <Link
+              href="/tools/training"
+              className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`}
+              aria-label="Training Tracker"
+            >
+              <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">💪</span>
+              <span className="nav-label truncate">Training</span>
+            </Link>
           </nav>
         </div>
 
@@ -149,11 +181,12 @@ export default function Header() {
 
           {/* Enhanced mobile overflow: dropdown */}
           <div className="mobile-dropdown mobile-only" style={{position:'relative'}}>
-            <details open={false}>
+            <details ref={dropdownRef}>
               <summary
                 className="list-none rounded-lg transition-colors duration-200 cursor-pointer"
                 style={{padding:'0.5rem 0.75rem', display:'block'}}
                 aria-haspopup="true"
+                aria-label="Open tools menu"
               >
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:20,height:20,color:'var(--fg)'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -163,25 +196,28 @@ export default function Header() {
                 <div className="uppercase tracking-wider" style={{padding:'0.5rem 0.75rem', fontSize:'0.75rem', fontWeight:700, color:'var(--muted)'}}>
                   Tools
                 </div>
-                <Link href="/tools/dice" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                <Link href="/tools/dice" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
                   <span className="mr-3">🎲</span>Dice Roller
                 </Link>
-                <Link href="/tools/fat-loss" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                <Link href="/tools/fat-loss" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
                   <span className="mr-3">🏋️</span>Fat Loss Calculator
                 </Link>
-                <Link href="/tools/n26" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                <Link href="/tools/n26" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
                   <span className="mr-3">🏦</span>N26 Transaction Analyzer
                 </Link>
-                <Link href="/tools/bloodlevel" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                <Link href="/tools/bloodlevel" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
                   <span className="mr-3">🧪</span>Blood Level Calculator
                 </Link>
-                <Link href="/tools/timeline" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                <Link href="/tools/timeline" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
                   <span className="mr-3">🧭</span>Timeline Builder
                 </Link>
+                <Link href="/tools/training" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                  <span className="mr-3">💪</span>Training Tracker
+                </Link>
                 <div style={{margin:'0.5rem 0', borderTop:'1px solid var(--card-border)'}}></div>
-                <Link href="/auth" className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
-                  <span className="mr-3">🔐</span>
-                  Sign In
+                <Link href="/auth" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                  <span className="mr-3">{isAuthenticated ? '👤' : '🔐'}</span>
+                  {isAuthenticated ? 'Profile' : 'Sign In'}
                 </Link>
               </div>
             </details>

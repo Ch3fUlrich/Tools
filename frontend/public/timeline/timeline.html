@@ -7,7 +7,7 @@
   <script>
     (function () {
       const panel = new URLSearchParams(window.location.search).get('panel');
-      if (panel === 'timeline' || panel === 'settings') {
+      if (panel === 'timeline' || panel === 'settings' || panel === 'full') {
         document.documentElement.dataset.embedPanel = panel;
       }
     })();
@@ -190,6 +190,7 @@
   <script src="./src/config/timeline-default-config.js"></script>
   <script src="./src/config/timeline-presets.js"></script>
   <script src="./src/config/timeline-config.js"></script>
+  <script src="./src/editor/timeline-persistence.js"></script>
   <script src="./src/render/timeline-generator.js"></script>
   <script src="./src/export/timeline-exporter.js"></script>
   <script src="./src/editor/timeline-editor.js"></script>
@@ -241,6 +242,15 @@
           update();
         });
       }
+      // Embedding pages switch the theme via postMessage so the editor does
+      // not have to reload (a reload would discard unsaved edits).
+      window.addEventListener('message', (event) => {
+        const data = event.data;
+        if (!data || data.type !== 'timeline-theme') return;
+        if (data.theme !== 'dark' && data.theme !== 'light') return;
+        theme = data.theme;
+        update();
+      });
     })();
   </script>
 </body>

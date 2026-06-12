@@ -44,6 +44,10 @@ const BloodLevelCalculator: React.FC = () => {
     loadSubstances();
   }, []);
 
+  // Blood level points carry the substance id; show the display name when known.
+  const substanceDisplayName = (idOrName: string) =>
+    substances.find((s) => s.id === idOrName)?.name ?? idOrName;
+
   const addIntake = () => {
     setIntakes([...intakes, {
       substance: '',
@@ -70,6 +74,18 @@ const BloodLevelCalculator: React.FC = () => {
     setLoading(true);
     setError(null);
 
+    const validIntakes = intakes.filter(
+      (intake) => intake.substance && intake.substance.trim() !== '' && intake.dosageMg > 0,
+    );
+    // Guard against a silent empty result when nothing is filled in yet —
+    // only when substances are loaded, so a failed substance fetch still
+    // lets the request through (and surfaces its own error).
+    if (validIntakes.length === 0 && substances.length > 0) {
+      setError('Calculation failed — select a substance and enter a dosage greater than 0 for at least one intake.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const now = new Date();
       const timePoints = [];
@@ -79,8 +95,7 @@ const BloodLevelCalculator: React.FC = () => {
       }
 
       const request = {
-        intakes: intakes
-          .filter(intake => intake.substance && intake.substance.trim() !== '' && intake.dosageMg > 0)
+        intakes: validIntakes
           .map(intake => ({
             substance: intake.substance,
             time: intake.time,
@@ -132,7 +147,9 @@ const BloodLevelCalculator: React.FC = () => {
                       >
                         <option value="">Select substance...</option>
                         {substances.map((sub) => (
-                          <option key={sub.id} value={sub.id}>
+                          // The backend matches intakes by substance name, so the
+                          // name (not the id) is the wire value.
+                          <option key={sub.id} value={sub.name}>
                             {sub.name}
                           </option>
                         ))}
@@ -246,7 +263,7 @@ const BloodLevelCalculator: React.FC = () => {
               return (
                 <div key={substance} className="space-y-3">
                   <h3 className="text-lg font-medium" style={{ color: 'var(--fg)' }}>
-                    {substance} Blood Levels
+                    {substanceDisplayName(substance)} Blood Levels
                   </h3>
                   <LineChart
                     data={substanceData}
@@ -268,7 +285,7 @@ const BloodLevelCalculator: React.FC = () => {
                 return (
                   <div key={substance} className="rounded-xl p-4" style={{ background: 'rgba(59,130,246,0.10)', border: '1px solid rgba(59,130,246,0.3)' }}>
                     <div className="flex justify-between items-center">
-                      <span className="font-medium" style={{ color: 'var(--fg)' }}>{substance}</span>
+                      <span className="font-medium" style={{ color: 'var(--fg)' }}>{substanceDisplayName(substance)}</span>
                       <span className="text-sm font-semibold" style={{ color: '#3b82f6' }}>
                         Now: {currentLevel.toFixed(2)} mg
                       </span>

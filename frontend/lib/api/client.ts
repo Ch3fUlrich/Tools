@@ -1,6 +1,18 @@
 // Use named exports for all API functions to keep imports consistent across the codebase.
 // Use a relative default so tests and client-side code that expect
 // relative API paths don't attempt to call an absolute localhost URL.
+import {
+  isBackendOffline,
+  markBackendOffline,
+  markBackendOnline,
+  checkBackend,
+} from '@/lib/api/backendStatus';
+import { rollDiceLocal } from '@/lib/local/dice';
+import { calculateFatLossLocal } from '@/lib/local/fatLoss';
+import { analyzeN26DataLocal } from '@/lib/local/n26';
+import { getSubstancesLocal, calculateToleranceLocal } from '@/lib/local/bloodLevel';
+import type { DiceRequest as DiceRequestFull } from '@/lib/types/dice';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 /** Default request timeout in milliseconds (15 seconds). */
@@ -83,6 +95,42 @@ async function apiRequest<T>(
   }
 }
 
+/**
+ * True for failures that mean "backend unreachable" (DNS/connection refused/
+ * timeout), as opposed to HTTP errors the backend itself produced.
+ */
+function isNetworkError(err: unknown): boolean {
+  if (err instanceof TypeError) return true; // fetch network failure
+  return err instanceof Error && err.name === 'AbortError'; // request timeout
+}
+
+/**
+ * Run a backend call with a client-side fallback.
+ *
+ * The remote call is attempted first (zero added latency while online). Only a
+ * network-level failure switches to the local implementation — HTTP errors
+ * (validation, 4xx/5xx) are still surfaced to the caller. Once the backend is
+ * known to be offline, the network is skipped entirely for instant local
+ * results, while a shared probe periodically checks for recovery.
+ */
+async function withLocalFallback<T>(remote: () => Promise<T>, local: () => T): Promise<T> {
+  if (isBackendOffline()) {
+    void checkBackend(); // cheap: cached + deduplicated, detects recovery
+    return local();
+  }
+  try {
+    const result = await remote();
+    markBackendOnline();
+    return result;
+  } catch (err) {
+    if (isNetworkError(err)) {
+      markBackendOffline();
+      return local();
+    }
+    throw err;
+  }
+}
+
 /** Shorthand for JSON POST requests with credentials. */
 function jsonPost<T>(path: string, body: unknown, errorPrefix: string): Promise<T> {
   return apiRequest<T>(
@@ -138,14 +186,18 @@ export interface RollDicePayload {
 }
 
 export async function rollDice(payload: RollDicePayload) {
-  return apiRequest(
-    `${API_BASE_URL}/api/tools/dice/roll`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    },
-    'Roll API error',
+  return withLocalFallback(
+    () =>
+      apiRequest(
+        `${API_BASE_URL}/api/tools/dice/roll`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        },
+        'Roll API error',
+      ),
+    () => rollDiceLocal(payload as DiceRequestFull),
   );
 }
 
@@ -165,14 +217,18 @@ export interface FatLossResponse {
 export async function calculateFatLoss(
   request: FatLossRequest,
 ): Promise<FatLossResponse> {
-  return apiRequest<FatLossResponse>(
-    `${API_BASE_URL}/api/tools/fat-loss`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-    },
-    'Failed to calculate fat loss',
+  return withLocalFallback(
+    () =>
+      apiRequest<FatLossResponse>(
+        `${API_BASE_URL}/api/tools/fat-loss`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(request),
+        },
+        'Failed to calculate fat loss',
+      ),
+    () => calculateFatLossLocal(request),
   );
 }
 
@@ -192,14 +248,18 @@ export interface AnalysisResult {
 }
 
 export async function analyzeN26Data(data: Record<string, unknown>): Promise<AnalysisResult> {
-  return apiRequest<AnalysisResult>(
-    `${API_BASE_URL}/api/tools/n26-analyzer`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    },
-    'Failed to analyze N26 data',
+  return withLocalFallback(
+    () =>
+      apiRequest<AnalysisResult>(
+        `${API_BASE_URL}/api/tools/n26-analyzer`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        },
+        'Failed to analyze N26 data',
+      ),
+    () => analyzeN26DataLocal(data),
   );
 }
 
@@ -324,24 +384,32 @@ export interface ToleranceCalculationResponse {
 }
 
 export async function getToleranceSubstances(): Promise<Substance[]> {
-  return apiRequest<Substance[]>(
-    `${API_BASE_URL}/api/tools/bloodlevel/substances`,
-    { method: 'GET', headers: { 'Content-Type': 'application/json' } },
-    'Failed to get substances',
+  return withLocalFallback(
+    () =>
+      apiRequest<Substance[]>(
+        `${API_BASE_URL}/api/tools/bloodlevel/substances`,
+        { method: 'GET', headers: { 'Content-Type': 'application/json' } },
+        'Failed to get substances',
+      ),
+    () => getSubstancesLocal(),
   );
 }
 
 export async function calculateTolerance(
   request: ToleranceCalculationRequest,
 ): Promise<ToleranceCalculationResponse> {
-  return apiRequest<ToleranceCalculationResponse>(
-    `${API_BASE_URL}/api/tools/bloodlevel/calculate`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-    },
-    'Failed to calculate tolerance',
+  return withLocalFallback(
+    () =>
+      apiRequest<ToleranceCalculationResponse>(
+        `${API_BASE_URL}/api/tools/bloodlevel/calculate`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(request),
+        },
+        'Failed to calculate tolerance',
+      ),
+    () => calculateToleranceLocal(request),
   );
 }
 

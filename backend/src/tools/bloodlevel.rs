@@ -118,7 +118,9 @@ pub fn find_substance_by_name<'a>(
     name: &str,
     substances: &'a [Substance],
 ) -> Option<&'a Substance> {
-    substances.iter().find(|s| s.name.to_lowercase() == name.to_lowercase())
+    // The frontend sends substance ids (e.g. "alcohol"); accept display names
+    // too so older clients keep working.
+    substances.iter().find(|s| s.id.eq_ignore_ascii_case(name) || s.name.eq_ignore_ascii_case(name))
 }
 
 pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResponse, String> {
