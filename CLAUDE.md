@@ -681,7 +681,12 @@ it('submits and shows result', async () => {
 
 ---
 
-## PR / Merge Workflow (main is protected)
+## PR / Merge Workflow (main is CI-gated)
+
+Ruleset 8981958 on `main` requires passing `Backend tests (Postgres + Redis)`
+and `Frontend tests` checks (both from `ci.yml`, run on every PR) and forbids
+deletion/force-push. There is **no required-approval step** — never disable
+the ruleset to merge.
 
 ```bash
 # 1. Create branch and commit
@@ -690,19 +695,16 @@ git add frontend/...
 git commit -m "feat(my-tool): add new calculator"  # must be Conventional Commits format
 git push -u origin feat/my-feature
 
-# 2. Create PR
+# 2. Create PR and wait for CI
 gh pr create --title "…" --body "…"
+gh pr checks --watch
 
-# 3. Temporarily disable branch protection ruleset (ID 8981958)
-gh api repos/Ch3fUlrich/Tools/rulesets/8981958 > /tmp/ruleset_backup.json
-gh api --method PUT repos/Ch3fUlrich/Tools/rulesets/8981958 --input - <<'EOF'
-{"enforcement":"disabled"}
-EOF
-
-# 4. Merge and restore protection
+# 3. Merge once checks are green (or use --auto to merge when they finish)
 gh pr merge <number> --merge --delete-branch
-cat /tmp/ruleset_backup.json | gh api --method PUT repos/Ch3fUlrich/Tools/rulesets/8981958 --input -
 ```
+
+Dependabot patch/minor PRs are auto-approved and auto-merged by
+`automerge-dependabot.yml`; major updates wait for manual review.
 
 ---
 
