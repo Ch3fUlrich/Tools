@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 import AuthProviderClient from "@/components/auth/AuthProviderClient";
 import Header from "@/components/layout/Header";
@@ -8,12 +9,48 @@ import BackendBanner from "@/components/ui/BackendBanner";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 
 export const metadata: Metadata = {
-  title: "Tools Collection",
-  description: "A collection of useful tools for everyday tasks",
+  // Base for resolving all relative metadata URLs (canonical, og:url, …).
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_NAME,
+    template: `%s — ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: './',
+  },
+  openGraph: {
+    type: 'website',
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    url: './',
+    locale: 'en',
+  },
+  twitter: {
+    card: 'summary',
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  // Site supports both schemes via CSS variables (see globals.css).
+  colorScheme: 'light dark',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f8f7ff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0d0b1a' },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,0 +1,4 @@
+Contact: mailto:maulser@googlemail.com
+Expires: 2027-06-01T00:00:00.000Z
+Preferred-Languages: en, de
+Canonical: https://ch3fulrich.github.io/Tools/.well-known/security.txt

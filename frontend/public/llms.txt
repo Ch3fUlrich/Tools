@@ -1,0 +1,20 @@
+# Tools Collection
+
+> A collection of free browser-based utility tools: fat loss calculator, dice
+> roller with statistics, blood alcohol/medication level calculator, N26 bank
+> transaction analyzer and a training planner. Frontend is a static Next.js
+> export; calculations run against an optional Rust/Axum REST backend.
+
+## Tools
+
+- [Home — tool overview](https://ch3fulrich.github.io/Tools/): Grid of all available tools
+- [Dice Roller](https://ch3fulrich.github.io/Tools/tools/dice): Roll arbitrary dice expressions with advantage/disadvantage, rerolls and full probability statistics (histogram, boxplot)
+- [Fat Loss Calculator](https://ch3fulrich.github.io/Tools/tools/fat-loss): Estimate fat loss over time from caloric deficit and personal parameters
+- [Blood Level Calculator](https://ch3fulrich.github.io/Tools/tools/bloodlevel): Estimate substance blood levels over time
+- [N26 Transaction Analyzer](https://ch3fulrich.github.io/Tools/tools/n26): Analyze exported N26 bank CSV transactions locally
+- [Timeline Editor](https://ch3fulrich.github.io/Tools/tools/timeline): Build and export interactive timelines
+- [Training Planner](https://ch3fulrich.github.io/Tools/tools/training): Plan workouts and training schedules
+
+## Source
+
+- [GitHub repository](https://github.com/Ch3fUlrich/Tools): MIT-style monorepo with the Next.js frontend and Rust backend
