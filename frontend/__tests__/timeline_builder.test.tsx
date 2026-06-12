@@ -1,29 +1,23 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import TimelineBuilder from '@/components/tools/TimelineBuilder';
 
 vi.mock('@/lib/api/client', () => ({}));
 
 describe('TimelineBuilder', () => {
-  it('splits the standalone timeline editor into timeline and settings cards', () => {
+  it('embeds the standalone editor once with figure and settings combined', () => {
     const { container } = render(<TimelineBuilder />);
 
-    expect(screen.getByRole('heading', { name: 'Timeline' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Timeline Settings Table' })).toBeInTheDocument();
+    const frame = screen.getByTitle('Timeline editor');
+    expect(frame).toBeInTheDocument();
+    expect(frame).toHaveAttribute('sandbox', expect.stringContaining('allow-scripts'));
+    expect(frame).toHaveAttribute('sandbox', expect.stringContaining('allow-same-origin'));
 
-    const timelineFrame = screen.getByTitle('Timeline builder preview');
-    const settingsFrame = screen.getByTitle('Timeline builder settings table');
+    // Single embed — the old dual-iframe layout is gone.
+    expect(container.querySelectorAll('iframe')).toHaveLength(1);
 
-    expect(timelineFrame).toBeInTheDocument();
-    expect(settingsFrame).toBeInTheDocument();
-    expect(timelineFrame).toHaveAttribute('sandbox', expect.stringContaining('allow-scripts'));
-    expect(settingsFrame).toHaveAttribute('sandbox', expect.stringContaining('allow-scripts'));
-    expect(container.querySelector('.timeline-figure-card > div[aria-label="Timeline size presets"]')).not.toBeInTheDocument();
-    const timelineSettings = screen.getByLabelText('Timeline settings');
-    fireEvent.click(timelineSettings);
-    expect(timelineSettings.parentElement).toHaveAttribute('open');
-    expect(screen.getAllByRole('button', { name: 'Default' })).toHaveLength(1);
-    expect(screen.getByRole('button', { name: 'Resize Timeline right edge' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Resize Timeline Settings Table bottom edge' })).toBeInTheDocument();
+    // The resizable host card and the autosave hint are present.
+    expect(container.querySelector('.timeline-embed-card')).toBeInTheDocument();
+    expect(screen.getByText(/saved in this browser automatically/i)).toBeInTheDocument();
   });
 });

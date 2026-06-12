@@ -1,100 +1,71 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import ResizableCardSection, { type CardSizePreset } from '@/components/ui/ResizableCardSection';
+/* global HTMLIFrameElement */
+import React, { useEffect, useRef, useState } from 'react';
 
-const timelinePresets: CardSizePreset[] = [
-  { label: 'Compact', width: 960, height: 620 },
-  { label: 'Default', width: 1280, height: 760 },
-  { label: 'Expanded', width: 1600, height: 1000 },
-];
-
-const timelineDefaultSize = { width: 1280, height: 760 };
-
-const settingsPresets: CardSizePreset[] = [
-  { label: 'Compact', width: 960, height: 900 },
-  { label: 'Default', width: 1280, height: 1860 },
-  { label: 'Expanded', width: 1600, height: 2400 },
-];
-
-const settingsDefaultSize = { width: 1280, height: 1860 };
-const initialTimelineSrc = '../timeline/timeline.html?panel=timeline&theme=light';
-const initialSettingsSrc = '../timeline/timeline.html?panel=settings&theme=light';
-
+/**
+ * Embeds the standalone timeline editor (frontend/public/timeline) once, in
+ * its full layout (figure + settings table). Theme changes are forwarded via
+ * postMessage so the iframe never reloads — a reload would discard edits not
+ * yet exported (the editor additionally persists to localStorage).
+ */
 export default function TimelineBuilder() {
-  const [timelineSrc, setTimelineSrc] = useState(process.env.NODE_ENV === 'test' ? 'about:blank' : initialTimelineSrc);
-  const [settingsSrc, setSettingsSrc] = useState(process.env.NODE_ENV === 'test' ? 'about:blank' : initialSettingsSrc);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const [src, setSrc] = useState('about:blank');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
+  // Track the app theme (the editor lives in an iframe and cannot see it).
   useEffect(() => {
     const syncTheme = () => {
       setTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     };
-
     syncTheme();
     const observer = new window.MutationObserver(syncTheme);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
   }, []);
 
+  // Compute the iframe URL once — the theme is only baked in for the initial
+  // load; later changes go through postMessage (no reload).
   useEffect(() => {
-    if (process.env.NODE_ENV === 'test') {
-      return;
-    }
-
+    if (process.env.NODE_ENV === 'test') return;
     const marker = '/tools/timeline';
     const { pathname } = window.location;
     const markerIndex = pathname.indexOf(marker);
     const basePath = markerIndex >= 0 ? pathname.slice(0, markerIndex) : '';
-    const timelinePath = `${basePath}/timeline/timeline.html`;
-    setTimelineSrc(`${timelinePath}?panel=timeline&theme=${theme}`);
-    setSettingsSrc(`${timelinePath}?panel=settings&theme=${theme}`);
+    const initialTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    setSrc(`${basePath}/timeline/timeline.html?panel=full&theme=${initialTheme}`);
+  }, []);
+
+  // Forward theme changes into the running editor.
+  useEffect(() => {
+    try {
+      iframeRef.current?.contentWindow?.postMessage(
+        { type: 'timeline-theme', theme },
+        window.location.origin,
+      );
+    } catch {
+      // Iframe not ready or cross-origin sandbox (tests) — initial URL theme applies.
+    }
   }, [theme]);
 
   return (
-    <div className="timeline-builder-shell p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
-      <ResizableCardSection
-        title="Timeline"
-        gradient="from-cyan-400 to-teal-500"
-        presets={timelinePresets}
-        defaultSize={timelineDefaultSize}
-        className="timeline-figure-card mx-auto"
-        bodyClassName="timeline-embed-body timeline-embed-body--figure"
-        delay="100ms"
-      >
+    <div className="timeline-builder-shell p-3 sm:p-6 lg:p-8">
+      <div className="timeline-embed-card card animate-fade-in-up" style={{ padding: '0.75rem' }}>
         <iframe
-          title="Timeline builder preview"
-          src={timelineSrc}
-          className="timeline-embed-frame timeline-embed-frame--figure block w-full h-full"
-          style={{
-            border: 0,
-            background: 'transparent',
-          }}
+          ref={iframeRef}
+          title="Timeline editor"
+          src={src}
+          className="timeline-embed-frame block w-full"
+          style={{ border: 0, background: 'transparent' }}
           sandbox="allow-downloads allow-forms allow-same-origin allow-scripts"
         />
-      </ResizableCardSection>
-
-      <ResizableCardSection
-        title="Timeline Settings Table"
-        gradient="from-cyan-400 to-teal-500"
-        presets={settingsPresets}
-        defaultSize={settingsDefaultSize}
-        maxHeight={3200}
-        className="timeline-settings-card mx-auto"
-        bodyClassName="timeline-embed-body timeline-embed-body--settings"
-        delay="200ms"
-      >
-        <iframe
-          title="Timeline builder settings table"
-          src={settingsSrc}
-          className="timeline-embed-frame timeline-embed-frame--settings block w-full h-full"
-          style={{
-            border: 0,
-            background: 'transparent',
-          }}
-          sandbox="allow-downloads allow-forms allow-same-origin allow-scripts"
-        />
-      </ResizableCardSection>
+      </div>
+      <p className="text-xs mt-3" style={{ color: 'var(--muted)' }}>
+        Your figure is saved in this browser automatically. Use Export for a portable copy
+        (PNG, SVG, PDF, or setup JSON) and Import to load one. Drag the lower edge of the
+        editor to give it more room.
+      </p>
     </div>
   );
 }
