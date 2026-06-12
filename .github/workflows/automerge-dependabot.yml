@@ -21,9 +21,14 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Mark low-risk Dependabot PRs for automerge
+      # Patch and minor updates are treated as non-destructive: they are
+      # auto-approved and auto-merged once all required checks pass.
+      # Requires two repo settings (both enabled):
+      #   - "Allow auto-merge"
+      #   - "Allow GitHub Actions to create and approve pull requests"
+      - name: Auto-approve low-risk Dependabot PRs
         if: contains(fromJSON('["version-update:semver-patch", "version-update:semver-minor"]'), steps.metadata.outputs.update-type)
-        run: gh pr comment "$PR_URL" --body "Low-risk $UPDATE_TYPE dependency update detected. Auto-merge has been enabled and will merge after required checks and reviews pass."
+        run: gh pr review --approve "$PR_URL" --body "Auto-approved low-risk $UPDATE_TYPE dependency update."
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
@@ -31,11 +36,15 @@ jobs:
 
       - name: Enable auto-merge for low-risk Dependabot PRs
         if: contains(fromJSON('["version-update:semver-patch", "version-update:semver-minor"]'), steps.metadata.outputs.update-type)
-        run: gh pr merge --auto --squash "$PR_URL"
+        run: |
+          gh pr merge --auto --squash "$PR_URL"
+          gh pr comment "$PR_URL" --body "Low-risk $UPDATE_TYPE dependency update: auto-approved and queued for auto-merge once required checks pass."
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Major updates can contain breaking changes — leave them for a human.
       - name: Leave major updates for manual review
         if: steps.metadata.outputs.update-type == 'version-update:semver-major'
         run: echo "Major dependency update detected; skipping auto-approval and auto-merge."
