@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Mock API client
@@ -36,24 +37,24 @@ describe('ToleranceCalculator additional interactions', () => {
     const beforeRows = within(table).getAllByRole('row').length;
 
     // add another intake
-    fireEvent.click(addBtn);
+    await act(async () => { fireEvent.click(addBtn); });
     const afterAddRows = within(table).getAllByRole('row').length;
     expect(afterAddRows).toBeGreaterThan(beforeRows);
 
     // there should now be a Remove button for the new row; click it
     const removeBtns = screen.getAllByText('Remove');
     expect(removeBtns.length).toBeGreaterThan(0);
-    fireEvent.click(removeBtns[removeBtns.length - 1]);
+    await act(async () => { fireEvent.click(removeBtns[removeBtns.length - 1]); });
 
     const afterRemoveRows = within(table).getAllByRole('row').length;
     expect(afterRemoveRows).toBe(beforeRows);
 
     // interact with the datetime-local input and intake type select to cover their handlers
   const datetime = within(table).getAllByDisplayValue(() => true).find((el) => el.getAttribute('type') === 'datetime-local');
-    if (datetime) fireEvent.change(datetime, { target: { value: '2025-01-01T12:00' } });
+    if (datetime) await act(async () => { fireEvent.change(datetime, { target: { value: '2025-01-01T12:00' } }); });
 
     const intakeTypeSelect = within(table).getAllByRole('combobox').find((s) => s.tagName === 'SELECT');
-    if (intakeTypeSelect) fireEvent.change(intakeTypeSelect, { target: { value: 'inhaled' } });
+    if (intakeTypeSelect) await act(async () => { fireEvent.change(intakeTypeSelect, { target: { value: 'inhaled' } }); });
   });
 
   it('logs an error if getToleranceSubstances fails (covers loadSubstances catch branch)', async () => {
