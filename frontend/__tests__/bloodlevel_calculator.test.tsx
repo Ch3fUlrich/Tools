@@ -2,6 +2,7 @@
 // Combines the key coverage from the previous tolerancecalculator_* tests
 import React from 'react';
 import { render, fireEvent, waitFor, within } from '@testing-library/react';
+import { act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Mock the api client functions used by BloodLevelCalculator
@@ -29,24 +30,28 @@ describe('BloodLevelCalculator (consolidated)', () => {
     ] as any);
     const calc = vi.spyOn(api, 'calculateTolerance').mockResolvedValue({ blood_levels: [{ time: new Date().toISOString(), substance: 'TestSub', amountMg: 2 }] } as any);
 
-  const { container } = render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
+  let container: HTMLElement;
+  await act(async () => {
+    const res = render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
+    container = res.container;
+  });
 
   // wait for substance options to load
   await waitFor(() => expect(getSub).toHaveBeenCalled());
 
   // Add intake, choose substance, set dosage (scoped to this render)
   const addBtn = within(container).getByRole('button', { name: /Add Intake|\+ Add Intake/i });
-  fireEvent.click(addBtn);
+  await act(async () => { fireEvent.click(addBtn); });
 
   const selects = within(container).getAllByRole('combobox');
   expect(selects.length).toBeGreaterThan(0);
-  fireEvent.change(selects[0], { target: { value: 'TestSub' } });
+  await act(async () => { fireEvent.change(selects[0], { target: { value: 'TestSub' } }); });
 
   const dosageInputs = within(container).getAllByPlaceholderText('mg');
-  fireEvent.change(dosageInputs[0], { target: { value: '10' } });
+  await act(async () => { fireEvent.change(dosageInputs[0], { target: { value: '10' } }); });
 
   const calcBtn = within(container).getByRole('button', { name: /Calculate Blood Levels|calculate blood levels/i });
-  fireEvent.click(calcBtn);
+  await act(async () => { fireEvent.click(calcBtn); });
 
   await waitFor(() => expect(calc).toHaveBeenCalled());
   await waitFor(() => expect(container.querySelector('svg')).toBeTruthy());
@@ -63,14 +68,14 @@ describe('BloodLevelCalculator (consolidated)', () => {
 
     // interact with selects and inputs (scoped)
     const select = within(c1).getByDisplayValue(/Select substance.../i) as any;
-    fireEvent.change(select, { target: { value: 'Sub' } });
+    await act(async () => { fireEvent.change(select, { target: { value: 'Sub' } }); });
 
     const dosages = await within(c1).findAllByPlaceholderText('mg');
     const dosage = dosages[0] as HTMLInputElement;
-    fireEvent.change(dosage, { target: { value: '10' } });
+    await act(async () => { fireEvent.change(dosage, { target: { value: '10' } }); });
 
     const btn = within(c1).getByRole('button', { name: /calculate blood levels/i });
-    fireEvent.click(btn);
+    await act(async () => { fireEvent.click(btn); });
 
     await waitFor(() => expect(within(c1).getByText(/Sub Blood Levels/)).toBeInTheDocument());
 
@@ -81,10 +86,10 @@ describe('BloodLevelCalculator (consolidated)', () => {
     const { container: c2 } = render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
     const dosages2 = await within(c2).findAllByPlaceholderText('mg');
     const dosage2 = dosages2[0] as HTMLInputElement;
-    fireEvent.change(dosage2, { target: { value: '1' } });
+    await act(async () => { fireEvent.change(dosage2, { target: { value: '1' } }); });
 
     const btn2 = within(c2).getByRole('button', { name: /calculate blood levels/i });
-    fireEvent.click(btn2);
+    await act(async () => { fireEvent.click(btn2); });
 
     await waitFor(() => expect(within(c2).queryByText(/Calculation failed|Tolerance calc error|boom/i)).toBeTruthy());
   });
@@ -99,21 +104,22 @@ describe('BloodLevelCalculator (consolidated)', () => {
   const table = within(container).getByRole('table');
   const beforeRows = within(table).getAllByRole('row').length;
 
-  fireEvent.click(addBtn);
+  await act(async () => { fireEvent.click(addBtn); });
   const afterAddRows = within(table).getAllByRole('row').length;
   expect(afterAddRows).toBeGreaterThan(beforeRows);
 
   const removeBtns = within(container).getAllByText('Remove');
   expect(removeBtns.length).toBeGreaterThan(0);
-  fireEvent.click(removeBtns[removeBtns.length - 1]);
+  await act(async () => { fireEvent.click(removeBtns[removeBtns.length - 1]); });
 
   const afterRemoveRows = within(table).getAllByRole('row').length;
   expect(afterRemoveRows).toBe(beforeRows);
 
   const datetime = within(table).getAllByDisplayValue(() => true).find((el) => el.getAttribute('type') === 'datetime-local');
-  if (datetime) fireEvent.change(datetime, { target: { value: '2025-01-01T12:00' } });
+  if (datetime) await act(async () => { fireEvent.change(datetime, { target: { value: '2025-01-01T12:00' } }); });
 
   const intakeTypeSelect = within(table).getAllByRole('combobox').find((s) => s.tagName === 'SELECT');
-  if (intakeTypeSelect) fireEvent.change(intakeTypeSelect, { target: { value: 'inhaled' } });
+  if (intakeTypeSelect) await act(async () => { fireEvent.change(intakeTypeSelect, { target: { value: 'inhaled' } }); });
+  await act(async () => { await new Promise(r => setTimeout(r, 0)); });
   });
 });

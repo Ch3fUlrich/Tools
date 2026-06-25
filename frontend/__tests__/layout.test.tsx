@@ -1,24 +1,29 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 
-// Mock aliases for single-file runs
 vi.mock('@/components/auth', () => ({
   AuthProvider: ({ children }: any) => <div data-testid="auth-provider">{children}</div>,
 }));
 
-// Mock global CSS before importing the real layout to avoid PostCSS running in tests
 vi.mock('../app/globals.css', () => ({}));
 import RootLayout from '../app/layout';
 
 describe('RootLayout', () => {
-  test('renders children inside AuthProvider', () => {
-    render(
-      <RootLayout>
-        <div>child-content</div>
-      </RootLayout>
-    );
+  test('renders children inside AuthProvider', async () => {
+    let c;
+    await act(async () => {
+      // Must use document because RootLayout renders <html> and you can't put <html> inside <div>.
+      const res = render(
+        <RootLayout>
+          <div>child-content</div>
+        </RootLayout>,
+        { container: document }
+      );
+      c = res.container;
+      await new Promise(r => setTimeout(r, 0));
+    });
 
     expect(screen.getByText('child-content')).toBeInTheDocument();
   });

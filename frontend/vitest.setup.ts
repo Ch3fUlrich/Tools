@@ -96,3 +96,13 @@ vi.mock('*.css', () => ({}));
 vi.mock('*.scss', () => ({}));
 vi.mock('*.module.css', () => ({}));
 vi.mock('*.module.scss', () => ({}));
+
+import { afterEach, vi } from 'vitest';
+import { act } from '@testing-library/react';
+
+// Global teardown to cleanly flush any remaining async state updates
+afterEach(async () => {
+  await act(async () => {
+    await new Promise(resolve => setTimeout(resolve, 0));
+  });
+});

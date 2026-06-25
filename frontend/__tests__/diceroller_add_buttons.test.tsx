@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
+import { act } from '@testing-library/react';
 import { vi, describe, it, expect } from 'vitest';
+vi.mock('next/link', () => ({ default: ({ children }: any) => <a>{children}</a> }));
 
 // Mock rollDice API (not needed for this test but keep shape)
 const mockRollDice = vi.fn();
