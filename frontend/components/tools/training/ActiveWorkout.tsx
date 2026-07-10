@@ -62,7 +62,7 @@ interface ExGroup {
 
 export default function ActiveWorkout() {
   const [session, setSession] = useState<WorkoutSessionDetail | null>(null);
-  const [groups, setGroups] = useState<ExGroup[]>([]);
+  const [groups, setGroups] = useState<Record<string, ExGroup>>({});
   const [plans, setPlans] = useState<TrainingPlan[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState('');
@@ -114,7 +114,7 @@ export default function ActiveWorkout() {
         energyKineticKcal: s.energyKineticKcal, energyIsometricKcal: s.energyIsometricKcal,
       });
     }
-    setGroups(Object.values(groupMap));
+    setGroups(groupMap);
   }
 
   async function handleStart(planId?: string) {
@@ -151,7 +151,7 @@ export default function ActiveWorkout() {
     try {
       await updateSession(session.id, { status: 'completed' });
       setSession(null);
-      setGroups([]);
+      setGroups({});
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to complete session');
     } finally {
@@ -165,7 +165,7 @@ export default function ActiveWorkout() {
     try {
       await updateSession(session.id, { status: 'cancelled' });
       setSession(null);
-      setGroups([]);
+      setGroups({});
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');
     } finally {
@@ -177,35 +177,38 @@ export default function ActiveWorkout() {
     if (!addExerciseId) return;
     const ex = exercises.find(e => e.id === addExerciseId);
     if (!ex) return;
-    if (groups.some(g => g.exerciseId === addExerciseId)) { setAddExerciseId(''); return; }
-    setGroups(prev => [...prev, { exerciseId: addExerciseId, exerciseName: ex.name, sets: [emptyRow(addExerciseId, 1)] }]);
+    if (groups[addExerciseId]) { setAddExerciseId(''); return; }
+    setGroups(prev => ({ ...prev, [addExerciseId]: { exerciseId: addExerciseId, exerciseName: ex.name, sets: [emptyRow(addExerciseId, 1)] } }));
     setAddExerciseId('');
   }
 
   function addSetToGroup(exerciseId: string) {
-    setGroups(prev => prev.map(g => {
-      if (g.exerciseId !== exerciseId) return g;
-      return { ...g, sets: [...g.sets, emptyRow(exerciseId, g.sets.length + 1)] };
-    }));
+    setGroups(prev => {
+      const g = prev[exerciseId];
+      if (!g) return prev;
+      return { ...prev, [exerciseId]: { ...g, sets: [...g.sets, emptyRow(exerciseId, g.sets.length + 1)] } };
+    });
   }
 
   function updateSetField(exerciseId: string, setIdx: number, field: string, value: string | boolean) {
-    setGroups(prev => prev.map(g => {
-      if (g.exerciseId !== exerciseId) return g;
+    setGroups(prev => {
+      const g = prev[exerciseId];
+      if (!g) return prev;
       const sets = g.sets.map((s, i) => i === setIdx ? { ...s, [field]: value } : s);
-      return { ...g, sets };
-    }));
+      return { ...prev, [exerciseId]: { ...g, sets } };
+    });
   }
 
   const saveSet = useCallback(async (exerciseId: string, setIdx: number) => {
     if (!session) return;
-    setGroups(prev => prev.map(g => {
-      if (g.exerciseId !== exerciseId) return g;
+    setGroups(prev => {
+      const g = prev[exerciseId];
+      if (!g) return prev;
       const sets = g.sets.map((s, i) => i === setIdx ? { ...s, saving: true } : s);
-      return { ...g, sets };
-    }));
+      return { ...prev, [exerciseId]: { ...g, sets } };
+    });
     try {
-      const g = groups.find(g => g.exerciseId === exerciseId);
+      const g = groups[exerciseId];
       if (!g) return;
       const s = g.sets[setIdx];
       const res = await logSet(session.id, {
@@ -214,38 +217,41 @@ export default function ActiveWorkout() {
         rpe: s.rpe ? parseFloat(s.rpe) : undefined,
         isWarmup: s.isWarmup, isDropset: s.isDropset, isFailure: s.isFailure,
       });
-      setGroups(prev => prev.map(g => {
-        if (g.exerciseId !== exerciseId) return g;
+      setGroups(prev => {
+        const g = prev[exerciseId];
+        if (!g) return prev;
         const sets = g.sets.map((set, i) => i === setIdx ? {
           ...set, savedId: res.id, saving: false,
           energyKcal: res.energyKcal, energyPotentialKcal: res.energyPotentialKcal,
           energyKineticKcal: res.energyKineticKcal, energyIsometricKcal: res.energyIsometricKcal,
         } : set);
-        return { ...g, sets };
-      }));
+        return { ...prev, [exerciseId]: { ...g, sets } };
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to save set');
-      setGroups(prev => prev.map(g => {
-        if (g.exerciseId !== exerciseId) return g;
+      setGroups(prev => {
+        const g = prev[exerciseId];
+        if (!g) return prev;
         const sets = g.sets.map((s, i) => i === setIdx ? { ...s, saving: false } : s);
-        return { ...g, sets };
-      }));
+        return { ...prev, [exerciseId]: { ...g, sets } };
+      });
     }
   }, [session, groups]);
 
   async function handleDeleteSet(exerciseId: string, setIdx: number) {
     if (!session) return;
-    const g = groups.find(g => g.exerciseId === exerciseId);
+    const g = groups[exerciseId];
     if (!g) return;
     const s = g.sets[setIdx];
     if (s.savedId) {
       try { await deleteSet(session.id, s.savedId); } catch { /* ignore */ }
     }
-    setGroups(prev => prev.map(g => {
-      if (g.exerciseId !== exerciseId) return g;
+    setGroups(prev => {
+      const g = prev[exerciseId];
+      if (!g) return prev;
       const sets = g.sets.filter((_, i) => i !== setIdx).map((s, i) => ({ ...s, setNumber: i + 1 }));
-      return { ...g, sets };
-    }));
+      return { ...prev, [exerciseId]: { ...g, sets } };
+    });
   }
 
   if (loading) {
@@ -323,7 +329,7 @@ export default function ActiveWorkout() {
       </div>
 
       {/* Exercise groups */}
-      {groups.map(group => (
+      {Object.values(groups).map(group => (
         <CardSection key={group.exerciseId} title={group.exerciseName} gradient="from-orange-500 to-red-600">
           <div className="space-y-3">
             {/* Set header */}
@@ -431,7 +437,7 @@ export default function ActiveWorkout() {
         >
           <option value="">Add exercise…</option>
           {exercises
-            .filter(e => !groups.some(g => g.exerciseId === e.id))
+            .filter(e => !groups[e.id])
             .map(e => (
               <option key={e.id} value={e.id}>{e.name}</option>
             ))
