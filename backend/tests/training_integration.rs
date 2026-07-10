@@ -106,8 +106,8 @@ async fn test_training_measurements_crud() {
 
     let list_json: serde_json::Value = resp_list.json();
     let data = list_json
-        .get("data")
-        .expect("Missing data field")
+        .get("measurements")
+        .expect("Missing object")
         .as_array()
         .expect("data is not an array");
     assert_eq!(data.len(), 1, "Should have exactly 1 measurement");
@@ -126,7 +126,7 @@ async fn test_training_measurements_crud() {
     assert!(resp_latest.status_code().is_success(), "Get latest measurement failed");
 
     let latest_json: serde_json::Value = resp_latest.json();
-    let latest_data = latest_json.get("data").expect("Missing data field");
+    let latest_data = latest_json.as_object().expect("Missing object");
     assert_eq!(latest_data.get("id").unwrap().as_str().unwrap(), id);
     assert_eq!(latest_data.get("bodyWeightKg").unwrap().as_f64().unwrap(), 80.5);
 
@@ -142,7 +142,7 @@ async fn test_training_measurements_crud() {
 
     assert!(resp_list_after.status_code().is_success());
     let list_json_after: serde_json::Value = resp_list_after.json();
-    let data_after = list_json_after.get("data").unwrap().as_array().unwrap();
+    let data_after = list_json_after.get("measurements").unwrap().as_array().unwrap();
     assert_eq!(data_after.len(), 0, "List should be empty after deletion");
 
     // 7. Verify deletion (latest should be empty)
@@ -154,7 +154,8 @@ async fn test_training_measurements_crud() {
     assert!(resp_latest_after.status_code().is_success());
     let latest_json_after: serde_json::Value = resp_latest_after.json();
     assert!(
-        latest_json_after.get("data").is_none() || latest_json_after.get("data").unwrap().is_null(),
+        latest_json_after.get("measurements").is_none()
+            || latest_json_after.get("measurements").unwrap().is_null(),
         "Latest should be null after deletion"
     );
 
@@ -203,11 +204,8 @@ async fn test_training_plans_crud() {
     assert!(resp_list.status_code().is_success(), "List plans failed");
 
     let list_json: serde_json::Value = resp_list.json();
-    let data = list_json
-        .get("data")
-        .expect("Missing data field")
-        .as_array()
-        .expect("data is not an array");
+    let data =
+        list_json.get("plans").expect("Missing object").as_array().expect("data is not an array");
     assert_eq!(data.len(), 1, "Should have exactly 1 plan");
 
     let first_item = &data[0];
@@ -221,7 +219,7 @@ async fn test_training_plans_crud() {
     assert!(resp_get.status_code().is_success(), "Get plan failed");
 
     let get_json: serde_json::Value = resp_get.json();
-    let plan_data = get_json.get("data").expect("Missing data field");
+    let plan_data = get_json.as_object().expect("Missing object");
     assert_eq!(plan_data.get("id").unwrap().as_str().unwrap(), id);
     assert_eq!(plan_data.get("name").unwrap().as_str().unwrap(), "Integration Test Plan");
 
@@ -265,8 +263,8 @@ async fn test_training_sessions_crud() {
 
     let list_json: serde_json::Value = resp_list.json();
     let data = list_json
-        .get("data")
-        .expect("Missing data field")
+        .get("sessions")
+        .expect("Missing object")
         .as_array()
         .expect("data is not an array");
     assert_eq!(data.len(), 1, "Should have exactly 1 session");
