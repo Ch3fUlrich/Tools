@@ -22,19 +22,18 @@ const DIE_SIDES: Record<string, number> = {
 /** Unbiased random integer in [1, sides] via CSPRNG rejection sampling. */
 function randomDieValue(sides: number): number {
   const cryptoObj = globalThis.crypto;
-  if (cryptoObj?.getRandomValues) {
-    // Largest multiple of `sides` below 2^32 — reject values above it.
-    const limit = Math.floor(0x1_0000_0000 / sides) * sides;
-    const buf = new Uint32Array(1);
-    let x: number;
-    do {
-      cryptoObj.getRandomValues(buf);
-      x = buf[0];
-    } while (x >= limit);
-    return 1 + (x % sides);
+  if (!cryptoObj || typeof cryptoObj.getRandomValues !== 'function') {
+    throw new Error('Secure random number generation is not supported in this environment');
   }
-  // Environments without Web Crypto (old test runners) — non-cryptographic fallback.
-  return 1 + Math.floor(Math.random() * sides);
+  // Largest multiple of `sides` below 2^32 — reject values above it.
+  const limit = Math.floor(0x1_0000_0000 / sides) * sides;
+  const buf = new Uint32Array(1);
+  let x: number;
+  do {
+    cryptoObj.getRandomValues(buf);
+    x = buf[0];
+  } while (x >= limit);
+  return 1 + (x % sides);
 }
 
 function median(sorted: number[]): number {
