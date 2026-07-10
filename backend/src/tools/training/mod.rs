@@ -1,14 +1,14 @@
 #![allow(dead_code)]
-pub mod constants;
-pub mod types;
 pub mod compute;
+pub mod constants;
 pub mod plates;
+pub mod types;
 
+pub use compute::*;
 #[allow(unused_imports)]
 pub use constants::*;
-pub use types::*;
-pub use compute::*;
 pub use plates::*;
+pub use types::*;
 
 // ============================================================================
 // TESTS
