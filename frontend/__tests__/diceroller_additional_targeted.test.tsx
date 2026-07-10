@@ -2,6 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, beforeEach, describe, it, expect } from 'vitest';
+import * as diceModule from '@/lib/local/dice';
 
 // Mock rollDice API
 const mockRollDice = vi.fn();
@@ -58,8 +59,8 @@ describe('DiceRoller additional targeted branches', () => {
     // API returns a single die with final = 1 which is < 2 (should trigger reroll)
     mockRollDice.mockResolvedValueOnce({ summary: { totalRollsRequested: 1 }, rolls: [ { sum: 1, average: 1, perDie: [{ original: [1], final: 1 }], used: [1] } ] });
 
-    // stub Math.random so a reroll produces predictable value: Math.floor(0.6*6)+1 === 4
-    vi.spyOn(Math, 'random').mockReturnValue(0.6 as any);
+    // stub randomDieValue so a reroll produces predictable value: 4
+    vi.spyOn(diceModule, 'randomDieValue').mockReturnValue(4);
 
     render(<DiceRoller />);
 

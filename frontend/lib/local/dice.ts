@@ -20,7 +20,7 @@ const DIE_SIDES: Record<string, number> = {
 };
 
 /** Unbiased random integer in [1, sides] via CSPRNG rejection sampling. */
-function randomDieValue(sides: number): number {
+export function randomDieValue(sides: number): number {
   const cryptoObj = globalThis.crypto;
   if (cryptoObj?.getRandomValues) {
     // Largest multiple of `sides` below 2^32 — reject values above it.
