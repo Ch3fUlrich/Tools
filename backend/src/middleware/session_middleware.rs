@@ -49,7 +49,7 @@ where
                     .get::<Arc<PgPool>>()
                     .ok_or((StatusCode::INTERNAL_SERVER_ERROR, "DB pool missing".to_string()))?
                     .clone();
-                let row = sqlx::query("SELECT id, email, display_name FROM users WHERE id = $1")
+                let row = sqlx::query("SELECT id FROM users WHERE id = $1")
                     .bind(sess.user_id)
                     .fetch_one(&*pool)
                     .await
@@ -58,11 +58,7 @@ where
                 let id: sqlx::types::Uuid = row.try_get("id").map_err(|e| {
                     (StatusCode::INTERNAL_SERVER_ERROR, format!("Row parse error: {e}"))
                 })?;
-                let email: String = row.try_get("email").map_err(|e| {
-                    (StatusCode::INTERNAL_SERVER_ERROR, format!("Row parse error: {e}"))
-                })?;
-                let display_name: Option<String> = row.try_get("display_name").ok();
-                let user = AuthUser { id, _email: email, _display_name: display_name };
+                let user = AuthUser { id };
 
                 Ok(Self(user))
             }

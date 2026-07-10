@@ -11,8 +11,6 @@ use uuid::Uuid;
 #[derive(Debug, Clone)]
 pub struct AuthUser {
     pub id: Uuid,
-    pub _email: String,
-    pub _display_name: Option<String>,
 }
 
 pub async fn register_user(
@@ -54,7 +52,6 @@ pub async fn register_user(
     Ok(id)
 }
 
-#[allow(dead_code)]
 pub async fn verify_password(
     stored: &str,
     password: &str,
