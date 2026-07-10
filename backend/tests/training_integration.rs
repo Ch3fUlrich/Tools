@@ -18,17 +18,14 @@ async fn setup_test_server() -> Option<(TestServer, String, String)> {
     let pool = PgPool::connect(&db_url).await.expect("connect db");
 
     // Run migrations using sqlx
-    sqlx::migrate!("./migrations")
-        .run(&pool)
-        .await
-        .unwrap_or_else(|e| {
-            let msg = e.to_string();
-            if msg.contains("duplicate key value") || msg.contains("_sqlx_migrations_pkey") {
-                eprintln!("Notice: migrations appear already applied. Treating as success.");
-            } else {
-                panic!("Migration failed: {}", e);
-            }
-        });
+    sqlx::migrate!("./migrations").run(&pool).await.unwrap_or_else(|e| {
+        let msg = e.to_string();
+        if msg.contains("duplicate key value") || msg.contains("_sqlx_migrations_pkey") {
+            eprintln!("Notice: migrations appear already applied. Treating as success.");
+        } else {
+            panic!("Migration failed: {}", e);
+        }
+    });
 
     let pool = Arc::new(pool);
 
@@ -84,7 +81,8 @@ async fn test_training_measurements_crud() {
     assert!(resp.status_code().is_success(), "Create measurement failed: {}", resp.text());
 
     let resp_json: serde_json::Value = resp.json();
-    let id = resp_json.get("id").expect("Missing id").as_str().expect("id is not a string").to_string();
+    let id =
+        resp_json.get("id").expect("Missing id").as_str().expect("id is not a string").to_string();
     assert!(!id.is_empty());
 
     // 2. Try creating with invalid data (negative weight)
@@ -101,15 +99,17 @@ async fn test_training_measurements_crud() {
     assert_eq!(resp_invalid.status_code(), 400, "Should reject negative weight");
 
     // 3. List measurements
-    let resp_list = server
-        .get("/api/tools/training/measurements")
-        .add_header("Cookie", &cookie_str)
-        .await;
+    let resp_list =
+        server.get("/api/tools/training/measurements").add_header("Cookie", &cookie_str).await;
 
     assert!(resp_list.status_code().is_success(), "List measurements failed");
 
     let list_json: serde_json::Value = resp_list.json();
-    let data = list_json.get("data").expect("Missing data field").as_array().expect("data is not an array");
+    let data = list_json
+        .get("data")
+        .expect("Missing data field")
+        .as_array()
+        .expect("data is not an array");
     assert_eq!(data.len(), 1, "Should have exactly 1 measurement");
 
     let first_item = &data[0];
@@ -132,18 +132,13 @@ async fn test_training_measurements_crud() {
 
     // 5. Delete measurement
     let delete_url = format!("/api/tools/training/measurements/{}", id);
-    let resp_delete = server
-        .delete(&delete_url)
-        .add_header("Cookie", &cookie_str)
-        .await;
+    let resp_delete = server.delete(&delete_url).add_header("Cookie", &cookie_str).await;
 
     assert!(resp_delete.status_code().is_success(), "Delete measurement failed");
 
     // 6. Verify deletion (list should be empty)
-    let resp_list_after = server
-        .get("/api/tools/training/measurements")
-        .add_header("Cookie", &cookie_str)
-        .await;
+    let resp_list_after =
+        server.get("/api/tools/training/measurements").add_header("Cookie", &cookie_str).await;
 
     assert!(resp_list_after.status_code().is_success());
     let list_json_after: serde_json::Value = resp_list_after.json();
@@ -158,17 +153,20 @@ async fn test_training_measurements_crud() {
 
     assert!(resp_latest_after.status_code().is_success());
     let latest_json_after: serde_json::Value = resp_latest_after.json();
-    assert!(latest_json_after.get("data").is_none() || latest_json_after.get("data").unwrap().is_null(), "Latest should be null after deletion");
+    assert!(
+        latest_json_after.get("data").is_none() || latest_json_after.get("data").unwrap().is_null(),
+        "Latest should be null after deletion"
+    );
 
     // 8. Try deleting already deleted measurement
-    let resp_delete_again = server
-        .delete(&delete_url)
-        .add_header("Cookie", &cookie_str)
-        .await;
+    let resp_delete_again = server.delete(&delete_url).add_header("Cookie", &cookie_str).await;
 
-    assert_eq!(resp_delete_again.status_code(), 404, "Should return 404 when deleting non-existent measurement");
+    assert_eq!(
+        resp_delete_again.status_code(),
+        404,
+        "Should return 404 when deleting non-existent measurement"
+    );
 }
-
 
 #[tokio::test]
 async fn test_training_plans_crud() {
@@ -181,7 +179,7 @@ async fn test_training_plans_crud() {
     let body = serde_json::json!({
         "name": "Integration Test Plan",
         "description": "A plan created during testing",
-        "planType": "strength",
+        "planType": "full_body",
         "isActive": true,
         "sortOrder": 1
     });
@@ -195,19 +193,21 @@ async fn test_training_plans_crud() {
     assert!(resp.status_code().is_success(), "Create plan failed: {}", resp.text());
 
     let resp_json: serde_json::Value = resp.json();
-    let id = resp_json.get("id").expect("Missing id").as_str().expect("id is not a string").to_string();
+    let id =
+        resp_json.get("id").expect("Missing id").as_str().expect("id is not a string").to_string();
     assert!(!id.is_empty());
 
     // 2. List plans
-    let resp_list = server
-        .get("/api/tools/training/plans")
-        .add_header("Cookie", &cookie_str)
-        .await;
+    let resp_list = server.get("/api/tools/training/plans").add_header("Cookie", &cookie_str).await;
 
     assert!(resp_list.status_code().is_success(), "List plans failed");
 
     let list_json: serde_json::Value = resp_list.json();
-    let data = list_json.get("data").expect("Missing data field").as_array().expect("data is not an array");
+    let data = list_json
+        .get("data")
+        .expect("Missing data field")
+        .as_array()
+        .expect("data is not an array");
     assert_eq!(data.len(), 1, "Should have exactly 1 plan");
 
     let first_item = &data[0];
@@ -216,10 +216,7 @@ async fn test_training_plans_crud() {
 
     // 3. Get specific plan
     let get_url = format!("/api/tools/training/plans/{}", id);
-    let resp_get = server
-        .get(&get_url)
-        .add_header("Cookie", &cookie_str)
-        .await;
+    let resp_get = server.get(&get_url).add_header("Cookie", &cookie_str).await;
 
     assert!(resp_get.status_code().is_success(), "Get plan failed");
 
@@ -229,14 +226,10 @@ async fn test_training_plans_crud() {
     assert_eq!(plan_data.get("name").unwrap().as_str().unwrap(), "Integration Test Plan");
 
     // 4. Delete plan
-    let resp_delete = server
-        .delete(&get_url)
-        .add_header("Cookie", &cookie_str)
-        .await;
+    let resp_delete = server.delete(&get_url).add_header("Cookie", &cookie_str).await;
 
     assert!(resp_delete.status_code().is_success(), "Delete plan failed");
 }
-
 
 #[tokio::test]
 async fn test_training_sessions_crud() {
@@ -260,19 +253,22 @@ async fn test_training_sessions_crud() {
     assert!(resp.status_code().is_success(), "Create session failed: {}", resp.text());
 
     let resp_json: serde_json::Value = resp.json();
-    let id = resp_json.get("id").expect("Missing id").as_str().expect("id is not a string").to_string();
+    let id =
+        resp_json.get("id").expect("Missing id").as_str().expect("id is not a string").to_string();
     assert!(!id.is_empty());
 
     // 2. List sessions
-    let resp_list = server
-        .get("/api/tools/training/sessions")
-        .add_header("Cookie", &cookie_str)
-        .await;
+    let resp_list =
+        server.get("/api/tools/training/sessions").add_header("Cookie", &cookie_str).await;
 
     assert!(resp_list.status_code().is_success(), "List sessions failed");
 
     let list_json: serde_json::Value = resp_list.json();
-    let data = list_json.get("data").expect("Missing data field").as_array().expect("data is not an array");
+    let data = list_json
+        .get("data")
+        .expect("Missing data field")
+        .as_array()
+        .expect("data is not an array");
     assert_eq!(data.len(), 1, "Should have exactly 1 session");
 
     let first_item = &data[0];
