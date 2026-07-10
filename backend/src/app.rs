@@ -30,6 +30,7 @@ pub fn build_app(
         .route("/healthz", get(health_check))
         .route("/api/health", get(health_check))
         .route("/api/tools/fat-loss", post(crate::api::fat_loss::calculate_fat_loss))
+        .route("/api/tools/n26-analyzer", post(crate::api::n26_analyzer::analyze_n26_data))
         .route("/api/tools/bloodlevel/calculate", post(crate::api::bloodlevel::calculate_tolerance))
         .route("/api/tools/bloodlevel/substances", get(crate::api::bloodlevel::get_substances))
         .route("/api/tools/dice/roll", post(crate::api::dice::roll))
