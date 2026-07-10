@@ -142,6 +142,27 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
         (per_die, used)
     };
 
+    let calculate_stats = |used: &[i32], sum: i32| -> (f64, f64, i32) {
+        let average = if used.is_empty() { 0.0 } else { f64::from(sum) / used.len() as f64 };
+        let mut used_sorted = used.to_vec();
+        used_sorted.sort_unstable();
+        let median = if used_sorted.len() % 2 == 1 {
+            f64::from(used_sorted[used_sorted.len() / 2])
+        } else if !used_sorted.is_empty() {
+            let hi = used_sorted[used_sorted.len() / 2];
+            let lo = used_sorted[used_sorted.len() / 2 - 1];
+            f64::from(hi + lo) / 2.0
+        } else {
+            0.0
+        };
+        let spread = if used_sorted.is_empty() {
+            0
+        } else {
+            used_sorted.last().unwrap() - used_sorted.first().unwrap()
+        };
+        (average, median, spread)
+    };
+
     for _ in 0..rolls {
         let mut rng = rand::rng();
         let advantage = req.advantage.clone().unwrap_or_else(|| "none".to_string());
@@ -176,23 +197,7 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
 
             // compute stats
             let sum: i32 = used.iter().sum();
-            let average = if used.is_empty() { 0.0 } else { f64::from(sum) / used.len() as f64 };
-            let mut used_sorted = used.clone();
-            used_sorted.sort_unstable();
-            let median = if used_sorted.len() % 2 == 1 {
-                f64::from(used_sorted[used_sorted.len() / 2])
-            } else if !used_sorted.is_empty() {
-                let hi = used_sorted[used_sorted.len() / 2];
-                let lo = used_sorted[used_sorted.len() / 2 - 1];
-                f64::from(hi + lo) / 2.0
-            } else {
-                0.0
-            };
-            let spread = if used_sorted.is_empty() {
-                0
-            } else {
-                used_sorted.last().unwrap() - used_sorted.first().unwrap()
-            };
+            let (average, median, spread) = calculate_stats(&used, sum);
 
             results.push(DiceRollResult { per_die, used, sum, average, median, spread });
         } else {
@@ -203,24 +208,7 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
             let sum2: i32 = used2.iter().sum();
             let pick_first = if advantage == "adv" { sum1 >= sum2 } else { sum1 <= sum2 };
             if pick_first {
-                let average =
-                    if used1.is_empty() { 0.0 } else { f64::from(sum1) / used1.len() as f64 };
-                let mut used_sorted = used1.clone();
-                used_sorted.sort_unstable();
-                let median = if used_sorted.len() % 2 == 1 {
-                    f64::from(used_sorted[used_sorted.len() / 2])
-                } else if !used_sorted.is_empty() {
-                    f64::from(
-                        used_sorted[used_sorted.len() / 2] + used_sorted[used_sorted.len() / 2 - 1],
-                    ) / 2.0
-                } else {
-                    0.0
-                };
-                let spread = if used_sorted.is_empty() {
-                    0
-                } else {
-                    used_sorted.last().unwrap() - used_sorted.first().unwrap()
-                };
+                let (average, median, spread) = calculate_stats(&used1, sum1);
                 results.push(DiceRollResult {
                     per_die: per1,
                     used: used1,
@@ -230,24 +218,7 @@ pub async fn handle_roll(req: DiceRequest) -> Result<DiceResponse, serde_json::V
                     spread,
                 });
             } else {
-                let average =
-                    if used2.is_empty() { 0.0 } else { f64::from(sum2) / used2.len() as f64 };
-                let mut used_sorted = used2.clone();
-                used_sorted.sort_unstable();
-                let median = if used_sorted.len() % 2 == 1 {
-                    f64::from(used_sorted[used_sorted.len() / 2])
-                } else if !used_sorted.is_empty() {
-                    f64::from(
-                        used_sorted[used_sorted.len() / 2] + used_sorted[used_sorted.len() / 2 - 1],
-                    ) / 2.0
-                } else {
-                    0.0
-                };
-                let spread = if used_sorted.is_empty() {
-                    0
-                } else {
-                    used_sorted.last().unwrap() - used_sorted.first().unwrap()
-                };
+                let (average, median, spread) = calculate_stats(&used2, sum2);
                 results.push(DiceRollResult {
                     per_die: per2,
                     used: used2,
