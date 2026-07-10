@@ -7,6 +7,7 @@ use serde::Deserialize;
 use serde_json::json;
 use sqlx::{PgPool, Row};
 use std::sync::Arc;
+use tokio::sync::OnceCell;
 use uuid::Uuid;
 
 // ============================================================================
@@ -223,7 +224,15 @@ pub async fn delete_measurement(
 // MUSCLE GROUPS
 // ============================================================================
 
+static MUSCLES_CACHE: OnceCell<Vec<serde_json::Value>> = OnceCell::const_new();
+
 pub async fn list_muscles(Extension(pool): Extension<Arc<PgPool>>) -> impl IntoResponse {
+    // Check if we already have the cached muscles
+    if let Some(muscles) = MUSCLES_CACHE.get() {
+        return (StatusCode::OK, Json(json!({"muscles": muscles}))).into_response();
+    }
+
+    // Fetch from database
     match sqlx::query("SELECT id, name, display_name, relative_size, body_map_position, svg_region_id FROM muscle_groups ORDER BY name")
         .fetch_all(&*pool)
         .await
@@ -239,6 +248,10 @@ pub async fn list_muscles(Extension(pool): Extension<Arc<PgPool>>) -> impl IntoR
                     "svgRegionId": row.try_get::<String, _>("svg_region_id").unwrap_or_default(),
                 })
             }).collect();
+
+            // Try to set the cache (ignoring error if it was already set concurrently)
+            let _ = MUSCLES_CACHE.set(muscles.clone());
+
             (StatusCode::OK, Json(json!({"muscles": muscles}))).into_response()
         }
         Err(e) => {
