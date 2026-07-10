@@ -26,7 +26,11 @@ pub struct FatLossResponse {
 #[must_use]
 pub fn calculate_fat_loss_percentage(kcal_deficit: f64, weight_loss_kg: f64) -> FatLossResponse {
     // Validation
-    if kcal_deficit <= 0.0 || weight_loss_kg <= 0.0 || !kcal_deficit.is_finite() || !weight_loss_kg.is_finite() {
+    if kcal_deficit <= 0.0
+        || weight_loss_kg <= 0.0
+        || !kcal_deficit.is_finite()
+        || !weight_loss_kg.is_finite()
+    {
         return FatLossResponse {
             fat_loss_percentage: None,
             muscle_loss_percentage: None,
@@ -138,29 +142,28 @@ mod tests {
 
     #[test]
     fn test_invalid_nan_values() {
-        let result = calculate_fat_loss_percentage(std::f64::NAN, 0.5);
+        let result = calculate_fat_loss_percentage(f64::NAN, 0.5);
         assert!(!result.is_valid);
 
-        let result = calculate_fat_loss_percentage(3500.0, std::f64::NAN);
+        let result = calculate_fat_loss_percentage(3500.0, f64::NAN);
         assert!(!result.is_valid);
 
-        let result = calculate_fat_loss_percentage(std::f64::NAN, std::f64::NAN);
+        let result = calculate_fat_loss_percentage(f64::NAN, f64::NAN);
         assert!(!result.is_valid);
     }
 
     #[test]
     fn test_invalid_infinity_values() {
-        let result = calculate_fat_loss_percentage(std::f64::INFINITY, 0.5);
+        let result = calculate_fat_loss_percentage(f64::INFINITY, 0.5);
         assert!(!result.is_valid);
 
-        let result = calculate_fat_loss_percentage(3500.0, std::f64::INFINITY);
+        let result = calculate_fat_loss_percentage(3500.0, f64::INFINITY);
         assert!(!result.is_valid);
 
-        let result = calculate_fat_loss_percentage(std::f64::NEG_INFINITY, 0.5);
+        let result = calculate_fat_loss_percentage(f64::NEG_INFINITY, 0.5);
         assert!(!result.is_valid);
 
-        let result = calculate_fat_loss_percentage(3500.0, std::f64::NEG_INFINITY);
+        let result = calculate_fat_loss_percentage(3500.0, f64::NEG_INFINITY);
         assert!(!result.is_valid);
     }
-
 }
