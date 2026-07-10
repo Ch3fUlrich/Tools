@@ -1,6 +1,6 @@
 # Timeline Configuration Guide
 
-The timeline is driven by one configuration object. The default object lives in `configs/timeline-default-config.json`; `src/config/timeline-config.js` loads that JSON, normalizes it, and exposes it as `window.TIMELINE_CONFIG`. The renderer reads the active object and creates the SVG. The editor mutates the same object in memory, and `src/export/timeline-exporter.js` can export it as a portable setup JSON file.
+The timeline is driven by one configuration object. The default object lives in `configs/timeline-default-config.json`; `src/config/timeline-config.js` loads that JSON, normalizes it, and exposes it as `window.TIMELINE_CONFIG`. The renderer reads the active object and creates the SVG. The editor mutates the same object in memory, and the modules in `src/export/` can export it as a portable setup JSON file.
 
 ## Architecture
 
@@ -11,7 +11,7 @@ The timeline is driven by one configuration object. The default object lives in 
 - `src/config/timeline-config.js` is only the loader/normalizer. It uses the generated fallback when available, otherwise it fetches the JSON, and exposes `window.TIMELINE_CONFIG`.
 - `src/render/timeline-generator.js` is responsible for rendering SVG from the active config.
 - `src/editor/timeline-editor.js` owns user editing, selection, dragging, keyboard shortcuts, grouping, and inspector updates.
-- `src/export/timeline-exporter.js` owns file export/import only.
+- `src/export/` modules own file export/import only.
 
 This keeps the source of truth clear: the active configuration object is the data model, and the SVG is regenerated or updated from that model.
 
@@ -162,7 +162,7 @@ Use this file when you want to preserve an editable timeline. It can be imported
 
 ## Programmatic Import/Export
 
-`timeline-exporter.js` exposes `window.TimelineIO`:
+`timeline-exporter.js` (and associated modules) exposes `window.TimelineIO`:
 
 ```js
 window.TimelineIO.exportTimeline("png");

@@ -23,7 +23,7 @@ This folder contains a self-contained browser app for creating, editing, exporti
 - `src/config/timeline-presets.js` - generated preset fallback for direct `file://` browser usage.
 - `src/render/timeline-generator.js` - SVG rendering for the active timeline config.
 - `src/editor/timeline-editor.js` - selection, editing, dragging, grouping, and inspector behavior.
-- `src/export/timeline-exporter.js` - export/import logic for PDF, PNG, JPG, SVG, and setup JSON.
+- `src/export/` - directory containing export/import logic for PDF, PNG, JPG, SVG, and setup JSON.
 - `scripts/sync-default-config.js` - syncs JSON config files into their generated browser-safe JS fallbacks.
 - `TIMELINE_CONFIG_GUIDE.md` - detailed configuration reference.
 
