@@ -1,5 +1,6 @@
 import {
   rollDice,
+  saveDiceRoll,
   calculateFatLoss,
   analyzeN26Data,
   getToleranceSubstances,
@@ -92,6 +93,20 @@ describe('api client full coverage', () => {
   it('rollDice failure branch (already covered success elsewhere)', async () => {
     (globalThis as any).fetch.mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'err' });
     await expect(rollDice({ die: { type: 'd6' }, count: 1 } as any)).rejects.toThrow(/Roll API error/);
+  });
+
+  it('saveDiceRoll success and silent failure', async () => {
+    const payload = { result: 5 };
+    (globalThis as any).fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    await expect(saveDiceRoll(payload)).resolves.toBeUndefined();
+    expect((globalThis as any).fetch).toHaveBeenCalledWith('/api/tools/dice/save', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ payload }),
+    }));
+
+    // silent failure branch
+    (globalThis as any).fetch.mockRejectedValueOnce(new Error('Network error'));
+    await expect(saveDiceRoll(payload)).resolves.toBeUndefined();
   });
 
   it('tolerance endpoints success and failure', async () => {
