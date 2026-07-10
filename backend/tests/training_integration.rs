@@ -151,13 +151,9 @@ async fn test_training_measurements_crud() {
         .add_header("Cookie", &cookie_str)
         .await;
 
-    assert!(resp_latest_after.status_code().is_success());
+    assert_eq!(resp_latest_after.status_code(), 404);
     let latest_json_after: serde_json::Value = resp_latest_after.json();
-    assert!(
-        latest_json_after.get("measurements").is_none()
-            || latest_json_after.get("measurements").unwrap().is_null(),
-        "Latest should be null after deletion"
-    );
+    assert!(latest_json_after.get("error").is_some(), "Latest should be null after deletion");
 
     // 8. Try deleting already deleted measurement
     let resp_delete_again = server.delete(&delete_url).add_header("Cookie", &cookie_str).await;
