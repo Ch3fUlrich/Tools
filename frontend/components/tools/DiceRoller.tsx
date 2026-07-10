@@ -14,147 +14,19 @@ import Boxplot from '../charts/Boxplot';
 import Histogram from '../charts/Histogram';
 import type { DiceResponse, DiceRequest } from '../../lib/types/dice';
 
-const LS_HISTORY_KEY = 'dice_history_local';
-
-function loadLocalHistory(): Array<{ time: string; summary?: { sum?: number }; details?: unknown[] }> {
-  if (typeof window === 'undefined') return [];
-  try {
-    return JSON.parse(localStorage.getItem(LS_HISTORY_KEY) || '[]');
-  } catch {
-    return [];
-  }
-}
-
-function saveLocalHistory(entries: Array<{ time: string; summary?: { sum?: number }; details?: unknown[] }>) {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(entries.slice(0, 50)));
-  } catch {
-    // storage full or unavailable — ignore
-  }
-}
-
-type PerDie = {
-  original: number[];
-  final: number;
-};
-
-type RollDetail = {
-  sum: number;
-  average: number;
-  perDie: PerDie[];
-  used: number[];
-  rerollCount?: number;
-  rerollConfig?: string;
-  rawSum?: number;       // sum of dice before modifier
-  totalModifier?: number; // flat group modifier (+/-)
-};
-
-type DieOption = 'd2'|'d3'|'d4'|'d6'|'d8'|'d10'|'d12'|'d20'|'custom';
-
-type DiceConfig = {
-  id: string;
-  dieType: DieOption;
-  sides: number;
-  count: number;
-  // per-die local modifiers
-  numericModifier?: number;
-  advantage?: 'none' | 'adv' | 'dis';
-  rerollEnabled?: boolean;
-  rerollOperator?: '<'|'>'|'=';
-  rerollValue?: number;
-  rerollValuesStr?: string;  // comma-separated values for '=' operator
-  customName?: string;
-};
-
-// DIE_FACES was removed — we now display a consistent die emoji in the dropdown labels (e.g. "🎲 D6 (6)").
-
-// Returns "D6" for a unique die type, or "1. D6" / "2. D6" when multiple configs share the same sides
-function getDieLabel(rollIndex: number, configs: DiceConfig[]): string {
-  const cfgIndex = Math.min(rollIndex, configs.length - 1);
-  const sides = configs[cfgIndex]?.sides ?? 6;
-  const typeName = `D${sides}`;
-  const sameTypeIndexes = configs.map((c, j) => (c.sides === sides ? j : -1)).filter(j => j >= 0);
-  if (sameTypeIndexes.length > 1) {
-    const rank = sameTypeIndexes.indexOf(cfgIndex) + 1;
-    return `${rank}. ${typeName}`;
-  }
-  return typeName;
-}
-
-// Returns customName if set, otherwise getDieLabel
-function getDisplayLabel(idx: number, configs: DiceConfig[]): string {
-  const cfg = configs[Math.min(idx, configs.length - 1)];
-  if (cfg?.customName) return cfg.customName;
-  return getDieLabel(idx, configs);
-}
-
-// Compute exact probability distribution for numDice×sides using dynamic programming
-function computeSumDist(numDice: number, sides: number): Map<number, number> {
-  let dist = new Map<number, number>([[0, 1]]);
-  for (let d = 0; d < numDice; d++) {
-    const next = new Map<number, number>();
-    for (const [s, w] of dist) {
-      for (let f = 1; f <= sides; f++) {
-        const ns = s + f;
-        next.set(ns, (next.get(ns) ?? 0) + w);
-      }
-    }
-    dist = next;
-  }
-  return dist;
-}
-
-// Parse comma-separated reroll values string into number array
-function parseRerollValues(str: string): number[] {
-  return str.split(',').map(s => s.trim()).filter(s => s !== '').map(Number).filter(n => Number.isFinite(n));
-}
-
-// Build reroll condition function from config; returns null if reroll not applicable
-function buildRerollCondition(cfg: DiceConfig): ((val: number) => boolean) | null {
-  if (!cfg.rerollEnabled) return null;
-  const op = cfg.rerollOperator || '<';
-  if (op === '=') {
-    const vals = new Set(parseRerollValues(cfg.rerollValuesStr || ''));
-    return vals.size > 0 ? (v: number) => vals.has(v) : null;
-  }
-  if (!Number.isFinite(cfg.rerollValue ?? NaN)) return null;
-  const rv = cfg.rerollValue as number;
-  if (op === '<') return (v: number) => v < rv;
-  if (op === '>') return (v: number) => v > rv;
-  return null;
-}
-
-// Build display string for reroll config (e.g. "< 3" or "= 1, 6")
-function buildRerollConfigStr(cfg: DiceConfig): string {
-  if (!cfg.rerollEnabled) return '';
-  const op = cfg.rerollOperator || '<';
-  if (op === '=') {
-    const vals = parseRerollValues(cfg.rerollValuesStr || '');
-    return vals.length > 0 ? `= ${vals.join(', ')}` : '';
-  }
-  return Number.isFinite(cfg.rerollValue ?? NaN) ? `${op} ${cfg.rerollValue}` : '';
-}
-
-// Compute set of sums achievable using only non-rerollable face values (for prob chart graying)
-function computeCleanSums(numDice: number, sides: number, isRerollable: (v: number) => boolean): Set<number> {
-  const cleanFaces: number[] = [];
-  for (let f = 1; f <= sides; f++) {
-    if (!isRerollable(f)) cleanFaces.push(f);
-  }
-  if (cleanFaces.length === 0) return new Set();
-  let sums = new Set<number>([0]);
-  for (let d = 0; d < numDice; d++) {
-    const next = new Set<number>();
-    for (const s of sums) {
-      for (const f of cleanFaces) {
-        next.add(s + f);
-      }
-    }
-    sums = next;
-  }
-  return sums;
-}
+import {
+  LS_HISTORY_KEY,
+  loadLocalHistory,
+  saveLocalHistory,
+  getDisplayLabel,
+  buildRerollCondition,
+  buildRerollConfigStr,
+} from './dice/utils';
+import {
+  computeSumDist,
+  computeCleanSums,
+} from './dice/stats';
+import type { DiceConfig, RollDetail, DieOption, PerDie } from './dice/types';
 
 export const DiceRoller: React.FC = () => {
   const [diceConfigs, setDiceConfigs] = useState<DiceConfig[]>([
