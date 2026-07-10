@@ -1,3 +1,4 @@
+/* global window, localStorage */
 import { DiceConfig } from './types';
 
 export const LS_HISTORY_KEY = 'dice_history_local';
