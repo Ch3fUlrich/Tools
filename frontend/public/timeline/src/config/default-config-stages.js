@@ -1,0 +1,131 @@
+/**
+ * Generated fallback for direct file:// browser use.
+ * Source of truth: configs/default-config/stages.json
+ */
+window.TIMELINE_DEFAULT_CONFIG = window.TIMELINE_DEFAULT_CONFIG || {};
+Object.assign(window.TIMELINE_DEFAULT_CONFIG, {
+  "developmentWindows": [
+    {
+      "x": 130,
+      "y": 93.982,
+      "width": 127.692,
+      "height": 663.607,
+      "rx": 18,
+      "fill": "var(--window-1)",
+      "opacity": 0.28,
+      "label": "Stage 1",
+      "humanLabel": "Neonatal",
+      "mouseLabel": "P2",
+      "stageName": "Neonatal",
+      "stageLabelY": 151.305
+    },
+    {
+      "x": 257.692,
+      "y": 93.982,
+      "width": 195.623,
+      "height": 663.607,
+      "rx": 18,
+      "fill": "var(--window-2)",
+      "opacity": 0.24,
+      "label": "Stage 2",
+      "humanLabel": "Infancy",
+      "mouseLabel": "Week 3",
+      "stageName": "Infancy",
+      "stageLabelY": 151.305
+    },
+    {
+      "x": 453.315,
+      "y": 93.982,
+      "width": 214.255,
+      "height": 663.607,
+      "rx": 18,
+      "fill": "var(--window-3)",
+      "opacity": 0.22,
+      "label": "Stage 3",
+      "humanLabel": "Toddler",
+      "mouseLabel": "Week 4",
+      "stageName": "Toddler",
+      "stageLabelY": 151.305
+    },
+    {
+      "x": 667.57,
+      "y": 93.982,
+      "width": 257.163,
+      "height": 663.607,
+      "rx": 18,
+      "fill": "var(--window-4)",
+      "opacity": 0.22,
+      "label": "Stage 4",
+      "humanLabel": "Early childhood",
+      "mouseLabel": "Week 5",
+      "stageName": "Early childhood",
+      "stageLabelY": 151.305
+    },
+    {
+      "x": 924.733,
+      "y": 93.982,
+      "width": 390.267,
+      "height": 663.607,
+      "rx": 18,
+      "fill": "var(--window-5)",
+      "opacity": 0.22,
+      "label": "Stage 5",
+      "humanLabel": "Later childhood",
+      "mouseLabel": "Weeks 7–11",
+      "stageName": "Later childhood",
+      "stageLabelY": 151.305
+    }
+  ],
+  "windowLabels": [
+    {
+      "stageIndex": 0,
+      "x": 193.846,
+      "y": 151.305,
+      "text": "Neonatal",
+      "class": "svg-window-label",
+      "fill": "color-mix(in srgb, var(--text) 90%, transparent)"
+    },
+    {
+      "stageIndex": 1,
+      "x": 355.50350000000003,
+      "y": 151.305,
+      "text": "Infancy",
+      "class": "svg-window-label",
+      "fill": "color-mix(in srgb, var(--text) 90%, transparent)"
+    },
+    {
+      "stageIndex": 2,
+      "x": 560.4425,
+      "y": 151.305,
+      "text": "Toddler",
+      "class": "svg-window-label",
+      "fill": "color-mix(in srgb, var(--text) 90%, transparent)"
+    },
+    {
+      "stageIndex": 3,
+      "x": 796.1515,
+      "y": 151.305,
+      "text": "Early childhood",
+      "class": "svg-window-label",
+      "fill": "color-mix(in srgb, var(--text) 90%, transparent)"
+    },
+    {
+      "stageIndex": 4,
+      "x": 1119.8664999999999,
+      "y": 151.305,
+      "text": "Later childhood",
+      "class": "svg-window-label",
+      "fill": "color-mix(in srgb, var(--text) 90%, transparent)"
+    }
+  ],
+  "stageEditing": {
+    "minWidth": 56,
+    "boundaryTopY": 93.982,
+    "boundaryBottomY": 757.589
+  },
+  "stageLabels": {
+    "y": 114,
+    "fill": "color-mix(in srgb, var(--text) 90%, transparent)",
+    "class": "svg-window-label"
+  }
+});

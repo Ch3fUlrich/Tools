@@ -4,54 +4,28 @@
     "width": 1480,
     "height": 940
   },
-  "stageEditing": {
-    "minWidth": 56,
-    "boundaryTopY": 93.982,
-    "boundaryBottomY": 757.589
+  "layoutMode": "dual",
+  "nodes": {
+    "connectorStrokeWidth": 3,
+    "circleRadius": 5,
+    "titleClass": "svg-title",
+    "ageClass": "svg-age",
+    "titleFontSize": 16,
+    "ageFontSize": 13
   },
-  "stageLabels": {
-    "y": 114,
-    "fill": "color-mix(in srgb, var(--text) 90%, transparent)",
-    "class": "svg-window-label"
+  "blocks": {
+    "defaultHeight": 34,
+    "minWidth": 28,
+    "strokeWidth": 1.9,
+    "cornerRadius": 8,
+    "titleClass": "svg-title",
+    "ageClass": "svg-age",
+    "titleFontSize": 16,
+    "ageFontSize": 13,
+    "titleInsideOffsetY": 14,
+    "ageInsideOffsetY": 28
   },
-  "arrows": {
-    "mainArrow": {
-      "id": "mainArrow",
-      "markerWidth": 18,
-      "markerHeight": 18,
-      "refX": 18,
-      "refY": 9,
-      "path": "M0 0L18 9L0 18Z",
-      "fill": "var(--track)"
-    },
-    "humanArrow": {
-      "id": "humanArrow",
-      "markerWidth": 11,
-      "markerHeight": 11,
-      "refX": 11,
-      "refY": 5.5,
-      "path": "M0 0L11 5.5L0 11Z",
-      "fill": "var(--human)"
-    },
-    "mouseArrow": {
-      "id": "mouseArrow",
-      "markerWidth": 11,
-      "markerHeight": 11,
-      "refX": 11,
-      "refY": 5.5,
-      "path": "M0 0L11 5.5L0 11Z",
-      "fill": "var(--mouse)"
-    }
-  },
-  "mainAxis": {
-    "x1": 130,
-    "x2": 1325,
-    "y": 570.581,
-    "strokeWidth": 6,
-    "strokeLinecap": "round",
-    "stroke": "var(--track)",
-    "markerEnd": "url(#mainArrow)"
-  },
+  "customGroups": [],
   "developmentWindows": [
     {
       "x": 130,
@@ -166,6 +140,25 @@
       "fill": "color-mix(in srgb, var(--text) 90%, transparent)"
     }
   ],
+  "stageEditing": {
+    "minWidth": 56,
+    "boundaryTopY": 93.982,
+    "boundaryBottomY": 757.589
+  },
+  "stageLabels": {
+    "y": 114,
+    "fill": "color-mix(in srgb, var(--text) 90%, transparent)",
+    "class": "svg-window-label"
+  },
+  "mainAxis": {
+    "x1": 130,
+    "x2": 1325,
+    "y": 570.581,
+    "strokeWidth": 6,
+    "strokeLinecap": "round",
+    "stroke": "var(--track)",
+    "markerEnd": "url(#mainArrow)"
+  },
   "axisRanges": [
     {
       "id": "humans-range",
@@ -278,35 +271,47 @@
       "hidden": false
     }
   ],
-  "humanNodes": [],
-  "mouseNodes": [
+  "axisTicks": {
+    "enabled": false,
+    "y1": 432,
+    "y2": 448,
+    "strokeWidth": 2,
+    "stroke": "color-mix(in srgb, var(--text) 36%, transparent)",
+    "labelY": 472,
+    "labelClass": "svg-axis"
+  },
+  "humanAxisTicks": [
     {
-      "x": 229.116,
-      "yNode": 722.834,
-      "yAxis": 570.581,
-      "title": "30min delay",
-      "ageRange": "P17",
-      "stroke": "var(--mouse)",
-      "strokeWidth": 3,
-      "markerId": "mouseArrow",
-      "titleFill": "",
-      "ageFill": "",
-      "titleFontSize": 16,
-      "ageFontSize": 13
+      "x": 170,
+      "label": "6 mo"
     },
     {
-      "x": 209.068,
-      "yNode": 682.548,
-      "yAxis": 570.581,
-      "title": "Object What",
-      "ageRange": "P14",
-      "stroke": "var(--mouse)",
-      "strokeWidth": 3,
-      "markerId": "mouseArrow",
-      "titleFill": "",
-      "ageFill": "",
-      "titleFontSize": 16,
-      "ageFontSize": 13
+      "x": 410,
+      "label": "2 y"
+    },
+    {
+      "x": 570,
+      "label": "3 y"
+    },
+    {
+      "x": 720,
+      "label": "4 y"
+    },
+    {
+      "x": 870,
+      "label": "5 y"
+    },
+    {
+      "x": 1015,
+      "label": "6 y"
+    },
+    {
+      "x": 1120,
+      "label": "8 y"
+    },
+    {
+      "x": 1255,
+      "label": "11 y"
     }
   ],
   "humanRangeBlocks": [
@@ -567,6 +572,7 @@
       "ageFontSize": 13
     }
   ],
+  "humanNodes": [],
   "mouseRangeBlocks": [
     {
       "xStart": 230.809,
@@ -657,69 +663,36 @@
       "ageFontSize": 13
     }
   ],
-  "nodes": {
-    "connectorStrokeWidth": 3,
-    "circleRadius": 5,
-    "titleClass": "svg-title",
-    "ageClass": "svg-age",
-    "titleFontSize": 16,
-    "ageFontSize": 13
-  },
-  "blocks": {
-    "defaultHeight": 34,
-    "minWidth": 28,
-    "strokeWidth": 1.9,
-    "cornerRadius": 8,
-    "titleClass": "svg-title",
-    "ageClass": "svg-age",
-    "titleFontSize": 16,
-    "ageFontSize": 13,
-    "titleInsideOffsetY": 14,
-    "ageInsideOffsetY": 28
-  },
-  "humanAxisTicks": [
+  "mouseNodes": [
     {
-      "x": 170,
-      "label": "6 mo"
+      "x": 229.116,
+      "yNode": 722.834,
+      "yAxis": 570.581,
+      "title": "30min delay",
+      "ageRange": "P17",
+      "stroke": "var(--mouse)",
+      "strokeWidth": 3,
+      "markerId": "mouseArrow",
+      "titleFill": "",
+      "ageFill": "",
+      "titleFontSize": 16,
+      "ageFontSize": 13
     },
     {
-      "x": 410,
-      "label": "2 y"
-    },
-    {
-      "x": 570,
-      "label": "3 y"
-    },
-    {
-      "x": 720,
-      "label": "4 y"
-    },
-    {
-      "x": 870,
-      "label": "5 y"
-    },
-    {
-      "x": 1015,
-      "label": "6 y"
-    },
-    {
-      "x": 1120,
-      "label": "8 y"
-    },
-    {
-      "x": 1255,
-      "label": "11 y"
+      "x": 209.068,
+      "yNode": 682.548,
+      "yAxis": 570.581,
+      "title": "Object What",
+      "ageRange": "P14",
+      "stroke": "var(--mouse)",
+      "strokeWidth": 3,
+      "markerId": "mouseArrow",
+      "titleFill": "",
+      "ageFill": "",
+      "titleFontSize": 16,
+      "ageFontSize": 13
     }
   ],
-  "axisTicks": {
-    "enabled": false,
-    "y1": 432,
-    "y2": 448,
-    "strokeWidth": 2,
-    "stroke": "color-mix(in srgb, var(--text) 36%, transparent)",
-    "labelY": 472,
-    "labelClass": "svg-axis"
-  },
   "alignmentNote": {
     "rect": {
       "x": 140,
@@ -746,6 +719,33 @@
       }
     ]
   },
-  "customGroups": [],
-  "layoutMode": "dual"
+  "arrows": {
+    "mainArrow": {
+      "id": "mainArrow",
+      "markerWidth": 18,
+      "markerHeight": 18,
+      "refX": 18,
+      "refY": 9,
+      "path": "M0 0L18 9L0 18Z",
+      "fill": "var(--track)"
+    },
+    "humanArrow": {
+      "id": "humanArrow",
+      "markerWidth": 11,
+      "markerHeight": 11,
+      "refX": 11,
+      "refY": 5.5,
+      "path": "M0 0L11 5.5L0 11Z",
+      "fill": "var(--human)"
+    },
+    "mouseArrow": {
+      "id": "mouseArrow",
+      "markerWidth": 11,
+      "markerHeight": 11,
+      "refX": 11,
+      "refY": 5.5,
+      "path": "M0 0L11 5.5L0 11Z",
+      "fill": "var(--mouse)"
+    }
+  }
 }

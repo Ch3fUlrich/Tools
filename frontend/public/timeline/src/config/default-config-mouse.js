@@ -1,0 +1,127 @@
+/**
+ * Generated fallback for direct file:// browser use.
+ * Source of truth: configs/default-config/mouse.json
+ */
+window.TIMELINE_DEFAULT_CONFIG = window.TIMELINE_DEFAULT_CONFIG || {};
+Object.assign(window.TIMELINE_DEFAULT_CONFIG, {
+  "mouseRangeBlocks": [
+    {
+      "xStart": 230.809,
+      "xEnd": 453.315,
+      "y": 583.404,
+      "height": 40,
+      "title": "24h delay",
+      "ageRange": "P17 -> P28",
+      "fill": "var(--mouse-soft)",
+      "stroke": "var(--mouse)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 339.59,
+      "xEnd": 451.375,
+      "y": 677.306,
+      "height": 40,
+      "title": "What-Where 24h delay",
+      "ageRange": "P24 -> P28",
+      "fill": "var(--mouse-soft)",
+      "stroke": "var(--mouse)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 207.567,
+      "xEnd": 669.459,
+      "y": 628.659,
+      "height": 40,
+      "title": "Context what-where",
+      "ageRange": "P14 -> P35",
+      "fill": "var(--mouse-soft)",
+      "stroke": "var(--mouse)",
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 454.756,
+      "xEnd": 670.082,
+      "y": 714.902,
+      "height": 40,
+      "title": "Allocentric spatial what-where",
+      "ageRange": "P28 -> P35",
+      "fill": "var(--mouse-soft)",
+      "stroke": "var(--mouse)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 667.57,
+      "xEnd": 924.733,
+      "y": 584.088,
+      "height": 40,
+      "title": "W-W-W encoding",
+      "ageRange": "P35 -> P49",
+      "fill": "var(--mouse-soft)",
+      "stroke": "var(--mouse)",
+      "titleFill": "",
+      "ageFill": "",
+      "strokeWidth": 1.9,
+      "rx": 8,
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "xStart": 871.43,
+      "xEnd": 1176.46,
+      "y": 631.629,
+      "height": 40,
+      "title": "Recall limits",
+      "ageRange": "P46 -> P67",
+      "fill": "var(--mouse-soft)",
+      "stroke": "var(--mouse)",
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    }
+  ],
+  "mouseNodes": [
+    {
+      "x": 229.116,
+      "yNode": 722.834,
+      "yAxis": 570.581,
+      "title": "30min delay",
+      "ageRange": "P17",
+      "stroke": "var(--mouse)",
+      "strokeWidth": 3,
+      "markerId": "mouseArrow",
+      "titleFill": "",
+      "ageFill": "",
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    },
+    {
+      "x": 209.068,
+      "yNode": 682.548,
+      "yAxis": 570.581,
+      "title": "Object What",
+      "ageRange": "P14",
+      "stroke": "var(--mouse)",
+      "strokeWidth": 3,
+      "markerId": "mouseArrow",
+      "titleFill": "",
+      "ageFill": "",
+      "titleFontSize": 16,
+      "ageFontSize": 13
+    }
+  ]
+});

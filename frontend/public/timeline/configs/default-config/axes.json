@@ -1,0 +1,166 @@
+{
+  "mainAxis": {
+    "x1": 130,
+    "x2": 1325,
+    "y": 570.581,
+    "strokeWidth": 6,
+    "strokeLinecap": "round",
+    "stroke": "var(--track)",
+    "markerEnd": "url(#mainArrow)"
+  },
+  "axisRanges": [
+    {
+      "id": "humans-range",
+      "title": "",
+      "titleX": 130,
+      "titleY": 64.982,
+      "lineStartX": 130,
+      "lineEndX": 1315,
+      "lineY": 80.982,
+      "lineStroke": "color-mix(in srgb, var(--human) 75%, var(--text))",
+      "lineWidth": 1.8,
+      "tickDirection": "down",
+      "tickSize": 10,
+      "labelOffset": 12,
+      "tickStroke": "color-mix(in srgb, var(--text) 55%, transparent)",
+      "tickWidth": 1.5,
+      "titleClass": "svg-range-title",
+      "tickLabelClass": "svg-range-axis",
+      "ticks": [
+        {
+          "stageEdge": 0,
+          "label": "0 mo"
+        },
+        {
+          "stageEdge": 1,
+          "label": "6 mo"
+        },
+        {
+          "stageEdge": 2,
+          "label": "2 y"
+        },
+        {
+          "stageEdge": 3,
+          "label": "4 y"
+        },
+        {
+          "stageEdge": 4,
+          "label": "6 y"
+        },
+        {
+          "stageEdge": 5,
+          "label": "11 y+"
+        }
+      ],
+      "hidden": false
+    },
+    {
+      "id": "mice-range",
+      "title": "",
+      "titleX": 130,
+      "titleY": 939.589,
+      "lineStartX": 130,
+      "lineEndX": 1315,
+      "lineY": 792.589,
+      "lineStroke": "color-mix(in srgb, var(--mouse) 75%, var(--text))",
+      "lineWidth": 1.8,
+      "tickDirection": "up",
+      "tickSize": 10,
+      "labelOffset": 14,
+      "tickStroke": "color-mix(in srgb, var(--text) 55%, transparent)",
+      "tickWidth": 1.5,
+      "titleClass": "svg-range-title",
+      "tickLabelClass": "svg-range-axis",
+      "ticks": [
+        {
+          "stageEdge": 0,
+          "label": "P2"
+        },
+        {
+          "stageEdge": 1,
+          "label": "P21"
+        },
+        {
+          "stageEdge": 2,
+          "label": "P28"
+        },
+        {
+          "stageEdge": 3,
+          "label": "P35"
+        },
+        {
+          "stageEdge": 4,
+          "label": "P49"
+        },
+        {
+          "stageEdge": 5,
+          "label": "P77"
+        }
+      ],
+      "hidden": false
+    }
+  ],
+  "axisLabels": [
+    {
+      "x": 82,
+      "y": 332.282,
+      "text": "Humans",
+      "class": "svg-tag",
+      "fill": "var(--human)",
+      "transform": "rotate(-90 82 332.282)",
+      "hidden": false
+    },
+    {
+      "x": 82,
+      "y": 664.085,
+      "text": "Mice",
+      "class": "svg-tag",
+      "fill": "var(--mouse)",
+      "transform": "rotate(-90 82 664.085)",
+      "hidden": false
+    }
+  ],
+  "axisTicks": {
+    "enabled": false,
+    "y1": 432,
+    "y2": 448,
+    "strokeWidth": 2,
+    "stroke": "color-mix(in srgb, var(--text) 36%, transparent)",
+    "labelY": 472,
+    "labelClass": "svg-axis"
+  },
+  "humanAxisTicks": [
+    {
+      "x": 170,
+      "label": "6 mo"
+    },
+    {
+      "x": 410,
+      "label": "2 y"
+    },
+    {
+      "x": 570,
+      "label": "3 y"
+    },
+    {
+      "x": 720,
+      "label": "4 y"
+    },
+    {
+      "x": 870,
+      "label": "5 y"
+    },
+    {
+      "x": 1015,
+      "label": "6 y"
+    },
+    {
+      "x": 1120,
+      "label": "8 y"
+    },
+    {
+      "x": 1255,
+      "label": "11 y"
+    }
+  ]
+}

@@ -98,8 +98,8 @@
   }
 
   async function loadDefaultTimelineConfig() {
-    if (window.TIMELINE_DEFAULT_CONFIG) {
-      return useConfig(window.TIMELINE_DEFAULT_CONFIG, "./src/config/timeline-default-config.js");
+    if (window.TIMELINE_DEFAULT_CONFIG && Object.keys(window.TIMELINE_DEFAULT_CONFIG).length > 0) {
+      return useConfig(window.TIMELINE_DEFAULT_CONFIG, "./src/config/default-config-*.js");
     }
 
     try {

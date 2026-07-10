@@ -1,0 +1,57 @@
+{
+  "alignmentNote": {
+    "rect": {
+      "x": 140,
+      "y": 847.589,
+      "width": 1185,
+      "height": 62,
+      "rx": 10,
+      "fill": "var(--surface-2)",
+      "opacity": 0.88,
+      "stroke": "var(--divider)"
+    },
+    "lines": [
+      {
+        "x": 158,
+        "y": 871.589,
+        "text": "Mouse windows are aligned approximately to the human developmental bands.",
+        "class": "svg-axis-faint"
+      },
+      {
+        "x": 158,
+        "y": 893.589,
+        "text": "Source: Based on data from Episodic memory development: Bridging animal and human research. Bevandić et al. 2024 (https://doi.org/10.1016/j.neuron.2024.01.020)",
+        "class": "svg-axis-faint"
+      }
+    ]
+  },
+  "arrows": {
+    "mainArrow": {
+      "id": "mainArrow",
+      "markerWidth": 18,
+      "markerHeight": 18,
+      "refX": 18,
+      "refY": 9,
+      "path": "M0 0L18 9L0 18Z",
+      "fill": "var(--track)"
+    },
+    "humanArrow": {
+      "id": "humanArrow",
+      "markerWidth": 11,
+      "markerHeight": 11,
+      "refX": 11,
+      "refY": 5.5,
+      "path": "M0 0L11 5.5L0 11Z",
+      "fill": "var(--human)"
+    },
+    "mouseArrow": {
+      "id": "mouseArrow",
+      "markerWidth": 11,
+      "markerHeight": 11,
+      "refX": 11,
+      "refY": 5.5,
+      "path": "M0 0L11 5.5L0 11Z",
+      "fill": "var(--mouse)"
+    }
+  }
+}
