@@ -4,8 +4,6 @@ mod middleware;
 mod tools;
 
 use axum::http::{header, Method};
-use axum::Json;
-use serde_json::json;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -204,20 +202,6 @@ async fn main() {
         tracing::error!("Server error: {}", e);
         std::process::exit(1);
     }
-}
-
-/// Root endpoint
-#[allow(dead_code)]
-async fn root() -> Json<serde_json::Value> {
-    Json(json!({
-        "name": "Tools Backend API",
-        "version": "0.1.0",
-        "endpoints": [
-            "/api/health",
-            "/api/tools/fat-loss",
-            "/api/tools/n26-analyzer"
-        ]
-    }))
 }
 
 #[test]
