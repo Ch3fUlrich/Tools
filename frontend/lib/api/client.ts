@@ -361,8 +361,6 @@ export interface Substance {
 export interface SubstanceIntakeRequest {
   substance: string;
   time: string;
-  intake_type: string;
-  time_after_meal: number | null;
   dosage_mg: number;
 }
 

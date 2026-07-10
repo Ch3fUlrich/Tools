@@ -8,8 +8,6 @@ async fn test_bloodlevel_single_intake_amount_positive() {
     let intake = SubstanceIntake {
         substance: "Caffeine".to_string(),
         time: now - chrono::Duration::hours(1),
-        intake_type: "oral".to_string(),
-        time_after_meal: None,
         dosage_mg: 100.0,
     };
 
@@ -26,8 +24,6 @@ async fn test_bloodlevel_future_intake_skipped() {
     let intake = SubstanceIntake {
         substance: "Caffeine".to_string(),
         time: now + chrono::Duration::hours(1),
-        intake_type: "oral".to_string(),
-        time_after_meal: None,
         dosage_mg: 100.0,
     };
 
@@ -44,8 +40,6 @@ async fn test_bloodlevel_missing_substance_error() {
     let intake = SubstanceIntake {
         substance: "NotARealDrug".to_string(),
         time: now - chrono::Duration::hours(1),
-        intake_type: "oral".to_string(),
-        time_after_meal: None,
         dosage_mg: 50.0,
     };
 

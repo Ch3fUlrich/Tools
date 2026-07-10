@@ -99,8 +99,6 @@ const BloodLevelCalculator: React.FC = () => {
           .map(intake => ({
             substance: intake.substance,
             time: intake.time,
-            intake_type: intake.intakeType,
-            time_after_meal: intake.timeAfterMeal,
             dosage_mg: intake.dosageMg,
           })),
         time_points: timePoints,
