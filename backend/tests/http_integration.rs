@@ -48,6 +48,17 @@ async fn test_http_endpoints() {
         .await;
     assert!(resp.status_code().is_success());
 
+    // 2b) Test batch dice roll
+    let batch_body = r#"[{"die":{"type":"d20"},"count":1}, {"die":{"type":"d6"},"count":2}]"#;
+    let resp = server
+        .post("/api/tools/dice/roll")
+        .json(&serde_json::from_str::<serde_json::Value>(batch_body).unwrap())
+        .await;
+    assert!(resp.status_code().is_success());
+    let resp_json: serde_json::Value = resp.json();
+    assert_eq!(resp_json["rolls"].as_array().unwrap().len(), 2);
+    assert_eq!(resp_json["summary"]["totalRollsRequested"], 2);
+
     // 3) Save a roll (anonymous -> DB fallback)
     let body = r#"{"payload":{"http_test":true}}"#;
     let resp = server

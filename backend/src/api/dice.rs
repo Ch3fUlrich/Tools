@@ -17,14 +17,23 @@ lazy_static! {
         Mutex::new(HashMap::new());
 }
 
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum RollPayload {
+    Single(dice_logic::DiceRequest),
+    Batch(Vec<dice_logic::DiceRequest>),
+}
+
 #[debug_handler]
 pub async fn roll(
     Extension(store): Extension<Option<Arc<AsyncMutex<SessionStore>>>>,
     headers: axum::http::HeaderMap,
     Json(payload): Json<JsonValue>,
 ) -> impl IntoResponse {
-    // Attempt to deserialize into DiceRequest
-    let req: dice_logic::DiceRequest = match serde_json::from_value(payload) {
+    // Attempt to deserialize into RollPayload
+    let payload_parsed: RollPayload = match serde_json::from_value(payload) {
         Ok(r) => r,
         Err(e) => {
             return (
@@ -94,8 +103,38 @@ pub async fn roll(
         }
     }
 
-    match dice_logic::handle_roll(req).await {
-        Ok(resp) => (axum::http::StatusCode::OK, axum::Json(resp)).into_response(),
-        Err(e) => (axum::http::StatusCode::BAD_REQUEST, axum::Json(e)).into_response(),
+    match payload_parsed {
+        RollPayload::Single(req) => match dice_logic::handle_roll(req).await {
+            Ok(resp) => (axum::http::StatusCode::OK, axum::Json(resp)).into_response(),
+            Err(e) => (axum::http::StatusCode::BAD_REQUEST, axum::Json(e)).into_response(),
+        },
+        RollPayload::Batch(reqs) => {
+            let mut all_rolls = Vec::new();
+            let mut total_requested = 0;
+
+            for req in reqs {
+                match dice_logic::handle_roll(req).await {
+                    Ok(mut resp) => {
+                        all_rolls.append(&mut resp.rolls);
+                        if let Some(summary) = resp.summary.as_object() {
+                            if let Some(count) =
+                                summary.get("totalRollsRequested").and_then(|v| v.as_u64())
+                            {
+                                total_requested += count;
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        return (axum::http::StatusCode::BAD_REQUEST, axum::Json(e)).into_response()
+                    }
+                }
+            }
+
+            let combined_resp = dice_logic::DiceResponse {
+                rolls: all_rolls,
+                summary: serde_json::json!({ "totalRollsRequested": total_requested }),
+            };
+            (axum::http::StatusCode::OK, axum::Json(combined_resp)).into_response()
+        }
     }
 }

@@ -11,8 +11,6 @@ import { rollDiceLocal } from '@/lib/local/dice';
 import { calculateFatLossLocal } from '@/lib/local/fatLoss';
 import { analyzeN26DataLocal } from '@/lib/local/n26';
 import { getSubstancesLocal, calculateToleranceLocal } from '@/lib/local/bloodLevel';
-import type { DiceRequest as DiceRequestFull } from '@/lib/types/dice';
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 /** Default request timeout in milliseconds (15 seconds). */
@@ -185,7 +183,7 @@ export interface RollDicePayload {
   advantage?: 'none' | 'adv' | 'dis';
 }
 
-export async function rollDice(payload: RollDicePayload) {
+export async function rollDice(payload: RollDicePayload | RollDicePayload[]) {
   return withLocalFallback(
     () =>
       apiRequest(
@@ -197,7 +195,8 @@ export async function rollDice(payload: RollDicePayload) {
         },
         'Roll API error',
       ),
-    () => rollDiceLocal(payload as DiceRequestFull),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    () => rollDiceLocal(payload as any),
   );
 }
 
