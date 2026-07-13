@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 
 use serde::{Deserialize, Serialize};
 
@@ -34,19 +33,11 @@ const JOULES_PER_KCAL: f64 = 4184.0;
 pub struct SegmentMassFractions;
 
 impl SegmentMassFractions {
-    pub const HEAD_NECK: f64 = 0.081;
     pub const TRUNK: f64 = 0.497;
     pub const UPPER_ARM: f64 = 0.028; // per arm
     pub const LOWER_ARM_HAND: f64 = 0.022; // per arm
     pub const UPPER_LEG: f64 = 0.100; // per leg
     pub const LOWER_LEG_FOOT: f64 = 0.061; // per leg
-
-    /// Center of mass position as fraction from proximal joint
-    pub const COM_TRUNK: f64 = 0.440;
-    pub const COM_UPPER_ARM: f64 = 0.436;
-    pub const COM_LOWER_ARM: f64 = 0.682;
-    pub const COM_UPPER_LEG: f64 = 0.433;
-    pub const COM_LOWER_LEG: f64 = 0.606;
 }
 
 // ============================================================================
@@ -68,15 +59,6 @@ pub struct BodyMeasurements {
     pub shoulder_width_cm: Option<f64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SegmentMasses {
-    pub trunk: f64,
-    pub upper_arm: f64,
-    pub lower_arm_hand: f64,
-    pub upper_leg: f64,
-    pub lower_leg_foot: f64,
-    pub total: f64,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Tempo {
@@ -86,11 +68,6 @@ pub struct Tempo {
     pub pause_top_s: f64,
 }
 
-impl Tempo {
-    pub fn standard() -> Self {
-        Self { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 }
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -126,47 +103,13 @@ pub struct RepEnergy {
     pub isometric_joules: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct MuscleMapping {
-    pub muscle_name: String,
-    pub involvement: String,
-    pub activation_fraction: f64,
-}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct MuscleEnergy {
-    pub muscle_name: String,
-    pub energy_kcal: f64,
-    pub share_fraction: f64,
-}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SessionStats {
-    pub total_energy_kcal: f64,
-    pub total_volume_kg: f64,
-    pub total_sets: u32,
-    pub total_reps: u32,
-}
 
 // ============================================================================
 // CORE COMPUTATION FUNCTIONS
 // ============================================================================
 
-/// Compute the mass of each body segment from total body weight.
-#[must_use]
-pub fn compute_segment_masses(body_weight_kg: f64) -> SegmentMasses {
-    SegmentMasses {
-        trunk: body_weight_kg * SegmentMassFractions::TRUNK,
-        upper_arm: body_weight_kg * SegmentMassFractions::UPPER_ARM,
-        lower_arm_hand: body_weight_kg * SegmentMassFractions::LOWER_ARM_HAND,
-        upper_leg: body_weight_kg * SegmentMassFractions::UPPER_LEG,
-        lower_leg_foot: body_weight_kg * SegmentMassFractions::LOWER_LEG_FOOT,
-        total: body_weight_kg,
-    }
-}
 
 /// Compute the mass of the segments being moved for a given exercise.
 /// For bilateral exercises, both arms/legs are counted.
@@ -402,82 +345,6 @@ pub fn compute_set_energy(params: &SetEnergyParams) -> SetEnergy {
     }
 }
 
-/// Distribute total set energy across the muscles involved in the exercise.
-///
-/// Energy is attributed based on involvement pools:
-/// - Primary muscles share 60% of total energy
-/// - Secondary muscles share 30%
-/// - Stabilizer muscles share 10%
-///
-/// Within each pool, energy is weighted by activation_fraction.
-#[must_use]
-pub fn attribute_muscle_energy(
-    total_energy_kcal: f64,
-    mappings: &[MuscleMapping],
-) -> Vec<MuscleEnergy> {
-    if mappings.is_empty() || total_energy_kcal <= 0.0 {
-        return vec![];
-    }
-
-    let pool_fraction = |involvement: &str| -> f64 {
-        match involvement {
-            "primary" => 0.60,
-            "secondary" => 0.30,
-            "stabilizer" => 0.10,
-            _ => 0.0,
-        }
-    };
-
-    // Compute sum of activation_fraction per involvement pool
-    let mut pool_sums: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
-    for m in mappings {
-        *pool_sums.entry(m.involvement.clone()).or_insert(0.0) += m.activation_fraction;
-    }
-
-    let mut energies: Vec<MuscleEnergy> = mappings
-        .iter()
-        .map(|m| {
-            let pool_frac = pool_fraction(&m.involvement);
-            let pool_sum = pool_sums.get(&m.involvement).copied().unwrap_or(1.0);
-            let share =
-                if pool_sum > 0.0 { (m.activation_fraction / pool_sum) * pool_frac } else { 0.0 };
-            MuscleEnergy {
-                muscle_name: m.muscle_name.clone(),
-                energy_kcal: total_energy_kcal * share,
-                share_fraction: share,
-            }
-        })
-        .collect();
-
-    // Normalize so all energy is distributed even when some pools (e.g. stabilizers) are absent.
-    let total_share: f64 = energies.iter().map(|e| e.share_fraction).sum();
-    if total_share > 0.0 && (total_share - 1.0).abs() > 1e-9 {
-        for e in &mut energies {
-            e.share_fraction /= total_share;
-            e.energy_kcal = total_energy_kcal * e.share_fraction;
-        }
-    }
-    energies
-}
-
-/// Estimate 1-rep max from a set using the Epley formula.
-/// Returns None if reps is 0 or 1 (direct 1RM) or weight is 0.
-#[must_use]
-pub fn estimate_1rm(weight_kg: f64, reps: u32) -> Option<f64> {
-    if weight_kg <= 0.0 || reps == 0 {
-        return None;
-    }
-    if reps == 1 {
-        return Some(weight_kg);
-    }
-    Some(weight_kg * (1.0 + reps as f64 / 30.0))
-}
-
-/// Compute total volume for a collection of sets: sum(weight_kg * reps)
-#[must_use]
-pub fn compute_volume(sets: &[(f64, u32)]) -> f64 {
-    sets.iter().map(|(w, r)| w * *r as f64).sum()
-}
 
 // ============================================================================
 // PLATE CALCULATOR
@@ -552,25 +419,6 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_segment_mass_fractions_sum_approximately_to_one() {
-        let sum = SegmentMassFractions::HEAD_NECK
-            + SegmentMassFractions::TRUNK
-            + 2.0 * SegmentMassFractions::UPPER_ARM
-            + 2.0 * SegmentMassFractions::LOWER_ARM_HAND
-            + 2.0 * SegmentMassFractions::UPPER_LEG
-            + 2.0 * SegmentMassFractions::LOWER_LEG_FOOT;
-
-        assert!((sum - 1.0).abs() < 0.01, "Segment fractions should sum to ~1.0, got {sum}");
-    }
-
-    #[test]
-    fn test_segment_masses_proportional_to_body_weight() {
-        let masses = compute_segment_masses(80.0);
-        assert!((masses.trunk - 39.76).abs() < 0.1); // 0.497 * 80
-        assert!((masses.upper_arm - 2.24).abs() < 0.1);
-        assert!((masses.upper_leg - 8.0).abs() < 0.1);
-    }
 
     #[test]
     fn test_moving_segment_mass_bilateral() {
@@ -631,7 +479,7 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.0,
             measurements: test_measurements(),
-            tempo: Tempo::standard(),
+            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
         };
         let energy = compute_set_energy(&params);
         // Even with 0 external weight, segment mass contributes energy
@@ -651,7 +499,7 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.0,
             measurements: test_measurements(),
-            tempo: Tempo::standard(),
+            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
         };
         let energy = compute_set_energy(&params);
         assert_eq!(energy.total_kcal, 0.0);
@@ -669,7 +517,7 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.0,
             measurements: test_measurements(),
-            tempo: Tempo::standard(),
+            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
         };
         let energy = compute_set_energy(&params);
 
@@ -692,7 +540,7 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.0,
             measurements: m.clone(),
-            tempo: Tempo::standard(),
+            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
         };
         let squat = SetEnergyParams {
             weight_kg: 100.0,
@@ -704,7 +552,7 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.0,
             measurements: m,
-            tempo: Tempo::standard(),
+            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
         };
 
         let bench_e = compute_set_energy(&bench);
@@ -721,7 +569,7 @@ mod tests {
     #[test]
     fn test_tempo_affects_energy() {
         let m = test_measurements();
-        let standard = Tempo::standard(); // 2-0-1-0
+        let standard = Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 }; // 2-0-1-0
         let slow =
             Tempo { eccentric_s: 4.0, pause_bottom_s: 2.0, concentric_s: 2.0, pause_top_s: 1.0 };
         let explosive =
@@ -765,7 +613,7 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.64, // push-up
             measurements: test_measurements(),
-            tempo: Tempo::standard(),
+            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
         };
         let energy = compute_set_energy(&params);
 
@@ -792,101 +640,6 @@ mod tests {
         assert!(energy.total_kcal > 0.0, "Plank should have energy cost");
         assert_eq!(energy.potential_kcal, 0.0, "Plank has no potential energy");
         assert!(energy.isometric_kcal > 0.0, "Plank energy should be isometric");
-    }
-
-    #[test]
-    fn test_muscle_attribution_sums_to_total() {
-        let mappings = vec![
-            MuscleMapping {
-                muscle_name: "chest".to_string(),
-                involvement: "primary".to_string(),
-                activation_fraction: 1.0,
-            },
-            MuscleMapping {
-                muscle_name: "front_deltoid".to_string(),
-                involvement: "secondary".to_string(),
-                activation_fraction: 0.6,
-            },
-            MuscleMapping {
-                muscle_name: "triceps".to_string(),
-                involvement: "secondary".to_string(),
-                activation_fraction: 0.7,
-            },
-        ];
-
-        let total_energy = 10.0;
-        let attributed = attribute_muscle_energy(total_energy, &mappings);
-
-        let sum: f64 = attributed.iter().map(|m| m.energy_kcal).sum();
-        assert!(
-            (sum - total_energy).abs() < 0.01,
-            "Attributed energy ({sum}) should equal total ({total_energy})"
-        );
-    }
-
-    #[test]
-    fn test_muscle_attribution_primary_gets_most() {
-        let mappings = vec![
-            MuscleMapping {
-                muscle_name: "chest".to_string(),
-                involvement: "primary".to_string(),
-                activation_fraction: 1.0,
-            },
-            MuscleMapping {
-                muscle_name: "triceps".to_string(),
-                involvement: "secondary".to_string(),
-                activation_fraction: 0.7,
-            },
-            MuscleMapping {
-                muscle_name: "abs".to_string(),
-                involvement: "stabilizer".to_string(),
-                activation_fraction: 0.3,
-            },
-        ];
-
-        let attributed = attribute_muscle_energy(10.0, &mappings);
-        let chest = attributed.iter().find(|m| m.muscle_name == "chest").unwrap();
-        let triceps = attributed.iter().find(|m| m.muscle_name == "triceps").unwrap();
-        let abs = attributed.iter().find(|m| m.muscle_name == "abs").unwrap();
-
-        assert!(chest.energy_kcal > triceps.energy_kcal);
-        assert!(triceps.energy_kcal > abs.energy_kcal);
-    }
-
-    #[test]
-    fn test_muscle_attribution_empty() {
-        let result = attribute_muscle_energy(10.0, &[]);
-        assert!(result.is_empty());
-    }
-
-    #[test]
-    fn test_1rm_estimation() {
-        // Epley: 1RM = weight * (1 + reps/30)
-        let rm = estimate_1rm(100.0, 10).unwrap();
-        assert!((rm - 133.33).abs() < 0.1, "1RM estimate: {rm}");
-    }
-
-    #[test]
-    fn test_1rm_single_rep() {
-        let rm = estimate_1rm(150.0, 1).unwrap();
-        assert_eq!(rm, 150.0);
-    }
-
-    #[test]
-    fn test_1rm_zero_weight() {
-        assert!(estimate_1rm(0.0, 10).is_none());
-    }
-
-    #[test]
-    fn test_1rm_zero_reps() {
-        assert!(estimate_1rm(100.0, 0).is_none());
-    }
-
-    #[test]
-    fn test_volume_calculation() {
-        let sets = vec![(100.0, 10u32), (90.0, 8), (80.0, 12)];
-        let volume = compute_volume(&sets);
-        assert!((volume - 2680.0).abs() < 0.01);
     }
 
     #[test]
@@ -944,7 +697,7 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.0,
             measurements: m.clone(),
-            tempo: Tempo::standard(),
+            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
         };
         let unilateral = SetEnergyParams { is_unilateral: true, ..bilateral.clone() };
 
