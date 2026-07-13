@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 // ============================================================================
@@ -59,7 +58,6 @@ pub struct BodyMeasurements {
     pub shoulder_width_cm: Option<f64>,
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Tempo {
     pub eccentric_s: f64,
@@ -67,7 +65,6 @@ pub struct Tempo {
     pub concentric_s: f64,
     pub pause_top_s: f64,
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -103,13 +100,9 @@ pub struct RepEnergy {
     pub isometric_joules: f64,
 }
 
-
-
-
 // ============================================================================
 // CORE COMPUTATION FUNCTIONS
 // ============================================================================
-
 
 /// Compute the mass of the segments being moved for a given exercise.
 /// For bilateral exercises, both arms/legs are counted.
@@ -345,7 +338,6 @@ pub fn compute_set_energy(params: &SetEnergyParams) -> SetEnergy {
     }
 }
 
-
 // ============================================================================
 // PLATE CALCULATOR
 // ============================================================================
@@ -419,7 +411,6 @@ mod tests {
         }
     }
 
-
     #[test]
     fn test_moving_segment_mass_bilateral() {
         let segments = vec!["upper_arm".to_string(), "lower_arm".to_string()];
@@ -479,7 +470,12 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.0,
             measurements: test_measurements(),
-            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
+            tempo: Tempo {
+                eccentric_s: 2.0,
+                pause_bottom_s: 0.0,
+                concentric_s: 1.0,
+                pause_top_s: 0.0,
+            },
         };
         let energy = compute_set_energy(&params);
         // Even with 0 external weight, segment mass contributes energy
@@ -499,7 +495,12 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.0,
             measurements: test_measurements(),
-            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
+            tempo: Tempo {
+                eccentric_s: 2.0,
+                pause_bottom_s: 0.0,
+                concentric_s: 1.0,
+                pause_top_s: 0.0,
+            },
         };
         let energy = compute_set_energy(&params);
         assert_eq!(energy.total_kcal, 0.0);
@@ -517,7 +518,12 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.0,
             measurements: test_measurements(),
-            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
+            tempo: Tempo {
+                eccentric_s: 2.0,
+                pause_bottom_s: 0.0,
+                concentric_s: 1.0,
+                pause_top_s: 0.0,
+            },
         };
         let energy = compute_set_energy(&params);
 
@@ -540,7 +546,12 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.0,
             measurements: m.clone(),
-            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
+            tempo: Tempo {
+                eccentric_s: 2.0,
+                pause_bottom_s: 0.0,
+                concentric_s: 1.0,
+                pause_top_s: 0.0,
+            },
         };
         let squat = SetEnergyParams {
             weight_kg: 100.0,
@@ -552,7 +563,12 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.0,
             measurements: m,
-            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
+            tempo: Tempo {
+                eccentric_s: 2.0,
+                pause_bottom_s: 0.0,
+                concentric_s: 1.0,
+                pause_top_s: 0.0,
+            },
         };
 
         let bench_e = compute_set_energy(&bench);
@@ -569,7 +585,8 @@ mod tests {
     #[test]
     fn test_tempo_affects_energy() {
         let m = test_measurements();
-        let standard = Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 }; // 2-0-1-0
+        let standard =
+            Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 }; // 2-0-1-0
         let slow =
             Tempo { eccentric_s: 4.0, pause_bottom_s: 2.0, concentric_s: 2.0, pause_top_s: 1.0 };
         let explosive =
@@ -613,7 +630,12 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.64, // push-up
             measurements: test_measurements(),
-            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
+            tempo: Tempo {
+                eccentric_s: 2.0,
+                pause_bottom_s: 0.0,
+                concentric_s: 1.0,
+                pause_top_s: 0.0,
+            },
         };
         let energy = compute_set_energy(&params);
 
@@ -697,7 +719,12 @@ mod tests {
             is_unilateral: false,
             body_mass_fraction_moved: 0.0,
             measurements: m.clone(),
-            tempo: Tempo { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 },
+            tempo: Tempo {
+                eccentric_s: 2.0,
+                pause_bottom_s: 0.0,
+                concentric_s: 1.0,
+                pause_top_s: 0.0,
+            },
         };
         let unilateral = SetEnergyParams { is_unilateral: true, ..bilateral.clone() };
 
