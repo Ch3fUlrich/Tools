@@ -109,6 +109,12 @@ pub async fn create_measurement(
     }
 }
 
+impl Default for TrainingCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub async fn list_measurements(
     AuthenticatedUser(user): AuthenticatedUser,
     Extension(pool): Extension<Arc<PgPool>>,
@@ -1160,13 +1166,14 @@ async fn compute_set_energy_for_log(
     req: &LogSetRequest,
 ) -> SetEnergy {
     // Fetch exercise data from cache or DB
-    let ex_data = cache.exercises.try_get_with(exercise_id, async {
+    let pool_clone = pool.clone();
+    let ex_data = cache.exercises.try_get_with(exercise_id, async move {
         let row = sqlx::query(
             "SELECT movement_pattern, primary_segments_moved, rom_degrees, is_bodyweight, is_unilateral, body_mass_fraction_moved
              FROM exercises WHERE id = $1"
         )
         .bind(exercise_id)
-        .fetch_optional(pool)
+        .fetch_optional(&pool_clone)
         .await
         .map_err(|_| "db error")?
         .ok_or("not found")?;
@@ -1201,13 +1208,14 @@ async fn compute_set_energy_for_log(
     };
 
     let measurements = if let Some(mid) = measurement_id {
-        let meas = cache.measurements.try_get_with(mid, async {
+        let pool_clone = pool.clone();
+        let meas = cache.measurements.try_get_with(mid, async move {
             let mr = sqlx::query(
                 "SELECT body_weight_kg, height_cm, upper_arm_length_cm, lower_arm_length_cm, upper_leg_length_cm, lower_leg_length_cm, torso_length_cm, arm_length_cm, leg_length_cm, shoulder_width_cm
                  FROM body_measurements WHERE id = $1"
             )
             .bind(mid)
-            .fetch_optional(pool)
+            .fetch_optional(&pool_clone)
             .await
             .map_err(|_| "db error")?
             .ok_or("not found")?;
