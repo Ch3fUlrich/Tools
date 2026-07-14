@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthContext';
-import { isBackendOffline } from '@/lib/api/backendStatus';
+import { useBackendStatus } from '@/lib/api/backendStatus';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,17 +13,8 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, redirectTo = '/auth' }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
-  const [offline, setOffline] = useState(false);
-
-  useEffect(() => {
-    // Check if offline status changes
-    setOffline(isBackendOffline());
-    
-    // Periodically recheck offline status for reactive UI if needed, 
-    // but the main check is at mount/render.
-    const interval = setInterval(() => setOffline(isBackendOffline()), 2000);
-    return () => clearInterval(interval);
-  }, []);
+  const backendStatus = useBackendStatus();
+  const offline = backendStatus === 'offline';
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated && !offline) {

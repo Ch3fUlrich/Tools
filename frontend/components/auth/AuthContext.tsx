@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { logoutUser, getUserProfile } from '@/lib/api/client';
+import { checkBackend } from '@/lib/api/backendStatus';
 
 interface User {
   id: string;
@@ -71,6 +72,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const refreshAuth = async () => {
     try {
+      // Ensure we know the backend status before auth finishes loading
+      await checkBackend();
+
       // Prefer sessionStorage (session-limited). If not present, fall back to localStorage.
       const s = sessionStorage.getItem('auth_user');
       const l = localStorage.getItem('auth_user');

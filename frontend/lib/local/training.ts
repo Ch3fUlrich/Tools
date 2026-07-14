@@ -14,7 +14,7 @@ export function listExercisesLocal() {
 }
 
 export function getExerciseLocal(id: string) {
-    return exercisesData.find((ex: any) => ex.id === id || ex.name === id) || null;
+    return exercisesData.find((ex: { id: string; name: string }) => ex.id === id || ex.name === id) || null;
 }
 
 // ============================================================================
@@ -239,9 +239,10 @@ export function computeDisplacement(
             return lowerLegM * (1.0 - Math.cos(romRad));
         case 'core':
             return 0.0;
-        case 'bodyweight_compound':
+        case 'bodyweight_compound': {
             const heightM = (measurements.heightCm ?? 175.0) / 100.0;
             return heightM * Math.sin(romRad * 0.5);
+        }
         case 'carry':
         case 'plyometric':
             return (upperLegM + lowerLegM) * 0.15;
@@ -309,7 +310,7 @@ export function computeSetEnergyLocal(params: SetEnergyParams): SetEnergy {
         params.isUnilateral
     );
 
-    let totalLoad = 0.0;
+    let totalLoad;
     if (params.isBodyweight) {
         totalLoad = params.measurements.bodyWeightKg * params.bodyMassFractionMoved + params.weightKg;
     } else {

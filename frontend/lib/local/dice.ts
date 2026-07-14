@@ -181,7 +181,7 @@ export function saveDiceRollLocal(payload: unknown): void {
     history.unshift(entry);
     if (history.length > 100) history.length = 100;
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(history));
-  } catch (e) {
+  } catch {
     // Ignore storage errors
   }
 }
@@ -190,7 +190,7 @@ export function getDiceHistoryLocal(): DiceHistoryEntry[] {
   try {
     const data = localStorage.getItem(LOCAL_STORAGE_KEY);
     return data ? JSON.parse(data) : [];
-  } catch (e) {
+  } catch {
     return [];
   }
 }

@@ -13,7 +13,8 @@ import {
   LogSetRequest,
   LogSetResponse,
 } from '../api/client';
-import { getExerciseLocal, computeSetEnergyLocal, defaultTempo } from './training';
+/* global IDBDatabase, indexedDB, IDBOpenDBRequest, crypto, IDBKeyRange, IDBRequest */
+import { getExerciseLocal, computeSetEnergyLocal } from './training';
 
 const DB_NAME = 'ToolsTrainingDB';
 const DB_VERSION = 1;
@@ -96,7 +97,7 @@ export class TrainingStore {
     });
   }
 
-  private async put(storeName: string, item: any): Promise<void> {
+  private async put(storeName: string, item: unknown): Promise<void> {
     await this.init();
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction(storeName, 'readwrite');
@@ -271,7 +272,7 @@ export class TrainingStore {
     const session = await this.get<WorkoutSession>('sessions', id);
     if (!session) throw new Error('Session not found');
     
-    let toUpdate = { ...session, ...data };
+    const toUpdate = { ...session, ...data };
     if (data.status === 'completed' && session.status !== 'completed') {
       toUpdate.completedAt = new Date().toISOString();
       // recalculate total energy
@@ -312,7 +313,7 @@ export class TrainingStore {
       romDegrees: ex.romDegrees,
       isBodyweight: ex.isBodyweight,
       isUnilateral: ex.isUnilateral,
-      bodyMassFractionMoved: (ex.metadata as any)?.bodyMassFractionMoved || 0.6,
+      bodyMassFractionMoved: (ex.metadata as Record<string, unknown>)?.bodyMassFractionMoved as number || 0.6,
       measurements: measurements,
       tempo,
     });
@@ -359,7 +360,7 @@ export class TrainingStore {
 
   // --- Stats ---
 
-  async statsEnergy(filters?: { from?: string; to?: string; planId?: string; exerciseId?: string }): Promise<{ data: any[] }> {
+  async statsEnergy(filters?: { from?: string; to?: string; planId?: string; exerciseId?: string }): Promise<{ data: Array<{ date: string; energyKcal: number }> }> {
     const sessions = (await this.listSessions(filters)).sessions;
     const sessionIds = new Set(sessions.map(s => s.id));
     
@@ -384,7 +385,7 @@ export class TrainingStore {
     return { data };
   }
 
-  async statsVolume(filters?: { from?: string; to?: string; planId?: string; exerciseId?: string }): Promise<{ data: any[] }> {
+  async statsVolume(filters?: { from?: string; to?: string; planId?: string; exerciseId?: string }): Promise<{ data: Array<{ date: string; volumeKg: number }> }> {
     const sessions = (await this.listSessions(filters)).sessions;
     const sessionIds = new Set(sessions.map(s => s.id));
     

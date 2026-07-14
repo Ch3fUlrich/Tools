@@ -17,8 +17,7 @@ import {
   listExercisesLocal,
   getExerciseLocal,
   computeSetEnergyLocal,
-  calculatePlatesLocal,
-  attributeMuscleEnergyLocal
+  calculatePlatesLocal
 } from '@/lib/local/training';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -737,12 +736,12 @@ export async function listExercises(filters?: {
   return withLocalFallback(
     () => authGet(`${T}/exercises${q}`, 'Failed to load exercises'),
     async () => {
-      let ex = listExercisesLocal();
+      let ex = listExercisesLocal() as unknown as Exercise[];
       if (filters?.search) {
         const query = filters.search.toLowerCase();
-        ex = ex.filter((e: any) => e.name.toLowerCase().includes(query) || e.description?.toLowerCase().includes(query));
+        ex = ex.filter(e => e.name.toLowerCase().includes(query) || e.description?.toLowerCase().includes(query));
       }
-      return { exercises: ex as any };
+      return { exercises: ex };
     }
   );
 }
@@ -753,7 +752,7 @@ export async function getExercise(id: string): Promise<Exercise> {
     async () => {
       const ex = getExerciseLocal(id);
       if (!ex) throw new Error('Exercise not found');
-      return ex as any;
+      return ex as unknown as Exercise;
     }
   );
 }
@@ -939,11 +938,11 @@ export async function calculateEnergy(req: CalculateEnergyRequest): Promise<SetE
         weightKg: req.weightKg,
         reps: req.reps,
         movementPattern: ex.movementPattern,
-        primarySegmentsMoved: ex.muscles?.map((m: any) => m.muscleName) || [],
+        primarySegmentsMoved: ex.muscles?.map((m: { muscleName: string }) => m.muscleName) || [],
         romDegrees: ex.romDegrees,
         isBodyweight: ex.isBodyweight,
         isUnilateral: ex.isUnilateral,
-        bodyMassFractionMoved: (ex.metadata as any)?.bodyMassFractionMoved || 0.6,
+        bodyMassFractionMoved: (ex.metadata as Record<string, unknown>)?.bodyMassFractionMoved as number || 0.6,
         measurements: m || defaultM,
         tempo: {
           eccentricS: req.tempoEccentricS ?? 2.0,
