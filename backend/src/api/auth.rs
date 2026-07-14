@@ -73,7 +73,7 @@ pub async fn login(
                                 serde_json::to_string(&json!({"error":"internal"}))
                                     .unwrap_or_else(|_| "{\"error\":\"internal\"}".to_string()),
                             )
-                            .unwrap();
+                            .unwrap_or_default();
                     }
                 };
 
@@ -90,7 +90,7 @@ pub async fn login(
                                     "{\"error\":\"session store unavailable\"}".to_string()
                                 }),
                             )
-                            .unwrap();
+                            .unwrap_or_default();
                     }
                 };
                 let mut guard = store.lock().await;
@@ -104,7 +104,7 @@ pub async fn login(
                                 serde_json::to_string(&json!({"error":"internal"}))
                                     .unwrap_or_else(|_| "{\"error\":\"internal\"}".to_string()),
                             )
-                            .unwrap();
+                            .unwrap_or_default();
                     }
                 };
 
@@ -124,7 +124,7 @@ pub async fn login(
                     .status(StatusCode::OK)
                     .header(header::SET_COOKIE, cookie)
                     .body(body)
-                    .unwrap();
+                    .unwrap_or_default();
             }
             Response::builder()
                 .status(StatusCode::UNAUTHORIZED)
@@ -132,7 +132,7 @@ pub async fn login(
                     serde_json::to_string(&json!({"error":"invalid credentials"}))
                         .unwrap_or_else(|_| "{\"error\":\"invalid credentials\"}".to_string()),
                 )
-                .unwrap()
+                .unwrap_or_default()
         }
         _ => Response::builder()
             .status(StatusCode::UNAUTHORIZED)
@@ -140,7 +140,7 @@ pub async fn login(
                 serde_json::to_string(&json!({"error":"invalid credentials"}))
                     .unwrap_or_else(|_| "{\"error\":\"invalid credentials\"}".to_string()),
             )
-            .unwrap(),
+            .unwrap_or_default(),
     }
 }
 
@@ -171,7 +171,7 @@ pub async fn logout(
             serde_json::to_string(&json!({"ok":true}))
                 .unwrap_or_else(|_| "{\"ok\":true}".to_string()),
         )
-        .unwrap()
+        .unwrap_or_default()
 }
 
 pub async fn get_profile(
