@@ -2,6 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { vi, beforeEach, describe, it, expect } from 'vitest';
+import * as diceModule from '@/lib/local/dice';
 
 // Mock rollDice API
 const mockRollDice = vi.fn();
@@ -26,8 +27,8 @@ describe('DiceRoller targeted branches for coverage', () => {
       rolls: [ { sum: 2, average: 2, perDie: [{ original: [2], final: 2 }], used: [2] } ]
     });
 
-    // Mock Math.random so a reroll produces value 5 for a d6
-    const mathSpy = vi.spyOn(Math, 'random').mockReturnValue(0.8);
+    // Mock randomDieValue so a reroll produces value 5 for a d6
+    const mathSpy = vi.spyOn(diceModule, 'randomDieValue').mockReturnValue(5);
 
     render(<DiceRoller />);
 

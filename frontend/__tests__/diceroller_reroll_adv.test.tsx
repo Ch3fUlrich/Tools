@@ -3,6 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import DiceRoller from '@/components/tools/DiceRoller';
 import { vi } from 'vitest';
+import * as diceModule from '@/lib/local/dice';
 
 vi.mock('@/lib/api/client', async () => ({
   rollDice: vi.fn(),
@@ -22,8 +23,8 @@ describe('DiceRoller reroll and numeric modifier', () => {
       summary: { totalRollsRequested: 1 }
     });
 
-    // Mock Math.random to return a large value so rerolled value becomes 6 for a d6
-    const mathSpy = vi.spyOn(Math, 'random').mockReturnValue(0.99);
+    // Mock randomDieValue to return 6
+    const mathSpy = vi.spyOn(diceModule, 'randomDieValue').mockReturnValue(6);
 
     render(<DiceRoller />);
 

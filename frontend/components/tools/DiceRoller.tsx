@@ -13,6 +13,7 @@ import DiceHistory from './DiceHistory';
 import Boxplot from '../charts/Boxplot';
 import Histogram from '../charts/Histogram';
 import type { DiceResponse, DiceRequest } from '../../lib/types/dice';
+import { randomDieValue } from '../../lib/local/dice';
 
 const LS_HISTORY_KEY = 'dice_history_local';
 
@@ -257,7 +258,7 @@ const onRoll = async () => {
             const maxAttempts = 3;
             let attempts = 0;
             while (rerollCond(finalVal) && attempts < maxAttempts) {
-              finalVal = Math.floor(Math.random() * sides) + 1;
+              finalVal = randomDieValue(sides);
               attempts += 1;
             }
             groupRerollCount += attempts;
