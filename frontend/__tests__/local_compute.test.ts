@@ -162,11 +162,30 @@ describe('local N26 analysis', () => {
 
   it('skips malformed entries and rejects missing data object', () => {
     const res = analyzeN26DataLocal({
-      data: { cash26Data: [{ amount: 'oops' }, null, 5] },
+      data: {
+        cash26Data: [{ amount: 'oops' }, null, 5],
+        cardTransactions: [{ end_amount: 'oops' }, null, 5, { end_amount: 10, transaction_date: '2024-01-04' }, { transaction_date: '2024-01-05', merchant_name: 'Shop' }],
+      },
     });
     expect(res.transactions).toHaveLength(0);
     expect(res.overall_total).toBe(0);
 
     expect(() => analyzeN26DataLocal({} as Record<string, unknown>)).toThrow(/Invalid N26 data/);
+    expect(() => analyzeN26DataLocal({ data: null })).toThrow(/Invalid N26 data/);
+    expect(() => analyzeN26DataLocal({ data: "not an object" })).toThrow(/Invalid N26 data/);
+  });
+
+  it('handles cardTransactions fallback to end_amount when original_amount is missing', () => {
+    const res = analyzeN26DataLocal({
+      data: {
+        cardTransactions: [
+          { end_amount: 25, transaction_date: '2024-01-04', merchant_name: 'Fallback Shop' },
+        ],
+      },
+    });
+    expect(res.transactions).toHaveLength(1);
+    expect(res.category_totals.cardTransactions).toBeCloseTo(-25);
+    expect(res.overall_total).toBeCloseTo(-25);
+    expect(res.transactions[0].comment).toBe('Fallback Shop: 25');
   });
 });
