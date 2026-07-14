@@ -319,13 +319,6 @@ impl SessionStore {
         Ok(result)
     }
 
-    // Helper for naming history key for sid
-    #[allow(dead_code)]
-    #[must_use]
-    pub fn history_key(&self, sid: &str) -> String {
-        format!("{}:history:{}", self.namespace, sid)
-    }
-
     // Sliding-window rate limiter using a Redis sorted set keyed by provided key.
     // Adds an entry with score == current unix seconds and trims entries older than window_secs.
     // Returns Ok(true) if the number of entries after adding is <= limit, otherwise false.
