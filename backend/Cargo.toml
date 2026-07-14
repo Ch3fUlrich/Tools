@@ -26,6 +26,7 @@ oauth2 = "5.0"
 base64 = "0.21"
 anyhow = "1.0"
 rust-embed = "8.11.0"
+moka = { version = "0.12.15", features = ["future"] }
 
 [dev-dependencies]
 axum-test = "19.1"

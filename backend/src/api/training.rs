@@ -104,6 +104,12 @@ pub async fn create_measurement(
     }
 }
 
+impl Default for TrainingCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub async fn list_measurements(
     AuthenticatedUser(user): AuthenticatedUser,
     Extension(pool): Extension<Arc<PgPool>>,
@@ -1025,9 +1031,34 @@ pub struct LogSetRequest {
     pub notes: Option<String>,
 }
 
+#[derive(Clone)]
+pub struct ExerciseData {
+    pub movement_pattern: String,
+    pub primary_segments_moved: Vec<String>,
+    pub rom_degrees: f64,
+    pub is_bodyweight: bool,
+    pub is_unilateral: bool,
+    pub body_mass_fraction_moved: f64,
+}
+
+pub struct TrainingCache {
+    pub exercises: moka::future::Cache<Uuid, Arc<ExerciseData>>,
+    pub measurements: moka::future::Cache<Uuid, Arc<crate::tools::training::BodyMeasurements>>,
+}
+
+impl TrainingCache {
+    pub fn new() -> Self {
+        Self {
+            exercises: moka::future::Cache::builder().max_capacity(10_000).build(),
+            measurements: moka::future::Cache::builder().max_capacity(10_000).time_to_live(std::time::Duration::from_secs(600)).build(),
+        }
+    }
+}
+
 pub async fn log_set(
     AuthenticatedUser(user): AuthenticatedUser,
     Extension(pool): Extension<Arc<PgPool>>,
+    Extension(cache): Extension<Arc<TrainingCache>>,
     Path(session_id): Path<String>,
     Json(req): Json<LogSetRequest>,
 ) -> impl IntoResponse {
@@ -1072,7 +1103,7 @@ pub async fn log_set(
     };
 
     // Compute energy for this set
-    let energy = compute_set_energy_for_log(&pool, exercise_uuid, measurement_id, &req).await;
+    let energy = compute_set_energy_for_log(&pool, &cache, exercise_uuid, measurement_id, &req).await;
 
     match sqlx::query(
         "INSERT INTO workout_sets (session_id, exercise_id, set_number, weight_kg, reps, rpe,
@@ -1124,37 +1155,44 @@ pub async fn log_set(
 /// Helper: compute energy for a set being logged, loading exercise + measurement data from DB.
 async fn compute_set_energy_for_log(
     pool: &PgPool,
+    cache: &TrainingCache,
     exercise_id: Uuid,
     measurement_id: Option<Uuid>,
     req: &LogSetRequest,
 ) -> SetEnergy {
-    // Load exercise data
-    let exercise = sqlx::query(
-        "SELECT movement_pattern, primary_segments_moved, rom_degrees, is_bodyweight, is_unilateral, body_mass_fraction_moved
-         FROM exercises WHERE id = $1"
-    )
-    .bind(exercise_id)
-    .fetch_optional(pool)
-    .await
-    .ok()
-    .flatten();
-
-    // Load measurements (from snapshot or latest)
-    let measurement_row = if let Some(mid) = measurement_id {
-        sqlx::query(
-            "SELECT body_weight_kg, height_cm, upper_arm_length_cm, lower_arm_length_cm, upper_leg_length_cm, lower_leg_length_cm, torso_length_cm, arm_length_cm, leg_length_cm, shoulder_width_cm
-             FROM body_measurements WHERE id = $1"
+    // Fetch exercise data from cache or DB
+    let pool_clone = pool.clone();
+    let ex_data = cache.exercises.try_get_with(exercise_id, async move {
+        let row = sqlx::query(
+            "SELECT movement_pattern, primary_segments_moved, rom_degrees, is_bodyweight, is_unilateral, body_mass_fraction_moved
+             FROM exercises WHERE id = $1"
         )
-        .bind(mid)
-        .fetch_optional(pool)
+        .bind(exercise_id)
+        .fetch_optional(&pool_clone)
         .await
-        .ok()
-        .flatten()
-    } else {
-        None
-    };
+        .map_err(|_| "db error")?
+        .ok_or("not found")?;
 
-    let Some(ex) = exercise else {
+        let bd_ex = |col: &str| -> Option<f64> {
+            use sqlx::Row;
+            row.try_get::<Option<sqlx::types::BigDecimal>, _>(col)
+                .ok()
+                .flatten()
+                .and_then(|d| d.to_string().parse::<f64>().ok())
+        };
+
+        use sqlx::Row;
+        Ok::<Arc<ExerciseData>, &'static str>(Arc::new(ExerciseData {
+            movement_pattern: row.try_get("movement_pattern").unwrap_or_default(),
+            primary_segments_moved: row.try_get("primary_segments_moved").unwrap_or_default(),
+            rom_degrees: bd_ex("rom_degrees").unwrap_or(90.0),
+            is_bodyweight: row.try_get("is_bodyweight").unwrap_or(false),
+            is_unilateral: row.try_get("is_unilateral").unwrap_or(false),
+            body_mass_fraction_moved: bd_ex("body_mass_fraction_moved").unwrap_or(0.0),
+        }))
+    }).await.ok();
+
+    let Some(ex) = ex_data else {
         return SetEnergy {
             total_kcal: 0.0,
             potential_kcal: 0.0,
@@ -1164,27 +1202,57 @@ async fn compute_set_energy_for_log(
         };
     };
 
-    let measurements = if let Some(mr) = measurement_row {
-        let bd = |col: &str| -> Option<f64> {
-            mr.try_get::<Option<sqlx::types::BigDecimal>, _>(col)
-                .ok()
-                .flatten()
-                .and_then(|d| d.to_string().parse::<f64>().ok())
-        };
-        BodyMeasurements {
-            body_weight_kg: bd("body_weight_kg").unwrap_or(75.0),
-            height_cm: bd("height_cm"),
-            upper_arm_length_cm: bd("upper_arm_length_cm"),
-            lower_arm_length_cm: bd("lower_arm_length_cm"),
-            upper_leg_length_cm: bd("upper_leg_length_cm"),
-            lower_leg_length_cm: bd("lower_leg_length_cm"),
-            torso_length_cm: bd("torso_length_cm"),
-            arm_length_cm: bd("arm_length_cm"),
-            leg_length_cm: bd("leg_length_cm"),
-            shoulder_width_cm: bd("shoulder_width_cm"),
+    let measurements = if let Some(mid) = measurement_id {
+        let pool_clone = pool.clone();
+        let meas = cache.measurements.try_get_with(mid, async move {
+            let mr = sqlx::query(
+                "SELECT body_weight_kg, height_cm, upper_arm_length_cm, lower_arm_length_cm, upper_leg_length_cm, lower_leg_length_cm, torso_length_cm, arm_length_cm, leg_length_cm, shoulder_width_cm
+                 FROM body_measurements WHERE id = $1"
+            )
+            .bind(mid)
+            .fetch_optional(&pool_clone)
+            .await
+            .map_err(|_| "db error")?
+            .ok_or("not found")?;
+
+            let bd = |col: &str| -> Option<f64> {
+                use sqlx::Row;
+                mr.try_get::<Option<sqlx::types::BigDecimal>, _>(col)
+                    .ok()
+                    .flatten()
+                    .and_then(|d| d.to_string().parse::<f64>().ok())
+            };
+            Ok::<Arc<BodyMeasurements>, &'static str>(Arc::new(BodyMeasurements {
+                body_weight_kg: bd("body_weight_kg").unwrap_or(75.0),
+                height_cm: bd("height_cm"),
+                upper_arm_length_cm: bd("upper_arm_length_cm"),
+                lower_arm_length_cm: bd("lower_arm_length_cm"),
+                upper_leg_length_cm: bd("upper_leg_length_cm"),
+                lower_leg_length_cm: bd("lower_leg_length_cm"),
+                torso_length_cm: bd("torso_length_cm"),
+                arm_length_cm: bd("arm_length_cm"),
+                leg_length_cm: bd("leg_length_cm"),
+                shoulder_width_cm: bd("shoulder_width_cm"),
+            }))
+        }).await;
+
+        if let Ok(m) = meas {
+            (*m).clone()
+        } else {
+            BodyMeasurements {
+                body_weight_kg: 75.0,
+                height_cm: Some(175.0),
+                upper_arm_length_cm: None,
+                lower_arm_length_cm: None,
+                upper_leg_length_cm: None,
+                lower_leg_length_cm: None,
+                torso_length_cm: None,
+                arm_length_cm: None,
+                leg_length_cm: None,
+                shoulder_width_cm: None,
+            }
         }
     } else {
-        // Default measurements
         BodyMeasurements {
             body_weight_kg: 75.0,
             height_cm: Some(175.0),
@@ -1199,24 +1267,15 @@ async fn compute_set_energy_for_log(
         }
     };
 
-    let bd_ex = |col: &str| -> Option<f64> {
-        ex.try_get::<Option<sqlx::types::BigDecimal>, _>(col)
-            .ok()
-            .flatten()
-            .and_then(|d| d.to_string().parse::<f64>().ok())
-    };
-
     let params = SetEnergyParams {
         weight_kg: req.weight_kg,
         reps: req.reps.max(0) as u32,
-        movement_pattern: ex.try_get::<String, _>("movement_pattern").unwrap_or_default(),
-        primary_segments_moved: ex
-            .try_get::<Vec<String>, _>("primary_segments_moved")
-            .unwrap_or_default(),
-        rom_degrees: bd_ex("rom_degrees").unwrap_or(90.0),
-        is_bodyweight: ex.try_get::<bool, _>("is_bodyweight").unwrap_or(false),
-        is_unilateral: ex.try_get::<bool, _>("is_unilateral").unwrap_or(false),
-        body_mass_fraction_moved: bd_ex("body_mass_fraction_moved").unwrap_or(0.0),
+        movement_pattern: ex.movement_pattern.clone(),
+        primary_segments_moved: ex.primary_segments_moved.clone(),
+        rom_degrees: ex.rom_degrees,
+        is_bodyweight: ex.is_bodyweight,
+        is_unilateral: ex.is_unilateral,
+        body_mass_fraction_moved: ex.body_mass_fraction_moved,
         measurements,
         tempo: Tempo {
             eccentric_s: req.tempo_eccentric_s.unwrap_or(2.0),
