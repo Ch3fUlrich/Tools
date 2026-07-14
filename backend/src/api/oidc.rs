@@ -44,7 +44,7 @@ pub async fn start(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body("OIDC_ISSUER not configured".to_string())
-                .unwrap()
+                .unwrap_or_default()
         }
     };
     let client_id = match std::env::var("OIDC_CLIENT_ID") {
@@ -53,7 +53,7 @@ pub async fn start(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body("OIDC_CLIENT_ID not configured".to_string())
-                .unwrap()
+                .unwrap_or_default()
         }
     };
     let redirect = match std::env::var("OIDC_REDIRECT_URI") {
@@ -62,7 +62,7 @@ pub async fn start(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body("OIDC_REDIRECT_URI not configured".to_string())
-                .unwrap()
+                .unwrap_or_default()
         }
     };
 
@@ -72,7 +72,7 @@ pub async fn start(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(format!("invalid OIDC_ISSUER: {e}"))
-                .unwrap()
+                .unwrap_or_default()
         }
     };
 
@@ -82,7 +82,7 @@ pub async fn start(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(format!("OIDC HTTP client failed: {e}"))
-                .unwrap()
+                .unwrap_or_default()
         }
     };
 
@@ -93,7 +93,7 @@ pub async fn start(
                 return axum::http::Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
                     .body(format!("OIDC discovery failed: {e}"))
-                    .unwrap()
+                    .unwrap_or_default()
             }
         };
     let client = CoreClient::from_provider_metadata(
@@ -107,7 +107,7 @@ pub async fn start(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(format!("invalid OIDC_REDIRECT_URI: {e}"))
-                .unwrap()
+                .unwrap_or_default()
         }
     });
 
@@ -135,7 +135,7 @@ pub async fn start(
         .status(StatusCode::FOUND)
         .header(header::LOCATION, url)
         .body(String::new())
-        .unwrap()
+        .unwrap_or_default()
 }
 
 // Callback: exchanges code, verifies ID token, finds/creates user, links oauth_account, creates session
@@ -149,7 +149,7 @@ pub async fn callback(
         return axum::http::Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .body("missing code".to_string())
-            .unwrap();
+            .unwrap_or_default();
     }
 
     let issuer = match std::env::var("OIDC_ISSUER") {
@@ -158,7 +158,7 @@ pub async fn callback(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body("OIDC_ISSUER not configured".to_string())
-                .unwrap()
+                .unwrap_or_default()
         }
     };
     let client_id = match std::env::var("OIDC_CLIENT_ID") {
@@ -167,7 +167,7 @@ pub async fn callback(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body("OIDC_CLIENT_ID not configured".to_string())
-                .unwrap()
+                .unwrap_or_default()
         }
     };
     let client_secret = match std::env::var("OIDC_CLIENT_SECRET") {
@@ -176,7 +176,7 @@ pub async fn callback(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body("OIDC_CLIENT_SECRET not configured".to_string())
-                .unwrap()
+                .unwrap_or_default()
         }
     };
     let redirect = match std::env::var("OIDC_REDIRECT_URI") {
@@ -185,7 +185,7 @@ pub async fn callback(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body("OIDC_REDIRECT_URI not configured".to_string())
-                .unwrap()
+                .unwrap_or_default()
         }
     };
 
@@ -196,7 +196,7 @@ pub async fn callback(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(format!("invalid OIDC_ISSUER: {e}"))
-                .unwrap()
+                .unwrap_or_default()
         }
     };
 
@@ -206,7 +206,7 @@ pub async fn callback(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(format!("OIDC HTTP client failed: {e}"))
-                .unwrap()
+                .unwrap_or_default()
         }
     };
 
@@ -217,7 +217,7 @@ pub async fn callback(
                 return axum::http::Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
                     .body(format!("OIDC discovery failed: {e}"))
-                    .unwrap()
+                    .unwrap_or_default()
             }
         };
 
@@ -232,7 +232,7 @@ pub async fn callback(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(format!("invalid OIDC_REDIRECT_URI: {e}"))
-                .unwrap()
+                .unwrap_or_default()
         }
     });
 
@@ -243,7 +243,7 @@ pub async fn callback(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(format!("OIDC token request setup failed: {e}"))
-                .unwrap()
+                .unwrap_or_default()
         }
     };
 
@@ -253,7 +253,7 @@ pub async fn callback(
             return axum::http::Response::builder()
                 .status(StatusCode::BAD_REQUEST)
                 .body(format!("token exchange failed: {e}"))
-                .unwrap()
+                .unwrap_or_default()
         }
     };
 
@@ -290,7 +290,7 @@ pub async fn callback(
         return axum::http::Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .body("missing subject in id token".to_string())
-            .unwrap();
+            .unwrap_or_default();
     }
 
     // Find oauth_account by provider + subject
@@ -310,7 +310,7 @@ pub async fn callback(
             return axum::http::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(format!("DB error: {e}"))
-                .unwrap()
+                .unwrap_or_default()
         }
     };
 
@@ -331,7 +331,7 @@ pub async fn callback(
                 return axum::http::Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
                     .body(format!("DB error creating user: {e}"))
-                    .unwrap()
+                    .unwrap_or_default()
             }
         };
         let id: sqlx::types::Uuid = match rec.try_get("id") {
@@ -340,7 +340,7 @@ pub async fn callback(
                 return axum::http::Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
                     .body(format!("DB returned malformed id: {e}"))
-                    .unwrap()
+                    .unwrap_or_default()
             }
         };
         // insert oauth_account
@@ -367,7 +367,7 @@ pub async fn callback(
                             return axum::http::Response::builder()
                                 .status(StatusCode::BAD_REQUEST)
                                 .body("nonce mismatch".to_string())
-                                .unwrap();
+                                .unwrap_or_default();
                         }
                     }
                 }
@@ -399,14 +399,14 @@ pub async fn callback(
                     .header(header::SET_COOKIE, cookie)
                     .header(header::LOCATION, frontend)
                     .body(String::new())
-                    .unwrap();
+                    .unwrap_or_default();
                 return http_resp;
             }
             Err(e) => {
                 return axum::http::Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
                     .body(format!("session create failed: {e}"))
-                    .unwrap()
+                    .unwrap_or_default()
             }
         }
     }
@@ -415,5 +415,5 @@ pub async fn callback(
     axum::http::Response::builder()
         .status(StatusCode::OK)
         .body(format!("linked user {uid}"))
-        .unwrap()
+        .unwrap_or_default()
 }
