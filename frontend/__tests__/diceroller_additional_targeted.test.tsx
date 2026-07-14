@@ -21,10 +21,15 @@ beforeEach(() => {
 
 describe('DiceRoller additional targeted branches', () => {
   it('applies per-config mapping for multiple configs and recalculates summary when second config modifies a die', async () => {
-    // API: first call returns a single roll with two perDie entries (so idx 0/1 map to cfg 0/1)
-    mockRollDice.mockResolvedValueOnce({ summary: { totalRollsRequested: 1 }, rolls: [ { sum: 5, average: 2.5, perDie: [{ original: [2], final: 2 }, { original: [3], final: 3 }], used: [2,3] } ] });
-    // second API call (for the second config) should also resolve to a valid shape (can be empty)
-    mockRollDice.mockResolvedValueOnce({ summary: { totalRollsRequested: 1 }, rolls: [ { sum: 0, average: 0, perDie: [], used: [] } ] });
+    // API returns a combined roll containing two rolls (one for each config due to batching mapping)
+    // First roll mapped to cfg 0, Second roll mapped to cfg 1
+    mockRollDice.mockResolvedValueOnce({
+      summary: { totalRollsRequested: 2 },
+      rolls: [
+        { sum: 2, average: 2, perDie: [{ original: [2], final: 2 }], used: [2] },
+        { sum: 3, average: 3, perDie: [{ original: [3], final: 3 }], used: [3] }
+      ]
+    });
 
     render(<DiceRoller />);
 

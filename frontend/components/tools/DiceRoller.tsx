@@ -209,28 +209,17 @@ const onRoll = async () => {
   try {
     setLoading(true);
 
-    // Make separate API calls for each dice configuration
-    const rollPromises = diceConfigs.map(async (config) => {
-      const payload = {
-        die: {
-          type: config.dieType,
-          sides: config.dieType === 'custom' ? config.sides : undefined
-        },
-        count: config.count
-        // Add any other required payload fields here if needed by your API
-      };
+    // Make a single batched API call for all dice configurations
+    const payloads = diceConfigs.map((config) => ({
+      die: {
+        type: config.dieType,
+        sides: config.dieType === 'custom' ? config.sides : undefined
+      },
+      count: config.count
+    }));
 
-  // Use shared API client helper so tests can mock this call
-  return await rollDice(payload as DiceRequest);
-    });
-
-    const results = (await Promise.all(rollPromises)) as DiceResponse[];
-
-    // Combine all results into a single response
-    let combinedResult: DiceResponse = {
-      rolls: results.flatMap(r => r.rolls),
-      summary: { totalRollsRequested: results.length }
-    };
+    // Use shared API client helper so tests can mock this call
+    let combinedResult = await rollDice(payloads as unknown as DiceRequest[]) as DiceResponse;
 
     // Apply local modifiers: reroll rules per-die, group modifier applied to sum only
     combinedResult = {

@@ -50,7 +50,21 @@ function buildStats(perDie: PerDieDetail[], used: number[]): DiceRollResult {
   return { perDie, used, sum, average, median: median(sorted), spread };
 }
 
-export function rollDiceLocal(request: DiceRequest): DiceResponse {
+export function rollDiceLocal(request: DiceRequest | DiceRequest[]): DiceResponse {
+  if (Array.isArray(request)) {
+    const results = request.map((r) => rollDiceLocalSingle(r));
+    return {
+      rolls: results.flatMap((r) => r.rolls),
+      summary: {
+        totalRollsRequested: results.reduce((acc, curr) => acc + curr.summary.totalRollsRequested, 0)
+      }
+    };
+  }
+
+  return rollDiceLocalSingle(request);
+}
+
+function rollDiceLocalSingle(request: DiceRequest): DiceResponse {
   if (!request.count || request.count <= 0) {
     throw new Error('count must be > 0');
   }
