@@ -101,7 +101,7 @@ describe('local blood level calculation', () => {
     const t0 = '2026-01-01T00:00:00.000Z';
     const oneHalfLifeLater = '2026-01-01T05:42:00.000Z'; // caffeine t1/2 = 5.7 h
     const res = calculateToleranceLocal({
-      intakes: [{ substance: 'caffeine', time: t0, intake_type: 'oral', time_after_meal: null, dosage_mg: 100 }],
+      intakes: [{ substance: 'caffeine', time: t0, dosage_mg: 100 }],
       time_points: [t0, oneHalfLifeLater],
     });
     expect(res.blood_levels).toHaveLength(2);
@@ -115,15 +115,15 @@ describe('local blood level calculation', () => {
     const t0 = '2026-01-01T12:00:00.000Z';
     const res = calculateToleranceLocal({
       intakes: [
-        { substance: 'Alcohol (Ethanol)', time: t0, intake_type: 'oral', time_after_meal: null, dosage_mg: 100 },
-        { substance: 'Alcohol (Ethanol)', time: '2026-01-02T00:00:00.000Z', intake_type: 'oral', time_after_meal: null, dosage_mg: 100 },
+        { substance: 'Alcohol (Ethanol)', time: t0, dosage_mg: 100 },
+        { substance: 'Alcohol (Ethanol)', time: '2026-01-02T00:00:00.000Z', dosage_mg: 100 },
       ],
       time_points: [t0],
     });
     expect(res.blood_levels[0].amount_mg).toBeCloseTo(100, 6); // only the past intake counts
 
     const byId = calculateToleranceLocal({
-      intakes: [{ substance: 'alcohol', time: t0, intake_type: 'oral', time_after_meal: null, dosage_mg: 100 }],
+      intakes: [{ substance: 'alcohol', time: t0, dosage_mg: 100 }],
       time_points: [t0],
     });
     expect(byId.blood_levels[0].amount_mg).toBeCloseTo(100, 6);
@@ -132,7 +132,7 @@ describe('local blood level calculation', () => {
   it('throws for unknown substances like the backend', () => {
     expect(() =>
       calculateToleranceLocal({
-        intakes: [{ substance: 'unobtainium', time: '2026-01-01T00:00:00Z', intake_type: 'oral', time_after_meal: null, dosage_mg: 1 }],
+        intakes: [{ substance: 'unobtainium', time: '2026-01-01T00:00:00Z', dosage_mg: 1 }],
         time_points: ['2026-01-01T00:00:00Z'],
       }),
     ).toThrow(/not found in database/);

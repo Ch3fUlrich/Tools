@@ -2,12 +2,10 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
+
 pub struct SubstanceIntake {
     pub substance: String,
     pub time: DateTime<Utc>,
-    pub intake_type: String, // e.g., "oral", "intravenous", "inhaled"
-    pub time_after_meal: Option<i32>, // minutes after meal, affects absorption
     pub dosage_mg: f64,
 }
 
