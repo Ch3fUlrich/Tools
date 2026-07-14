@@ -1,0 +1,238 @@
+  function createStatus(message, isError) {
+  function toNumber(value) {
+  function clamp(value, min, max) {
+  function lerp(start, end, ratio) {
+  function roundToThree(value) {
+  function getDefaultNodeTitleFontSize() {
+  function getDefaultNodeAgeFontSize() {
+  function getDefaultBlockTitleFontSize() {
+  function getDefaultBlockAgeFontSize() {
+  function normalizePositiveNumber(value, fallback) {
+  function normalizeTimelineTextSizes() {
+  function deepClone(value) {
+  function buildArrowPath(width, height) {
+  function escapeHtml(value) {
+  function closeFloatingEditor() {
+  function getFloatingValues() {
+  function setFloatingFieldValue(fieldName, value) {
+  function isColorField(fieldDef) {
+  function createColorOptions(input, options) {
+  function createArrowPreviewSvg(colorValue) {
+  function getColorOptionsHtml(fieldName) {
+  function getInspectorColorFieldHtml(label, fieldName, value) {
+  function positionFloatingEditor(anchorPoint) {
+  function openFloatingEditor(options) {
+  function eventToViewportPoint(event) {
+  function parseNodeKey(key) {
+  function toSvgPoint(clientX, clientY) {
+  function getNodeCollection(nodeType) {
+  function getNode(nodeType, nodeIndex) {
+  function getBlockCollection(blockType) {
+  function getBlock(blockType, blockIndex) {
+  function parseBlockKey(key) {
+  function getAllBlockEntries() {
+  function getBlockEntryByKey(key) {
+  function getSelectedBlockEntries() {
+  function getNodeEntryByKey(key) {
+  function getAllNodeEntries() {
+  function getSelectedEntries() {
+  function createGroupId() {
+  function isValidGroupMember(member) {
+  function cloneGroupMember(member) {
+  function ensureCustomGroups() {
+  function getCustomGroupById(groupId) {
+  function getSelectedGroupMembers() {
+  function formatGroupMember(member) {
+  function describeGroupMembers(members) {
+  function applyGroupColorToMember(member, colorValue) {
+  function removeCustomGroup(groupId) {
+  function updateGroupsAfterRemoval(kind, itemType, itemIndex) {
+  function getPrimarySelection() {
+  function getStages() {
+  function getStage(index) {
+  function getStageEditingConfig() {
+  function getStageMinWidth() {
+  function getStageBounds() {
+  function resolveRangeTickX(tick) {
+  function parseRangeLabel(label, rangeIndex) {
+  function formatRangeValue(value, kind) {
+  function getTimelineTicks(rangeIndex) {
+  function describeTimelineX(x, rangeIndex) {
+  function resolveTimelineInputToX(input, rangeIndex, fallbackX) {
+  function getStageNameForX(x) {
+  function ensureDragReadout() {
+  function updateDragReadout(label, x, y) {
+  function clearDragReadout() {
+  function describeBlockPlacement(blockType, block) {
+  function describeBlockAgeRange(blockType, block) {
+  function describeNodePlacement(nodeType, node) {
+  function describeNodeAgeRange(nodeType, node) {
+  function snapshotVerticalLayout() {
+  function snapshotHorizontalLayout() {
+  function scaleYFromSnapshot(value, oldStart, oldEnd, newStart, newEnd) {
+  function scaleXFromSnapshot(value, oldStart, oldEnd, newStart, newEnd) {
+  function getCanvasViewBoxParts() {
+  function setCanvasVerticalBounds(top, bottom) {
+  function setCanvasHeightFromBottom(bottom) {
+  function setCanvasHorizontalBounds(left, right) {
+  function applyVerticalScaleFromSnapshot(edge, requestedY, snapshot) {
+  function applyHorizontalScaleFromSnapshot(edge, requestedX, snapshot) {
+  function getMainAxisY() {
+  function syncNodesToMainAxis() {
+  function updateAxisLabelVisuals() {
+  function applyCenterAxisMoveFromSnapshot(requestedY, snapshot) {
+  function getStageLabelSettings() {
+  function inferStageName(stage, index) {
+  function inferHumanLabel(stage, index) {
+  function inferMouseLabel(stage, index) {
+  function ensureStageMetadata() {
+  function syncWindowLabelsFromStages() {
+  function refreshTimelineLegend() {
+  function syncAxisTicksWithStages() {
+  function insertAxisTick(edgeIndex, humanLabel, mouseLabel) {
+  function removeAxisTick(edgeIndex) {
+  function applySpeciesColorsToBlock(blockType, blockIndex, species) {
+  function resolveBlockFromEvent(event, allowSelectedFallback = false) {
+  function openBlockSettingsFromEvent(event, allowSelectedFallback = false) {
+  function getStageAgeValues(stageIndex) {
+  function applyStageAgeValues(stageIndex, values) {
+  function refreshAgeRangesFromPositions() {
+  function getNodeMarkerId(nodeType, node) {
+  function getNodeOffsets(nodeType) {
+  function setTextOverrides(textElement, fillValue, fontSizeValue) {
+  function findNodeGroupByKey(key) {
+  function updateNodeVisual(nodeType, nodeIndex) {
+  function updateBlockVisual(blockType, blockIndex) {
+  function resolveAxisTickX(tick, stages) {
+  function updateRangeAxesVisuals() {
+  function updateStageVisual(stageIndex) {
+  function updateStageBoundaryHandles() {
+  function getCommonValue(entries, selector) {
+  function formatNodeLabel(entry) {
+  function renderNodeSelectionVisuals() {
+  function renderBlockSelectionVisuals() {
+  function renderStageSelectionVisuals() {
+  function renderMainAxisSelectionVisuals() {
+  function renderBoundarySelectionVisuals() {
+  function refreshStageOptions() {
+  function updateNodeSelectionPanel() {
+  function updateStagePanel() {
+  function renderSelectionState() {
+  function setSelection(keys) {
+  function clearAllSelections() {
+  function setSelectedStage(index) {
+  function toggleSelection(key) {
+  function setSelectedBlock(blockKey) {
+  function toggleBlockSelection(blockKey) {
+  function setSelectedBoundary(boundaryIndex) {
+  function getArrowConfigById(markerId) {
+  function updateMarkerFields(markerId) {
+  function applyMarkerVisualUpdate(markerId) {
+  function markerIdFromUrl(value, fallback) {
+  function getMainAxisMarkerId() {
+  function updateMainAxisVisual() {
+  function applyMovement(dx, dy, statusMessage) {
+  function onApplyExactPosition() {
+  function onApplyDeltaMove() {
+  function onApplyArrowStyle() {
+  function onApplyMarkerStyle() {
+  function onApplyTextStyle() {
+  function getDefaultNodeY(nodeType) {
+  function getDefaultAxisY(nodeType) {
+  function getMinimumBlockHeight() {
+  function getNormalizedBlockHeight(value) {
+  function getDefaultBlockY(blockType, stage) {
+  function addArrowWithValues(values) {
+  function onAddArrow(values) {
+  function addRangeBlockWithValues(values) {
+  function onRemoveSelectedArrows(skipConfirm = false) {
+  function getStageBoundaryX(boundaryIndex) {
+  function captureBoundarySnapshot(boundaryIndex) {
+  function applyBoundaryMoveFromSnapshot(boundaryIndex, requestedX, snapshot) {
+  function removeArrowAt(nodeType, nodeIndex, skipConfirm = false) {
+  function duplicateArrowAt(nodeType, nodeIndex) {
+  function removeBlockAt(blockType, blockIndex, skipConfirm = false) {
+  function duplicateBlockAt(blockType, blockIndex) {
+  function removeSelectedBlocks(skipConfirm = false) {
+  function setBoundaryDraggingClass(boundaryIndex, dragging) {
+  function beginStageDrag(pointerEvent, boundaryIndex) {
+  function finishStageDrag() {
+  function beginYScaleDrag(pointerEvent, edge) {
+  function finishYScaleDrag() {
+  function addStageBySplitValues(baseStageIndex, values) {
+  function onAddStagePopup(anchorEvent) {
+  function removeStageAt(stageIndex) {
+  function onRemoveStagePopup() {
+  function addAdjacentStage(stageIndex, side, values = {}) {
+  function openAdjacentStageEditor(stageIndex, side, anchorEvent) {
+  function getMarkerOptions(selectedMarkerId) {
+  function openStageSettingsEditor(stageIndex, anchorEvent) {
+  function onEditStagePopup(anchorEvent) {
+  function openNodeSettingsEditor(nodeType, nodeIndex, anchorEvent) {
+  function openMainAxisSettingsEditor(anchorEvent) {
+  function openPageCopyEditor(anchorEvent) {
+  function getTemplateTickLabels(stageCount, rangeIndex) {
+  function createTemplateConfig(layout, stageCount) {
+  function applyNewFigureTemplate(layout, stageCount) {
+  function getTemplatePreviewTitle(layout) {
+  function renderTemplateStageZone(position, stageCount, colorOffset) {
+  function createTemplatePreview(layout, stageCount) {
+  function openNewFigureTemplatePicker(anchorEvent) {
+  function openSpeciesSettingsEditor(species, anchorEvent) {
+  function openGroupSettingsEditor(anchorEvent, groupId = null) {
+  function openBlockSettingsEditor(blockType, blockIndex, anchorEvent) {
+  function beginDrag(pointerEvent) {
+  function finishDrag() {
+  function beginBlockDrag(pointerEvent, blockType, blockIndex, mode) {
+  function getMainAxisDragMode(point) {
+  function beginMainAxisDrag(pointerEvent, mode) {
+  function finishMainAxisDrag() {
+  function finishBlockDrag() {
+  function applyTextEdit(textElement, nextText) {
+  function onSvgPointerDown(event) {
+  function onSvgPointerMove(event) {
+  function onSvgPointerUp(event) {
+  function onSvgClick(event) {
+  function onSvgDoubleClick(event) {
+  function resetKeyNudge() {
+  function getKeyboardNudgeStep(event) {
+  function nudgeSelectedBlocks(dx, dy) {
+  function nudgeSelectedBoundary(dx) {
+  function nudgeMainAxis(dx, dy) {
+  function removeActiveSelection() {
+  function onDocumentKeyUp(event) {
+  function applyTimelineViewport() {
+  function setTimelineZoom(nextZoom) {
+  function resetTimelineView() {
+  function onTimelineWheel(event) {
+  function onTimelineViewportPointerDown(event) {
+  function onTimelineViewportPointerMove(event) {
+  function onTimelineViewportPointerUp(event) {
+  function recordHistory(label, options = {}) {
+  function renderHistoryPanel() {
+  function restoreHistory(index, action = "restore") {
+  function setHistoryPanelOpen(open) {
+  function toggleHistoryPanel() {
+  function onHistoryListClick(event) {
+  function parseInspectorRowId(rowId) {
+  function buildInspectorRows() {
+  function compareRows(a, b, key) {
+  function getExpandedArrowEditorHtml(nodeType, nodeIndex) {
+  function getExpandedStageEditorHtml(stageIndex) {
+  function getExpandedBlockEditorHtml(blockType, blockIndex) {
+  function renderSortButtons() {
+  function renderInspector() {
+  function readInspectorField(container, fieldName) {
+  function onInspectorAction(event) {
+  function onInspectorBodyClick(event) {
+  function onInspectorSort(event) {
+  function buildStageOptionValues() {
+  function onInspectorAddOpen(event, addTypeOverride) {
+  function bindSvg(svg) {
+  function populateMarkerSelect() {
+  function normalizeSelectedKeys() {
+  function bindUI() {
+  function resolveConfig() {
+  function resolveUI() {
+  function onTimelineRendered(event) {
+  function bootstrap() {
