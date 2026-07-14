@@ -108,7 +108,7 @@ export default function ActiveWorkout() {
       </div>
 
       {/* Exercise groups */}
-      {Object.values(groups).map(group => (
+      {groups.map(group => (
         <CardSection key={group.exerciseId} title={group.exerciseName} gradient="from-orange-500 to-red-600">
           <div className="space-y-3">
             {/* Set header */}
@@ -216,7 +216,7 @@ export default function ActiveWorkout() {
         >
           <option value="">Add exercise…</option>
           {exercises
-            .filter(e => !groups[e.id])
+            .filter(e => !groups.some(g => g.exerciseId === e.id))
             .map(e => (
               <option key={e.id} value={e.id}>{e.name}</option>
             ))
