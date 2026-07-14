@@ -16,10 +16,11 @@ This folder contains a self-contained browser app for creating, editing, exporti
 - `timeline.html` - main page for the editor.
 - `memory-development-timeline.html` - compatibility redirect to `timeline.html`.
 - `style/timeline.css` - shared styles for layout, editor chrome, and figure presentation.
-- `configs/timeline-default-config.json` - default figure data loaded at startup.
+- `configs/default-config/*.json` - default figure data split into modules.
+- `configs/timeline-default-config.json` - default figure data assembled and loaded at startup.
 - `configs/timeline-presets.json` - preset definitions used by the `New figure` dialog.
 - `src/config/timeline-config.js` - config loader and normalization entry point.
-- `src/config/timeline-default-config.js` - generated fallback for direct `file://` browser usage.
+- `src/config/default-config-*.js` - generated fallback parts for direct `file://` browser usage.
 - `src/config/timeline-presets.js` - generated preset fallback for direct `file://` browser usage.
 - `src/render/timeline-generator.js` - SVG rendering for the active timeline config.
 - `src/editor/timeline-editor.js` - selection, editing, dragging, grouping, and inspector behavior.
@@ -51,13 +52,13 @@ Then open `http://localhost:8000/timeline.html`.
 
 Changes are live in memory. To keep them, use the `Export` menu and save the setup JSON.
 
-The default example is authored in `configs/timeline-default-config.json`. Edit that file when you want to change the starting state of the app, then run:
+The default example is authored in `configs/default-config/*.json`. Edit those files when you want to change the starting state of the app, then run:
 
 ```bash
 node scripts/sync-default-config.js
 ```
 
-That syncs the generated `src/config/timeline-default-config.js` and `src/config/timeline-presets.js` fallbacks used by Firefox and Edge when the page is opened directly from disk. The browser editor and setup imports still work on the same active configuration object after load.
+That syncs the generated `src/config/default-config-*.js` and `src/config/timeline-presets.js` fallbacks used by Firefox and Edge when the page is opened directly from disk. The browser editor and setup imports still work on the same active configuration object after load.
 
 ## Exporting
 

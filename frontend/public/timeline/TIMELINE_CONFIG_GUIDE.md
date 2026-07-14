@@ -1,12 +1,12 @@
 # Timeline Configuration Guide
 
-The timeline is driven by one configuration object. The default object lives in `configs/timeline-default-config.json`; `src/config/timeline-config.js` loads that JSON, normalizes it, and exposes it as `window.TIMELINE_CONFIG`. The renderer reads the active object and creates the SVG. The editor mutates the same object in memory, and `src/export/timeline-exporter.js` can export it as a portable setup JSON file.
+The timeline is driven by one configuration object. The default object is assembled into `configs/timeline-default-config.json` from the split files in `configs/default-config/`; `src/config/timeline-config.js` loads that JSON, normalizes it, and exposes it as `window.TIMELINE_CONFIG`. The renderer reads the active object and creates the SVG. The editor mutates the same object in memory, and `src/export/timeline-exporter.js` can export it as a portable setup JSON file.
 
 ## Architecture
 
-- `configs/timeline-default-config.json` is the default timeline data and the preferred place for hand-edited defaults.
+- `configs/default-config/*.json` are the default timeline data components and the preferred places for hand-edited defaults. They are assembled into `configs/timeline-default-config.json`.
 - `configs/timeline-presets.json` defines the starter figures used by the `New figure` dialog.
-- `src/config/timeline-default-config.js` is generated from the JSON so Firefox and Edge can load defaults when the page is opened directly from disk.
+- `src/config/default-config-*.js` are generated from the JSON so Firefox and Edge can load defaults when the page is opened directly from disk.
 - `src/config/timeline-presets.js` is the generated preset fallback for direct `file://` usage.
 - `src/config/timeline-config.js` is only the loader/normalizer. It uses the generated fallback when available, otherwise it fetches the JSON, and exposes `window.TIMELINE_CONFIG`.
 - `src/render/timeline-generator.js` is responsible for rendering SVG from the active config.
@@ -218,7 +218,7 @@ Global color variables live in `style/timeline.css`, including:
 - If the figure does not render, check the browser console for JavaScript errors.
 - If import fails, confirm the JSON contains `canvas`, `mainAxis`, and `developmentWindows`.
 - If an exported PNG/JPG does not match the screen, export SVG as a fallback and inspect it in the browser.
-- If you edit `configs/timeline-default-config.json` or `configs/timeline-presets.json` by hand, run `node scripts/sync-default-config.js` and reload before exporting setup JSON so the active config is current.
+- If you edit `configs/default-config/*.json` or `configs/timeline-presets.json` by hand, run `node scripts/sync-default-config.js` and reload before exporting setup JSON so the active config is current.
 
 ## Related Docs
 
