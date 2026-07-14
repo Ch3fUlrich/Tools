@@ -5,7 +5,7 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use serde::Deserialize;
 use serde_json::json;
-use sqlx::{PgPool, Row};
+use sqlx::{PgPool, Postgres, QueryBuilder, Row};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -258,68 +258,38 @@ pub async fn list_exercises(
     Extension(pool): Extension<Arc<PgPool>>,
     Query(params): Query<ExerciseFilterParams>,
 ) -> impl IntoResponse {
-    // Build dynamic query with filters
-    let mut query = String::from(
+    let mut qb = QueryBuilder::<Postgres>::new(
         "SELECT e.id, e.name, e.description, e.movement_pattern, e.equipment, e.difficulty,
                 e.is_bodyweight, e.is_unilateral, e.primary_segments_moved, e.rom_degrees,
                 e.body_mass_fraction_moved, e.is_system_default, e.metadata
-         FROM exercises e WHERE (e.is_system_default = TRUE OR e.user_id = $1)",
+         FROM exercises e WHERE (e.is_system_default = TRUE OR e.user_id = ",
     );
-    let mut param_idx = 2u32;
+    qb.push_bind(user.id);
+    qb.push(")");
 
     if let Some(ref equipment) = params.equipment {
-        query.push_str(&format!(" AND e.equipment = ${param_idx}"));
-        param_idx += 1;
-        let _ = equipment;
+        qb.push(" AND e.equipment = ");
+        qb.push_bind(equipment);
     }
     if let Some(ref pattern) = params.pattern {
-        query.push_str(&format!(" AND e.movement_pattern = ${param_idx}"));
-        param_idx += 1;
-        let _ = pattern;
+        qb.push(" AND e.movement_pattern = ");
+        qb.push_bind(pattern);
     }
     if let Some(ref difficulty) = params.difficulty {
-        query.push_str(&format!(" AND e.difficulty = ${param_idx}"));
-        param_idx += 1;
-        let _ = difficulty;
+        qb.push(" AND e.difficulty = ");
+        qb.push_bind(difficulty);
     }
     if let Some(ref search) = params.search {
-        query.push_str(&format!(" AND lower(e.name) LIKE '%' || lower(${param_idx}) || '%'"));
-        let _ = (param_idx, search);
+        qb.push(" AND lower(e.name) LIKE '%' || lower(");
+        qb.push_bind(search);
+        qb.push(") || '%'");
     }
 
-    query.push_str(" ORDER BY e.is_system_default DESC, e.name");
+    qb.push(" ORDER BY e.is_system_default DESC, e.name");
 
-    // Use simpler approach: fetch all and filter in Rust for dynamic params
-    // (sqlx doesn't support dynamic bind count easily)
-    match sqlx::query(
-        "SELECT e.id, e.name, e.description, e.movement_pattern, e.equipment, e.difficulty,
-                e.is_bodyweight, e.is_unilateral, e.primary_segments_moved, e.rom_degrees,
-                e.body_mass_fraction_moved, e.is_system_default, e.metadata
-         FROM exercises e WHERE (e.is_system_default = TRUE OR e.user_id = $1)
-         ORDER BY e.is_system_default DESC, e.name",
-    )
-    .bind(user.id)
-    .fetch_all(&*pool)
-    .await
-    {
+    match qb.build().fetch_all(&*pool).await {
         Ok(rows) => {
-            let exercises: Vec<serde_json::Value> = rows.iter().filter(|row| {
-                // Apply filters in Rust
-                let matches_equipment = params.equipment.as_ref().is_none_or(|eq| {
-                    row.try_get::<String, _>("equipment").ok().as_deref() == Some(eq.as_str())
-                });
-                let matches_pattern = params.pattern.as_ref().is_none_or(|p| {
-                    row.try_get::<String, _>("movement_pattern").ok().as_deref() == Some(p.as_str())
-                });
-                let matches_difficulty = params.difficulty.as_ref().is_none_or(|d| {
-                    row.try_get::<String, _>("difficulty").ok().as_deref() == Some(d.as_str())
-                });
-                let matches_search = params.search.as_ref().is_none_or(|s| {
-                    row.try_get::<String, _>("name").ok()
-                        .is_some_and(|n| n.to_lowercase().contains(&s.to_lowercase()))
-                });
-                matches_equipment && matches_pattern && matches_difficulty && matches_search
-            }).map(|row| {
+            let exercises: Vec<serde_json::Value> = rows.iter().map(|row| {
                 json!({
                     "id": row.try_get::<Uuid, _>("id").unwrap_or_default().to_string(),
                     "name": row.try_get::<String, _>("name").unwrap_or_default(),
