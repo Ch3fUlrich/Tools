@@ -1,0 +1,146 @@
+[
+  {
+    "id": "chest",
+    "name": "chest",
+    "displayName": "Chest (Pectorals)",
+    "relativeSize": 0.1,
+    "bodyMapPosition": "front",
+    "svgRegionId": "muscle-chest"
+  },
+  {
+    "id": "front_deltoid",
+    "name": "front_deltoid",
+    "displayName": "Front Deltoid",
+    "relativeSize": 0.025,
+    "bodyMapPosition": "front",
+    "svgRegionId": "muscle-front-delt"
+  },
+  {
+    "id": "side_deltoid",
+    "name": "side_deltoid",
+    "displayName": "Side Deltoid",
+    "relativeSize": 0.02,
+    "bodyMapPosition": "front",
+    "svgRegionId": "muscle-side-delt"
+  },
+  {
+    "id": "rear_deltoid",
+    "name": "rear_deltoid",
+    "displayName": "Rear Deltoid",
+    "relativeSize": 0.02,
+    "bodyMapPosition": "back",
+    "svgRegionId": "muscle-rear-delt"
+  },
+  {
+    "id": "biceps",
+    "name": "biceps",
+    "displayName": "Biceps",
+    "relativeSize": 0.03,
+    "bodyMapPosition": "front",
+    "svgRegionId": "muscle-biceps"
+  },
+  {
+    "id": "triceps",
+    "name": "triceps",
+    "displayName": "Triceps",
+    "relativeSize": 0.035,
+    "bodyMapPosition": "back",
+    "svgRegionId": "muscle-triceps"
+  },
+  {
+    "id": "forearms",
+    "name": "forearms",
+    "displayName": "Forearms",
+    "relativeSize": 0.025,
+    "bodyMapPosition": "front",
+    "svgRegionId": "muscle-forearms"
+  },
+  {
+    "id": "upper_back",
+    "name": "upper_back",
+    "displayName": "Upper Back (Traps/Rhombs)",
+    "relativeSize": 0.07,
+    "bodyMapPosition": "back",
+    "svgRegionId": "muscle-upper-back"
+  },
+  {
+    "id": "lats",
+    "name": "lats",
+    "displayName": "Latissimus Dorsi",
+    "relativeSize": 0.09,
+    "bodyMapPosition": "back",
+    "svgRegionId": "muscle-lats"
+  },
+  {
+    "id": "lower_back",
+    "name": "lower_back",
+    "displayName": "Lower Back (Erectors)",
+    "relativeSize": 0.05,
+    "bodyMapPosition": "back",
+    "svgRegionId": "muscle-lower-back"
+  },
+  {
+    "id": "abs",
+    "name": "abs",
+    "displayName": "Abdominals",
+    "relativeSize": 0.05,
+    "bodyMapPosition": "front",
+    "svgRegionId": "muscle-abs"
+  },
+  {
+    "id": "obliques",
+    "name": "obliques",
+    "displayName": "Obliques",
+    "relativeSize": 0.03,
+    "bodyMapPosition": "front",
+    "svgRegionId": "muscle-obliques"
+  },
+  {
+    "id": "glutes",
+    "name": "glutes",
+    "displayName": "Glutes",
+    "relativeSize": 0.12,
+    "bodyMapPosition": "back",
+    "svgRegionId": "muscle-glutes"
+  },
+  {
+    "id": "quadriceps",
+    "name": "quadriceps",
+    "displayName": "Quadriceps",
+    "relativeSize": 0.11,
+    "bodyMapPosition": "front",
+    "svgRegionId": "muscle-quads"
+  },
+  {
+    "id": "hamstrings",
+    "name": "hamstrings",
+    "displayName": "Hamstrings",
+    "relativeSize": 0.07,
+    "bodyMapPosition": "back",
+    "svgRegionId": "muscle-hamstrings"
+  },
+  {
+    "id": "hip_flexors",
+    "name": "hip_flexors",
+    "displayName": "Hip Flexors",
+    "relativeSize": 0.02,
+    "bodyMapPosition": "front",
+    "svgRegionId": "muscle-hip-flexors"
+  },
+  {
+    "id": "calves",
+    "name": "calves",
+    "displayName": "Calves",
+    "relativeSize": 0.04,
+    "bodyMapPosition": "back",
+    "svgRegionId": "muscle-calves"
+  },
+  {
+    "id": "neck",
+    "name": "neck",
+    "displayName": "Neck",
+    "relativeSize": 0.015,
+    "bodyMapPosition": "front",
+    "svgRegionId": "muscle-neck"
+  }
+]

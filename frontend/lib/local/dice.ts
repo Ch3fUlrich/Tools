@@ -1,7 +1,7 @@
 // Client-side dice rolling — mirrors backend/src/tools/dice.rs (validation,
 // limits, advantage modes, rerolls, stats) so offline rolls behave the same.
 // Uses the Web Crypto CSPRNG with rejection sampling for unbiased results.
-import type { DiceRequest, DiceResponse, DiceRollResult, PerDieDetail } from '@/lib/types/dice';
+import type { DiceRequest, DiceResponse, DiceRollResult, PerDieDetail, DiceHistoryEntry } from '@/lib/types/dice';
 
 const MAX_DICE = 1000;
 const MAX_SIDES = 10000;
@@ -164,4 +164,33 @@ function rollDiceLocalSingle(request: DiceRequest): DiceResponse {
   }
 
   return { rolls: results, summary: { totalRollsRequested: rolls } };
+}
+
+// ─── Local History ──────────────────────────────────────────────────────────
+
+const LOCAL_STORAGE_KEY = 'tools:diceHistory';
+
+export function saveDiceRollLocal(payload: unknown): void {
+  try {
+    const history = getDiceHistoryLocal();
+    const entry = {
+      id: globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : Date.now().toString(),
+      payload,
+      created_at: new Date().toISOString()
+    };
+    history.unshift(entry);
+    if (history.length > 100) history.length = 100;
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(history));
+  } catch (e) {
+    // Ignore storage errors
+  }
+}
+
+export function getDiceHistoryLocal(): DiceHistoryEntry[] {
+  try {
+    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    return [];
+  }
 }

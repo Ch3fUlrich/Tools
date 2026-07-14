@@ -17,4 +17,10 @@ export interface DiceRollResult { perDie: PerDieDetail[]; used: number[]; sum: n
 
 export interface DiceResponse { rolls: DiceRollResult[]; summary: { totalRollsRequested: number } }
 
+export interface DiceHistoryEntry {
+  id: string;
+  payload: unknown;
+  created_at: string;
+}
+
 export default DiceRequest;

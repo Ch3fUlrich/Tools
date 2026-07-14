@@ -1,0 +1,3181 @@
+[
+  {
+    "id": "barbell-bench-press--flat-",
+    "name": "Barbell Bench Press (Flat)",
+    "description": "Lie on a flat bench, grip barbell slightly wider than shoulder width, lower to chest and press up.",
+    "movementPattern": "horizontal_push",
+    "equipment": "barbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Lie flat on bench with feet on floor",
+        "Grip bar slightly wider than shoulder width",
+        "Unrack and lower bar to mid-chest",
+        "Press bar up to full arm extension"
+      ],
+      "tips": [
+        "Keep shoulder blades retracted and depressed",
+        "Maintain slight arch in lower back",
+        "Drive feet into floor for stability"
+      ],
+      "common_mistakes": [
+        "Bouncing bar off chest",
+        "Flaring elbows too wide",
+        "Lifting hips off bench"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      }
+    ]
+  },
+  {
+    "id": "barbell-bench-press--incline-",
+    "name": "Barbell Bench Press (Incline)",
+    "description": "Perform bench press on a 30-45 degree incline bench to emphasize upper chest.",
+    "movementPattern": "horizontal_push",
+    "equipment": "barbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Set bench to 30-45 degree incline",
+        "Grip bar slightly wider than shoulder width",
+        "Lower bar to upper chest",
+        "Press up to full extension"
+      ],
+      "tips": [
+        "Keep back against the bench",
+        "Slightly narrower grip than flat bench"
+      ],
+      "common_mistakes": [
+        "Setting incline too steep",
+        "Pressing bar too far forward"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      }
+    ]
+  },
+  {
+    "id": "barbell-bench-press--decline-",
+    "name": "Barbell Bench Press (Decline)",
+    "description": "Perform bench press on a decline bench to emphasize lower chest.",
+    "movementPattern": "horizontal_push",
+    "equipment": "barbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 85,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Secure legs under pads on decline bench",
+        "Grip bar at shoulder width",
+        "Lower bar to lower chest",
+        "Press up to full extension"
+      ],
+      "tips": [
+        "Have a spotter for safety",
+        "Reduced range of motion compared to flat"
+      ],
+      "common_mistakes": [
+        "Letting bar drift toward face",
+        "Not securing legs properly"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      }
+    ]
+  },
+  {
+    "id": "back-squat",
+    "name": "Back Squat",
+    "description": "Place barbell on upper traps, squat down until thighs are parallel or below, then stand up.",
+    "movementPattern": "squat",
+    "equipment": "barbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "lower_leg"
+    ],
+    "romDegrees": 120,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Position bar on upper traps",
+        "Unrack and step back with feet shoulder width",
+        "Break at hips and knees simultaneously",
+        "Descend until thighs are at least parallel",
+        "Drive up through heels to standing"
+      ],
+      "tips": [
+        "Keep chest up and core braced",
+        "Push knees out over toes",
+        "Maintain neutral spine"
+      ],
+      "common_mistakes": [
+        "Knees caving inward",
+        "Rounding lower back",
+        "Rising on toes"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "primary",
+        "activationFraction": 0.9
+      },
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      },
+      {
+        "muscleGroupId": "lower_back",
+        "muscleName": "Lower Back (Erectors)",
+        "involvement": "stabilizer",
+        "activationFraction": 0.4
+      },
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "stabilizer",
+        "activationFraction": 0.3
+      }
+    ]
+  },
+  {
+    "id": "front-squat",
+    "name": "Front Squat",
+    "description": "Hold barbell in front rack position across front deltoids, squat to depth.",
+    "movementPattern": "squat",
+    "equipment": "barbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "lower_leg"
+    ],
+    "romDegrees": 120,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Position bar on front deltoids with clean or cross grip",
+        "Keep elbows high throughout",
+        "Descend to full depth",
+        "Drive up maintaining upright torso"
+      ],
+      "tips": [
+        "Requires good wrist and shoulder mobility",
+        "More quad-dominant than back squat"
+      ],
+      "common_mistakes": [
+        "Elbows dropping",
+        "Leaning too far forward",
+        "Wrists bearing the load"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "stabilizer",
+        "activationFraction": 0.5
+      },
+      {
+        "muscleGroupId": "upper_back",
+        "muscleName": "Upper Back (Traps/Rhombs)",
+        "involvement": "stabilizer",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "deadlift--conventional-",
+    "name": "Deadlift (Conventional)",
+    "description": "Lift barbell from floor to hip height with straight arms, hip-hinge pattern.",
+    "movementPattern": "hinge",
+    "equipment": "barbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "lower_leg",
+      "torso"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Stand with feet hip width, shins close to bar",
+        "Hinge at hips, grip bar just outside knees",
+        "Brace core, flatten back",
+        "Drive through floor, extending hips and knees together",
+        "Lock out at top with hips fully extended"
+      ],
+      "tips": [
+        "Keep bar close to body throughout",
+        "Think about pushing the floor away",
+        "Engage lats to keep bar path straight"
+      ],
+      "common_mistakes": [
+        "Rounding lower back",
+        "Jerking the bar off floor",
+        "Hyperextending at lockout"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "primary",
+        "activationFraction": 0.9
+      },
+      {
+        "muscleGroupId": "lower_back",
+        "muscleName": "Lower Back (Erectors)",
+        "involvement": "primary",
+        "activationFraction": 0.9
+      },
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "upper_back",
+        "muscleName": "Upper Back (Traps/Rhombs)",
+        "involvement": "stabilizer",
+        "activationFraction": 0.5
+      },
+      {
+        "muscleGroupId": "forearms",
+        "muscleName": "Forearms",
+        "involvement": "stabilizer",
+        "activationFraction": 0.5
+      }
+    ]
+  },
+  {
+    "id": "deadlift--sumo-",
+    "name": "Deadlift (Sumo)",
+    "description": "Wide-stance deadlift with hands inside knees, emphasizes hips and quads more.",
+    "movementPattern": "hinge",
+    "equipment": "barbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "lower_leg",
+      "torso"
+    ],
+    "romDegrees": 80,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Take wide stance with toes pointed out",
+        "Grip bar inside knees",
+        "Drop hips, keep chest up",
+        "Drive through floor extending hips"
+      ],
+      "tips": [
+        "Requires good hip mobility",
+        "Push knees out over toes",
+        "Shorter range of motion than conventional"
+      ],
+      "common_mistakes": [
+        "Hips rising too fast",
+        "Knees caving in",
+        "Stance too wide"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "lower_back",
+        "muscleName": "Lower Back (Erectors)",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      },
+      {
+        "muscleGroupId": "hip_flexors",
+        "muscleName": "Hip Flexors",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "romanian-deadlift",
+    "name": "Romanian Deadlift",
+    "description": "Hip hinge with slight knee bend, lower bar to mid-shin keeping it close to legs.",
+    "movementPattern": "hinge",
+    "equipment": "barbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "torso"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Hold bar at hip height with overhand grip",
+        "Push hips back while maintaining slight knee bend",
+        "Lower bar along thighs to mid-shin",
+        "Drive hips forward to return to start"
+      ],
+      "tips": [
+        "Feel stretch in hamstrings",
+        "Keep bar close to body",
+        "Maintain neutral spine throughout"
+      ],
+      "common_mistakes": [
+        "Rounding the back",
+        "Bending knees too much",
+        "Lowering bar too far"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "lower_back",
+        "muscleName": "Lower Back (Erectors)",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      }
+    ]
+  },
+  {
+    "id": "overhead-press",
+    "name": "Overhead Press",
+    "description": "Press barbell from shoulder height to overhead lockout while standing.",
+    "movementPattern": "vertical_push",
+    "equipment": "barbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 150,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Hold bar at shoulder height with grip just outside shoulders",
+        "Brace core and squeeze glutes",
+        "Press bar overhead in slight arc around face",
+        "Lock out arms fully overhead"
+      ],
+      "tips": [
+        "Lean torso slightly back then forward as bar passes head",
+        "Keep ribcage down",
+        "Full lockout overhead"
+      ],
+      "common_mistakes": [
+        "Excessive back arch",
+        "Not locking out fully",
+        "Using leg drive (push press)"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "side_deltoid",
+        "muscleName": "Side Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "upper_back",
+        "muscleName": "Upper Back (Traps/Rhombs)",
+        "involvement": "stabilizer",
+        "activationFraction": 0.3
+      }
+    ]
+  },
+  {
+    "id": "barbell-row--bent-over-",
+    "name": "Barbell Row (Bent-Over)",
+    "description": "Hinge forward and row barbell to lower chest/upper abdomen.",
+    "movementPattern": "horizontal_pull",
+    "equipment": "barbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Hinge at hips to about 45 degrees",
+        "Grip bar slightly wider than shoulder width",
+        "Pull bar to lower chest/upper abdomen",
+        "Lower with control"
+      ],
+      "tips": [
+        "Keep core braced throughout",
+        "Squeeze shoulder blades together at top",
+        "Maintain hip hinge angle"
+      ],
+      "common_mistakes": [
+        "Using too much body English",
+        "Standing too upright",
+        "Jerking the weight"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "lats",
+        "muscleName": "Latissimus Dorsi",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "upper_back",
+        "muscleName": "Upper Back (Traps/Rhombs)",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "biceps",
+        "muscleName": "Biceps",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      },
+      {
+        "muscleGroupId": "rear_deltoid",
+        "muscleName": "Rear Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      },
+      {
+        "muscleGroupId": "lower_back",
+        "muscleName": "Lower Back (Erectors)",
+        "involvement": "stabilizer",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "barbell-curl",
+    "name": "Barbell Curl",
+    "description": "Curl barbell from arms extended to full flexion, isolating biceps.",
+    "movementPattern": "isolation_upper",
+    "equipment": "barbell",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "lower_arm"
+    ],
+    "romDegrees": 130,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Stand with bar at arms length, palms forward",
+        "Curl bar up by flexing elbows",
+        "Squeeze at top",
+        "Lower with control"
+      ],
+      "tips": [
+        "Keep elbows pinned to sides",
+        "Use full range of motion",
+        "Control the eccentric"
+      ],
+      "common_mistakes": [
+        "Swinging body for momentum",
+        "Moving elbows forward",
+        "Using too much weight"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "biceps",
+        "muscleName": "Biceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "forearms",
+        "muscleName": "Forearms",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      }
+    ]
+  },
+  {
+    "id": "barbell-lunge",
+    "name": "Barbell Lunge",
+    "description": "Step forward into a lunge with barbell on back, alternating legs.",
+    "movementPattern": "lunge",
+    "equipment": "barbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": true,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "lower_leg"
+    ],
+    "romDegrees": 110,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Position bar on upper back as in squat",
+        "Step forward into lunge position",
+        "Lower until back knee nearly touches floor",
+        "Push through front heel to return"
+      ],
+      "tips": [
+        "Keep torso upright",
+        "Front knee tracks over toes",
+        "Control the descent"
+      ],
+      "common_mistakes": [
+        "Knee passing too far over toes",
+        "Leaning trunk forward",
+        "Short stride length"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      }
+    ]
+  },
+  {
+    "id": "dumbbell-bench-press--flat-",
+    "name": "Dumbbell Bench Press (Flat)",
+    "description": "Press dumbbells from chest level to full arm extension while lying flat.",
+    "movementPattern": "horizontal_push",
+    "equipment": "dumbbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Lie on flat bench holding dumbbells at chest height",
+        "Press dumbbells up and slightly inward",
+        "Lower with control to chest level"
+      ],
+      "tips": [
+        "Greater range of motion than barbell",
+        "Each arm works independently",
+        "Can rotate wrists during press"
+      ],
+      "common_mistakes": [
+        "Dumbbells drifting apart",
+        "Not going deep enough",
+        "Uneven pressing"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      }
+    ]
+  },
+  {
+    "id": "dumbbell-bench-press--incline-",
+    "name": "Dumbbell Bench Press (Incline)",
+    "description": "Incline dumbbell press on 30-45 degree bench for upper chest emphasis.",
+    "movementPattern": "horizontal_push",
+    "equipment": "dumbbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Set bench to 30-45 degrees",
+        "Press dumbbells from chest to full extension",
+        "Lower with control"
+      ],
+      "tips": [
+        "Excellent for upper chest development",
+        "Allows natural wrist rotation"
+      ],
+      "common_mistakes": [
+        "Incline too steep",
+        "Arching excessively"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      }
+    ]
+  },
+  {
+    "id": "dumbbell-row--single-arm-",
+    "name": "Dumbbell Row (Single-Arm)",
+    "description": "Row dumbbell to hip with one arm while supporting on bench with the other.",
+    "movementPattern": "horizontal_pull",
+    "equipment": "dumbbell",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": true,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Place one knee and hand on bench",
+        "Hold dumbbell in free hand, arm extended",
+        "Row dumbbell to hip",
+        "Lower with control"
+      ],
+      "tips": [
+        "Keep back flat and parallel to floor",
+        "Pull elbow past torso",
+        "Squeeze shoulder blade at top"
+      ],
+      "common_mistakes": [
+        "Rotating torso",
+        "Not pulling high enough",
+        "Using momentum"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "lats",
+        "muscleName": "Latissimus Dorsi",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "upper_back",
+        "muscleName": "Upper Back (Traps/Rhombs)",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      },
+      {
+        "muscleGroupId": "biceps",
+        "muscleName": "Biceps",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "rear_deltoid",
+        "muscleName": "Rear Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "dumbbell-shoulder-press",
+    "name": "Dumbbell Shoulder Press",
+    "description": "Press dumbbells from shoulder height to overhead while seated or standing.",
+    "movementPattern": "vertical_push",
+    "equipment": "dumbbell",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 150,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Hold dumbbells at shoulder height, palms forward",
+        "Press overhead to full extension",
+        "Lower with control to starting position"
+      ],
+      "tips": [
+        "Can be done seated for more stability",
+        "Allows natural pressing arc"
+      ],
+      "common_mistakes": [
+        "Excessive back arch",
+        "Not locking out",
+        "Pressing too far forward"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "side_deltoid",
+        "muscleName": "Side Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      }
+    ]
+  },
+  {
+    "id": "dumbbell-curl",
+    "name": "Dumbbell Curl",
+    "description": "Curl dumbbells from full extension to flexion, alternating or simultaneously.",
+    "movementPattern": "isolation_upper",
+    "equipment": "dumbbell",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "lower_arm"
+    ],
+    "romDegrees": 130,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Stand holding dumbbells at sides, palms forward",
+        "Curl both dumbbells up simultaneously",
+        "Squeeze at top, lower with control"
+      ],
+      "tips": [
+        "Can alternate arms for heavier weight",
+        "Supinate wrists during curl for peak contraction"
+      ],
+      "common_mistakes": [
+        "Swinging for momentum",
+        "Moving elbows",
+        "Incomplete range of motion"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "biceps",
+        "muscleName": "Biceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "forearms",
+        "muscleName": "Forearms",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "dumbbell-hammer-curl",
+    "name": "Dumbbell Hammer Curl",
+    "description": "Curl dumbbells with neutral (hammer) grip to target brachialis and forearms.",
+    "movementPattern": "isolation_upper",
+    "equipment": "dumbbell",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "lower_arm"
+    ],
+    "romDegrees": 130,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Hold dumbbells at sides with neutral grip (palms facing each other)",
+        "Curl up keeping neutral grip throughout",
+        "Lower with control"
+      ],
+      "tips": [
+        "Targets brachialis and brachioradialis more than standard curl",
+        "Good for forearm development"
+      ],
+      "common_mistakes": [
+        "Converting to standard curl grip",
+        "Using body momentum"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "biceps",
+        "muscleName": "Biceps",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "forearms",
+        "muscleName": "Forearms",
+        "involvement": "primary",
+        "activationFraction": 0.7
+      }
+    ]
+  },
+  {
+    "id": "dumbbell-lateral-raise",
+    "name": "Dumbbell Lateral Raise",
+    "description": "Raise dumbbells out to sides to shoulder height for side deltoid isolation.",
+    "movementPattern": "isolation_upper",
+    "equipment": "dumbbell",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Stand holding dumbbells at sides",
+        "Raise arms out to sides until parallel with floor",
+        "Lower with control"
+      ],
+      "tips": [
+        "Slight bend in elbows throughout",
+        "Lead with elbows, not hands",
+        "Lighter weight with strict form"
+      ],
+      "common_mistakes": [
+        "Using too much weight",
+        "Shrugging shoulders up",
+        "Swinging body"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "side_deltoid",
+        "muscleName": "Side Deltoid",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.3
+      }
+    ]
+  },
+  {
+    "id": "dumbbell-fly",
+    "name": "Dumbbell Fly",
+    "description": "Open arms wide then bring dumbbells together in an arc motion while lying flat.",
+    "movementPattern": "horizontal_push",
+    "equipment": "dumbbell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Lie on bench with dumbbells pressed above chest",
+        "Lower dumbbells in wide arc with slight elbow bend",
+        "Bring dumbbells back together squeezing chest"
+      ],
+      "tips": [
+        "Maintain constant slight elbow bend",
+        "Feel stretch in chest at bottom",
+        "Control the weight throughout"
+      ],
+      "common_mistakes": [
+        "Straightening arms (turns into press)",
+        "Going too heavy",
+        "Excessive range of motion"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "dumbbell-lunge",
+    "name": "Dumbbell Lunge",
+    "description": "Step forward or backward into lunge while holding dumbbells at sides.",
+    "movementPattern": "lunge",
+    "equipment": "dumbbell",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": true,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "lower_leg"
+    ],
+    "romDegrees": 110,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Hold dumbbells at sides",
+        "Step forward into lunge",
+        "Lower until back knee nearly touches floor",
+        "Push through front heel to return"
+      ],
+      "tips": [
+        "Keep torso upright",
+        "Dumbbells provide natural counterbalance",
+        "Can do walking, reverse, or stationary"
+      ],
+      "common_mistakes": [
+        "Leaning forward",
+        "Short stride",
+        "Knee going past toes excessively"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      }
+    ]
+  },
+  {
+    "id": "goblet-squat",
+    "name": "Goblet Squat",
+    "description": "Hold dumbbell or kettlebell at chest and squat to depth.",
+    "movementPattern": "squat",
+    "equipment": "dumbbell",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "lower_leg"
+    ],
+    "romDegrees": 120,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Hold dumbbell vertically at chest with both hands",
+        "Squat down keeping chest up",
+        "Elbows track inside knees",
+        "Drive up to standing"
+      ],
+      "tips": [
+        "Great for learning squat pattern",
+        "Counterbalance allows deeper squat",
+        "Keep elbows inside knees"
+      ],
+      "common_mistakes": [
+        "Leaning too far forward",
+        "Not going deep enough",
+        "Letting knees cave in"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "stabilizer",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "leg-press",
+    "name": "Leg Press",
+    "description": "Push weighted platform away using legs while seated at 45 degrees.",
+    "movementPattern": "squat",
+    "equipment": "machine",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "lower_leg"
+    ],
+    "romDegrees": 110,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Sit in leg press with back flat against pad",
+        "Place feet shoulder width on platform",
+        "Release safety and lower platform by bending knees",
+        "Press platform away to near full extension"
+      ],
+      "tips": [
+        "Do not lock out knees completely",
+        "Adjust foot position for emphasis (high=glutes, low=quads)",
+        "Keep lower back pressed into pad"
+      ],
+      "common_mistakes": [
+        "Locking knees at top",
+        "Letting hips roll off pad",
+        "Bouncing at bottom"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      },
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "hack-squat-machine",
+    "name": "Hack Squat Machine",
+    "description": "Squat on angled sled machine with shoulders under pads.",
+    "movementPattern": "squat",
+    "equipment": "machine",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "lower_leg"
+    ],
+    "romDegrees": 115,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Position shoulders under pads, back against rest",
+        "Place feet shoulder width on platform",
+        "Release safety and lower by bending knees",
+        "Push up to starting position"
+      ],
+      "tips": [
+        "Very quad dominant movement",
+        "Foot placement affects emphasis",
+        "Safer alternative to barbell squat"
+      ],
+      "common_mistakes": [
+        "Knees caving inward",
+        "Not going deep enough",
+        "Placing feet too high or low"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      }
+    ]
+  },
+  {
+    "id": "smith-machine-squat",
+    "name": "Smith Machine Squat",
+    "description": "Squat using barbell fixed in guided vertical track.",
+    "movementPattern": "squat",
+    "equipment": "machine",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "lower_leg"
+    ],
+    "romDegrees": 115,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Position bar on upper traps under smith machine",
+        "Feet slightly forward of bar",
+        "Unrack and squat to depth",
+        "Press up to start"
+      ],
+      "tips": [
+        "Fixed bar path removes balance requirement",
+        "Can place feet forward for more glute emphasis",
+        "Built-in safety catches"
+      ],
+      "common_mistakes": [
+        "Feet too far back (like free squat)",
+        "Not using full range of motion"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "chest-press-machine",
+    "name": "Chest Press Machine",
+    "description": "Push handles forward from chest level while seated in machine.",
+    "movementPattern": "horizontal_push",
+    "equipment": "machine",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 85,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Adjust seat height so handles are at chest level",
+        "Grip handles and press forward",
+        "Extend arms fully",
+        "Return with control"
+      ],
+      "tips": [
+        "Machine stabilizes the weight for you",
+        "Good for beginners or burnout sets",
+        "Adjust seat for optimal chest engagement"
+      ],
+      "common_mistakes": [
+        "Seat too high or low",
+        "Not using full range of motion",
+        "Jerking the weight"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      }
+    ]
+  },
+  {
+    "id": "pec-deck--fly-machine-",
+    "name": "Pec Deck (Fly Machine)",
+    "description": "Bring pads or handles together in front of chest in a fly motion.",
+    "movementPattern": "horizontal_push",
+    "equipment": "machine",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Sit with back flat against pad",
+        "Place forearms against pads or grip handles",
+        "Bring arms together in front of chest",
+        "Return with control"
+      ],
+      "tips": [
+        "Isolates chest without tricep involvement",
+        "Maintain slight elbow bend",
+        "Squeeze chest at peak contraction"
+      ],
+      "common_mistakes": [
+        "Using too much weight",
+        "Leaning forward",
+        "Not controlling the return"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.3
+      }
+    ]
+  },
+  {
+    "id": "shoulder-press-machine",
+    "name": "Shoulder Press Machine",
+    "description": "Press handles overhead while seated in shoulder press machine.",
+    "movementPattern": "vertical_push",
+    "equipment": "machine",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 140,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Adjust seat so handles start at shoulder height",
+        "Grip handles and press overhead",
+        "Extend arms fully",
+        "Lower with control"
+      ],
+      "tips": [
+        "Safer than free weight overhead press",
+        "Good for building base strength",
+        "Keep back against pad"
+      ],
+      "common_mistakes": [
+        "Arching back excessively",
+        "Not full range of motion",
+        "Using too much weight"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "side_deltoid",
+        "muscleName": "Side Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      }
+    ]
+  },
+  {
+    "id": "lat-pulldown",
+    "name": "Lat Pulldown",
+    "description": "Pull bar down to chest from overhead cable attachment.",
+    "movementPattern": "vertical_pull",
+    "equipment": "machine",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 120,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Grip bar wider than shoulder width",
+        "Sit with thighs secured under pads",
+        "Pull bar down to upper chest",
+        "Return with control"
+      ],
+      "tips": [
+        "Lean back slightly",
+        "Squeeze shoulder blades together",
+        "Think about pulling elbows down"
+      ],
+      "common_mistakes": [
+        "Pulling behind neck",
+        "Leaning too far back",
+        "Using momentum"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "lats",
+        "muscleName": "Latissimus Dorsi",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "biceps",
+        "muscleName": "Biceps",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      },
+      {
+        "muscleGroupId": "upper_back",
+        "muscleName": "Upper Back (Traps/Rhombs)",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      }
+    ]
+  },
+  {
+    "id": "seated-row-machine",
+    "name": "Seated Row Machine",
+    "description": "Pull handles toward torso while seated with chest against pad.",
+    "movementPattern": "horizontal_pull",
+    "equipment": "machine",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Sit with chest against pad",
+        "Grip handles with arms extended",
+        "Pull handles toward lower chest",
+        "Squeeze shoulder blades, return with control"
+      ],
+      "tips": [
+        "Keep chest against pad throughout",
+        "Various grip options change emphasis",
+        "Full stretch at extension"
+      ],
+      "common_mistakes": [
+        "Leaning back instead of pulling",
+        "Not fully extending",
+        "Using body momentum"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "lats",
+        "muscleName": "Latissimus Dorsi",
+        "involvement": "primary",
+        "activationFraction": 0.9
+      },
+      {
+        "muscleGroupId": "upper_back",
+        "muscleName": "Upper Back (Traps/Rhombs)",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "biceps",
+        "muscleName": "Biceps",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "rear_deltoid",
+        "muscleName": "Rear Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "leg-extension",
+    "name": "Leg Extension",
+    "description": "Extend lower legs against pad from seated position for quad isolation.",
+    "movementPattern": "isolation_lower",
+    "equipment": "machine",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "lower_leg"
+    ],
+    "romDegrees": 100,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Sit with back against pad, adjust so pivot aligns with knee",
+        "Hook ankles under pad",
+        "Extend legs until straight",
+        "Lower with control"
+      ],
+      "tips": [
+        "Pause at top for peak contraction",
+        "Do not hyperextend knees",
+        "Control the negative"
+      ],
+      "common_mistakes": [
+        "Swinging the weight",
+        "Lifting hips off seat",
+        "Going too fast"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      }
+    ]
+  },
+  {
+    "id": "leg-curl--seated-",
+    "name": "Leg Curl (Seated)",
+    "description": "Curl lower legs under pad from seated position for hamstring isolation.",
+    "movementPattern": "isolation_lower",
+    "equipment": "machine",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "lower_leg"
+    ],
+    "romDegrees": 100,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Sit with back against pad, adjust so pivot aligns with knee",
+        "Position pad above ankles",
+        "Curl legs down and back",
+        "Return with control"
+      ],
+      "tips": [
+        "Keep back pressed against pad",
+        "Focus on hamstring squeeze",
+        "Full range of motion"
+      ],
+      "common_mistakes": [
+        "Using too much weight",
+        "Lifting off seat",
+        "Incomplete range of motion"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "calves",
+        "muscleName": "Calves",
+        "involvement": "secondary",
+        "activationFraction": 0.2
+      }
+    ]
+  },
+  {
+    "id": "leg-curl--lying-",
+    "name": "Leg Curl (Lying)",
+    "description": "Curl lower legs against pad while lying face down on machine.",
+    "movementPattern": "isolation_lower",
+    "equipment": "machine",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "lower_leg"
+    ],
+    "romDegrees": 100,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Lie face down with ankles under pad",
+        "Curl legs up toward glutes",
+        "Squeeze at top",
+        "Lower with control"
+      ],
+      "tips": [
+        "Keep hips pressed into pad",
+        "Point toes down for more hamstring activation",
+        "Avoid raising hips"
+      ],
+      "common_mistakes": [
+        "Hips lifting off pad",
+        "Jerking the weight",
+        "Not full range of motion"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "calves",
+        "muscleName": "Calves",
+        "involvement": "secondary",
+        "activationFraction": 0.2
+      }
+    ]
+  },
+  {
+    "id": "calf-raise-machine",
+    "name": "Calf Raise Machine",
+    "description": "Rise onto toes against resistance in standing or seated calf raise machine.",
+    "movementPattern": "isolation_lower",
+    "equipment": "machine",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "lower_leg"
+    ],
+    "romDegrees": 60,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Position shoulders under pads (standing) or knees under pads (seated)",
+        "Place balls of feet on platform",
+        "Rise up onto toes as high as possible",
+        "Lower heels below platform for full stretch"
+      ],
+      "tips": [
+        "Pause at top for peak contraction",
+        "Full stretch at bottom",
+        "Slow controlled reps work best"
+      ],
+      "common_mistakes": [
+        "Bouncing at bottom",
+        "Partial range of motion",
+        "Going too fast"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "calves",
+        "muscleName": "Calves",
+        "involvement": "primary",
+        "activationFraction": 1
+      }
+    ]
+  },
+  {
+    "id": "push-up--standard-",
+    "name": "Push-up (Standard)",
+    "description": "Lower body to floor and press up with arms, body in plank position.",
+    "movementPattern": "horizontal_push",
+    "equipment": "bodyweight",
+    "difficulty": "beginner",
+    "isBodyweight": true,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0.64,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Start in plank position, hands shoulder width apart",
+        "Lower chest to floor bending elbows",
+        "Push up to full arm extension",
+        "Keep body straight throughout"
+      ],
+      "tips": [
+        "Core engaged throughout",
+        "Elbows at about 45 degrees",
+        "Full range of motion"
+      ],
+      "common_mistakes": [
+        "Sagging hips",
+        "Flaring elbows wide",
+        "Partial reps"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 0.9
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      },
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "stabilizer",
+        "activationFraction": 0.3
+      }
+    ]
+  },
+  {
+    "id": "push-up--diamond-",
+    "name": "Push-up (Diamond)",
+    "description": "Push-up with hands close together forming diamond shape, emphasizes triceps.",
+    "movementPattern": "horizontal_push",
+    "equipment": "bodyweight",
+    "difficulty": "intermediate",
+    "isBodyweight": true,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0.64,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Place hands together under chest forming diamond with index fingers and thumbs",
+        "Perform push-up keeping elbows close to body",
+        "Lower until chest touches hands"
+      ],
+      "tips": [
+        "Much harder than standard push-up",
+        "Excellent tricep builder",
+        "Keep elbows tucked"
+      ],
+      "common_mistakes": [
+        "Hands too far forward",
+        "Flaring elbows",
+        "Not touching chest to hands"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      }
+    ]
+  },
+  {
+    "id": "push-up--wide-",
+    "name": "Push-up (Wide)",
+    "description": "Push-up with hands placed wider than shoulders to emphasize chest.",
+    "movementPattern": "horizontal_push",
+    "equipment": "bodyweight",
+    "difficulty": "beginner",
+    "isBodyweight": true,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 85,
+    "bodyMassFractionMoved": 0.64,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Place hands wider than shoulder width",
+        "Lower chest to floor",
+        "Press up to full extension"
+      ],
+      "tips": [
+        "More chest focused than standard",
+        "Reduced range of motion",
+        "Good chest stretch at bottom"
+      ],
+      "common_mistakes": [
+        "Going too wide (shoulder strain)",
+        "Sagging middle",
+        "Partial range of motion"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      }
+    ]
+  },
+  {
+    "id": "push-up--decline-",
+    "name": "Push-up (Decline)",
+    "description": "Push-up with feet elevated on bench for increased difficulty and upper chest emphasis.",
+    "movementPattern": "horizontal_push",
+    "equipment": "bodyweight",
+    "difficulty": "intermediate",
+    "isBodyweight": true,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0.7,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Place feet on bench or elevated surface",
+        "Hands on floor, shoulder width apart",
+        "Lower chest toward floor",
+        "Press up to full extension"
+      ],
+      "tips": [
+        "Higher elevation = more difficulty",
+        "Emphasizes upper chest and front delts",
+        "Core must work harder"
+      ],
+      "common_mistakes": [
+        "Sagging hips",
+        "Insufficient depth",
+        "Feet slipping off surface"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 0.9
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "primary",
+        "activationFraction": 0.7
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      }
+    ]
+  },
+  {
+    "id": "pull-up--overhand-",
+    "name": "Pull-up (Overhand)",
+    "description": "Hang from bar with overhand grip and pull chin above bar.",
+    "movementPattern": "vertical_pull",
+    "equipment": "bodyweight",
+    "difficulty": "intermediate",
+    "isBodyweight": true,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 120,
+    "bodyMassFractionMoved": 0.95,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Grip bar with overhand grip, slightly wider than shoulders",
+        "From dead hang, pull body up until chin clears bar",
+        "Lower with control to dead hang"
+      ],
+      "tips": [
+        "Initiate by depressing shoulder blades",
+        "Think about pulling elbows down",
+        "Full dead hang between reps"
+      ],
+      "common_mistakes": [
+        "Kipping or swinging",
+        "Not going to full dead hang",
+        "Chin not clearing bar"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "lats",
+        "muscleName": "Latissimus Dorsi",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "biceps",
+        "muscleName": "Biceps",
+        "involvement": "secondary",
+        "activationFraction": 0.7
+      },
+      {
+        "muscleGroupId": "upper_back",
+        "muscleName": "Upper Back (Traps/Rhombs)",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "forearms",
+        "muscleName": "Forearms",
+        "involvement": "stabilizer",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "chin-up--underhand-",
+    "name": "Chin-up (Underhand)",
+    "description": "Hang from bar with underhand grip and pull chin above bar, emphasizes biceps.",
+    "movementPattern": "vertical_pull",
+    "equipment": "bodyweight",
+    "difficulty": "intermediate",
+    "isBodyweight": true,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 120,
+    "bodyMassFractionMoved": 0.95,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Grip bar with underhand (supinated) grip, shoulder width",
+        "Pull body up until chin clears bar",
+        "Lower with control"
+      ],
+      "tips": [
+        "Easier than overhand pull-up for most people",
+        "Greater bicep activation",
+        "Full range of motion"
+      ],
+      "common_mistakes": [
+        "Not full dead hang",
+        "Using momentum",
+        "Partial reps"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "lats",
+        "muscleName": "Latissimus Dorsi",
+        "involvement": "primary",
+        "activationFraction": 0.9
+      },
+      {
+        "muscleGroupId": "biceps",
+        "muscleName": "Biceps",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "upper_back",
+        "muscleName": "Upper Back (Traps/Rhombs)",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      }
+    ]
+  },
+  {
+    "id": "dips--parallel-bars-",
+    "name": "Dips (Parallel Bars)",
+    "description": "Lower body between parallel bars by bending arms, then press up.",
+    "movementPattern": "vertical_push",
+    "equipment": "bodyweight",
+    "difficulty": "intermediate",
+    "isBodyweight": true,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 100,
+    "bodyMassFractionMoved": 0.9,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Grip parallel bars, arms straight, body suspended",
+        "Lower body by bending elbows to about 90 degrees",
+        "Press up to full arm extension"
+      ],
+      "tips": [
+        "Lean forward for more chest, upright for more triceps",
+        "Control the descent",
+        "Full lockout at top"
+      ],
+      "common_mistakes": [
+        "Going too deep (shoulder injury)",
+        "Swinging body",
+        "Partial range of motion"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      }
+    ]
+  },
+  {
+    "id": "dips--bench-",
+    "name": "Dips (Bench)",
+    "description": "Tricep dip using bench or chair behind body with feet on floor or elevated.",
+    "movementPattern": "vertical_push",
+    "equipment": "bodyweight",
+    "difficulty": "beginner",
+    "isBodyweight": true,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0.6,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Place hands on bench edge behind you, fingers forward",
+        "Extend legs forward (bent for easier, straight for harder)",
+        "Lower body by bending elbows to about 90 degrees",
+        "Press up to start"
+      ],
+      "tips": [
+        "Keep back close to bench",
+        "Feet further away = harder",
+        "Good beginner dip variation"
+      ],
+      "common_mistakes": [
+        "Elbows flaring outward",
+        "Going too deep",
+        "Shrugging shoulders"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      },
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "secondary",
+        "activationFraction": 0.3
+      }
+    ]
+  },
+  {
+    "id": "muscle-up",
+    "name": "Muscle-up",
+    "description": "Pull up then transition to above the bar and press up in one fluid motion.",
+    "movementPattern": "bodyweight_compound",
+    "equipment": "bodyweight",
+    "difficulty": "advanced",
+    "isBodyweight": true,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm",
+      "torso"
+    ],
+    "romDegrees": 180,
+    "bodyMassFractionMoved": 0.95,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Begin with a slight swing or strict from dead hang",
+        "Perform explosive pull-up",
+        "Transition wrists over bar at top of pull",
+        "Press up into dip position above bar"
+      ],
+      "tips": [
+        "Requires strong pull-up and dip",
+        "False grip helps transition",
+        "Practice explosive pull-ups first"
+      ],
+      "common_mistakes": [
+        "Insufficient pull height",
+        "Poor transition technique",
+        "Using too much kip"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "lats",
+        "muscleName": "Latissimus Dorsi",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "biceps",
+        "muscleName": "Biceps",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      },
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "stabilizer",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "pistol-squat",
+    "name": "Pistol Squat",
+    "description": "Single-leg squat with non-working leg extended forward.",
+    "movementPattern": "squat",
+    "equipment": "bodyweight",
+    "difficulty": "advanced",
+    "isBodyweight": true,
+    "isUnilateral": true,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "lower_leg"
+    ],
+    "romDegrees": 130,
+    "bodyMassFractionMoved": 0.85,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Stand on one leg, extend other leg forward",
+        "Squat down on standing leg to full depth",
+        "Keep non-working leg extended throughout",
+        "Stand back up"
+      ],
+      "tips": [
+        "Requires excellent balance and mobility",
+        "Hold arms forward for counterbalance",
+        "Start with assisted version"
+      ],
+      "common_mistakes": [
+        "Losing balance",
+        "Knee caving in",
+        "Not reaching full depth"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "primary",
+        "activationFraction": 0.9
+      },
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      },
+      {
+        "muscleGroupId": "hip_flexors",
+        "muscleName": "Hip Flexors",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      },
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "stabilizer",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "plank",
+    "name": "Plank",
+    "description": "Hold body in straight line on forearms and toes, isometric core exercise.",
+    "movementPattern": "core",
+    "equipment": "bodyweight",
+    "difficulty": "beginner",
+    "isBodyweight": true,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "torso"
+    ],
+    "romDegrees": 0,
+    "bodyMassFractionMoved": 0.7,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Place forearms on floor, elbows under shoulders",
+        "Extend legs, balance on toes",
+        "Hold body in straight line from head to heels",
+        "Maintain position for target duration"
+      ],
+      "tips": [
+        "Squeeze glutes and brace core",
+        "Do not let hips sag or pike",
+        "Breathe steadily throughout"
+      ],
+      "common_mistakes": [
+        "Hips sagging",
+        "Hips piking up",
+        "Holding breath",
+        "Looking up (neck strain)"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "obliques",
+        "muscleName": "Obliques",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "lower_back",
+        "muscleName": "Lower Back (Erectors)",
+        "involvement": "stabilizer",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "side-plank",
+    "name": "Side Plank",
+    "description": "Hold body in straight line on one forearm and side of foot, lateral core stability.",
+    "movementPattern": "core",
+    "equipment": "bodyweight",
+    "difficulty": "beginner",
+    "isBodyweight": true,
+    "isUnilateral": true,
+    "primarySegmentsMoved": [
+      "torso"
+    ],
+    "romDegrees": 0,
+    "bodyMassFractionMoved": 0.5,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Lie on side, place forearm on floor under shoulder",
+        "Stack feet and lift hips off floor",
+        "Hold body in straight line from head to feet",
+        "Maintain for target duration, then switch sides"
+      ],
+      "tips": [
+        "Squeeze obliques to maintain position",
+        "Stack or stagger feet",
+        "Free hand on hip or extended overhead"
+      ],
+      "common_mistakes": [
+        "Hips dropping",
+        "Rolling forward or backward",
+        "Holding breath"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "obliques",
+        "muscleName": "Obliques",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      },
+      {
+        "muscleGroupId": "hip_flexors",
+        "muscleName": "Hip Flexors",
+        "involvement": "stabilizer",
+        "activationFraction": 0.3
+      }
+    ]
+  },
+  {
+    "id": "hanging-leg-raise",
+    "name": "Hanging Leg Raise",
+    "description": "Hang from bar and raise legs to horizontal or above for core activation.",
+    "movementPattern": "core",
+    "equipment": "bodyweight",
+    "difficulty": "intermediate",
+    "isBodyweight": true,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "torso"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0.35,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Hang from pull-up bar with arms extended",
+        "Raise legs together until parallel with floor or higher",
+        "Lower with control to starting position"
+      ],
+      "tips": [
+        "Avoid swinging",
+        "For added difficulty, raise to bar",
+        "Bent knee version is easier progression"
+      ],
+      "common_mistakes": [
+        "Swinging for momentum",
+        "Using hip flexors only",
+        "Partial range of motion"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "hip_flexors",
+        "muscleName": "Hip Flexors",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "obliques",
+        "muscleName": "Obliques",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      },
+      {
+        "muscleGroupId": "forearms",
+        "muscleName": "Forearms",
+        "involvement": "stabilizer",
+        "activationFraction": 0.3
+      }
+    ]
+  },
+  {
+    "id": "cable-crossover",
+    "name": "Cable Crossover",
+    "description": "Step between dual cable stacks and bring handles together in front of chest.",
+    "movementPattern": "horizontal_push",
+    "equipment": "cable",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Set pulleys to high position",
+        "Grip handles and step forward",
+        "With slight elbow bend, bring hands together in front of chest",
+        "Return with control"
+      ],
+      "tips": [
+        "Constant tension throughout range of motion",
+        "Vary pulley height for different angles",
+        "Squeeze chest at peak contraction"
+      ],
+      "common_mistakes": [
+        "Straightening arms",
+        "Using too much weight",
+        "Leaning too far forward"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "chest",
+        "muscleName": "Chest (Pectorals)",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "cable-row--seated-",
+    "name": "Cable Row (Seated)",
+    "description": "Pull cable handle toward torso while seated with feet on platform.",
+    "movementPattern": "horizontal_pull",
+    "equipment": "cable",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Sit on bench with feet on platform, knees slightly bent",
+        "Grip handle with arms extended",
+        "Pull handle to lower chest/upper abdomen",
+        "Squeeze shoulder blades, return with control"
+      ],
+      "tips": [
+        "Keep back straight, slight lean allowed",
+        "Various attachments change grip and emphasis",
+        "Full stretch at extension"
+      ],
+      "common_mistakes": [
+        "Excessive body lean",
+        "Rounding back",
+        "Not full range of motion"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "lats",
+        "muscleName": "Latissimus Dorsi",
+        "involvement": "primary",
+        "activationFraction": 0.9
+      },
+      {
+        "muscleGroupId": "upper_back",
+        "muscleName": "Upper Back (Traps/Rhombs)",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "biceps",
+        "muscleName": "Biceps",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "rear_deltoid",
+        "muscleName": "Rear Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "tricep-pushdown",
+    "name": "Tricep Pushdown",
+    "description": "Push cable attachment down from chest height to full arm extension for tricep isolation.",
+    "movementPattern": "isolation_upper",
+    "equipment": "cable",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "lower_arm"
+    ],
+    "romDegrees": 120,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Set cable to high position, grip bar or rope attachment",
+        "Stand with elbows at sides, forearms at about 90 degrees",
+        "Push attachment down until arms are fully extended",
+        "Return with control"
+      ],
+      "tips": [
+        "Keep elbows pinned to sides throughout",
+        "Rope allows more wrist rotation at bottom",
+        "Various attachments available"
+      ],
+      "common_mistakes": [
+        "Elbows moving away from body",
+        "Leaning into the weight",
+        "Partial range of motion"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      }
+    ]
+  },
+  {
+    "id": "face-pull",
+    "name": "Face Pull",
+    "description": "Pull rope attachment to face level, rotating externally at the top.",
+    "movementPattern": "horizontal_pull",
+    "equipment": "cable",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Set cable to upper chest or face height",
+        "Grip rope with overhand grip",
+        "Pull toward face, separating rope ends",
+        "Externally rotate arms at end position, return with control"
+      ],
+      "tips": [
+        "Excellent for rear delts and rotator cuff health",
+        "Light weight, high reps works best",
+        "Keep elbows high"
+      ],
+      "common_mistakes": [
+        "Using too much weight",
+        "Not rotating at end",
+        "Pulling too low"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "rear_deltoid",
+        "muscleName": "Rear Deltoid",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "upper_back",
+        "muscleName": "Upper Back (Traps/Rhombs)",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      }
+    ]
+  },
+  {
+    "id": "cable-lateral-raise",
+    "name": "Cable Lateral Raise",
+    "description": "Raise cable handle out to side to shoulder height for side deltoid isolation.",
+    "movementPattern": "isolation_upper",
+    "equipment": "cable",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": true,
+    "primarySegmentsMoved": [
+      "upper_arm"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Set cable to lowest position, stand sideways to machine",
+        "Grip handle with far hand, arm across body",
+        "Raise arm out to side until parallel with floor",
+        "Lower with control"
+      ],
+      "tips": [
+        "Constant tension throughout (advantage over dumbbells)",
+        "Slight bend in elbow",
+        "Can also be done with both arms using dual cables"
+      ],
+      "common_mistakes": [
+        "Using too much weight",
+        "Shrugging shoulder",
+        "Leaning away from cable"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "side_deltoid",
+        "muscleName": "Side Deltoid",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.3
+      }
+    ]
+  },
+  {
+    "id": "kettlebell-swing",
+    "name": "Kettlebell Swing",
+    "description": "Hinge at hips to swing kettlebell between legs then drive hips forward to chest height.",
+    "movementPattern": "hinge",
+    "equipment": "kettlebell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "torso"
+    ],
+    "romDegrees": 90,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Stand with feet wider than shoulders, kettlebell on floor ahead",
+        "Hinge and grip kettlebell, hike it back between legs",
+        "Drive hips forward explosively to swing KB to chest height",
+        "Let KB swing back between legs, repeat"
+      ],
+      "tips": [
+        "Power comes from hips, not arms",
+        "Keep arms relaxed like ropes",
+        "Maintain neutral spine throughout"
+      ],
+      "common_mistakes": [
+        "Squatting instead of hinging",
+        "Using arms to lift",
+        "Rounding back at bottom"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "lower_back",
+        "muscleName": "Lower Back (Erectors)",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "stabilizer",
+        "activationFraction": 0.4
+      },
+      {
+        "muscleGroupId": "forearms",
+        "muscleName": "Forearms",
+        "involvement": "stabilizer",
+        "activationFraction": 0.3
+      }
+    ]
+  },
+  {
+    "id": "turkish-get-up",
+    "name": "Turkish Get-up",
+    "description": "Rise from floor to standing position while holding kettlebell overhead with one arm.",
+    "movementPattern": "bodyweight_compound",
+    "equipment": "kettlebell",
+    "difficulty": "advanced",
+    "isBodyweight": false,
+    "isUnilateral": true,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm",
+      "upper_leg",
+      "lower_leg",
+      "torso"
+    ],
+    "romDegrees": 180,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Lie on back, press KB up with one arm",
+        "Roll to elbow, then to hand",
+        "Bridge hips up, sweep leg through to kneeling",
+        "Stand up from kneeling, reverse to return"
+      ],
+      "tips": [
+        "Eyes on the kettlebell throughout",
+        "Each step is deliberate, not rushed",
+        "Start light to learn the pattern"
+      ],
+      "common_mistakes": [
+        "Rushing through steps",
+        "Losing eye contact with KB",
+        "Bent pressing arm"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "primary",
+        "activationFraction": 0.7
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      },
+      {
+        "muscleGroupId": "obliques",
+        "muscleName": "Obliques",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      }
+    ]
+  },
+  {
+    "id": "kettlebell-goblet-squat",
+    "name": "Kettlebell Goblet Squat",
+    "description": "Hold kettlebell by horns at chest and squat to depth.",
+    "movementPattern": "squat",
+    "equipment": "kettlebell",
+    "difficulty": "beginner",
+    "isBodyweight": false,
+    "isUnilateral": false,
+    "primarySegmentsMoved": [
+      "upper_leg",
+      "lower_leg"
+    ],
+    "romDegrees": 120,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Hold kettlebell by horns at chest level",
+        "Squat down keeping chest up",
+        "Elbows track inside knees",
+        "Drive up to standing"
+      ],
+      "tips": [
+        "Counterbalance allows deep squatting",
+        "Great for teaching squat form",
+        "Keep elbows inside knees for mobility"
+      ],
+      "common_mistakes": [
+        "Rounding back",
+        "Not squatting deep enough",
+        "KB drifting away from body"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "quadriceps",
+        "muscleName": "Quadriceps",
+        "involvement": "primary",
+        "activationFraction": 1
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "primary",
+        "activationFraction": 0.8
+      },
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "stabilizer",
+        "activationFraction": 0.4
+      }
+    ]
+  },
+  {
+    "id": "kettlebell-clean-and-press",
+    "name": "Kettlebell Clean and Press",
+    "description": "Clean kettlebell to rack position then press overhead in one flowing movement.",
+    "movementPattern": "vertical_push",
+    "equipment": "kettlebell",
+    "difficulty": "intermediate",
+    "isBodyweight": false,
+    "isUnilateral": true,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm",
+      "upper_leg"
+    ],
+    "romDegrees": 150,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Swing KB back between legs",
+        "Clean to rack position at shoulder",
+        "Press overhead to full lockout",
+        "Lower to rack, then back to swing"
+      ],
+      "tips": [
+        "Clean is a hip-powered movement",
+        "Keep KB close to body during clean",
+        "Smooth transition from clean to press"
+      ],
+      "common_mistakes": [
+        "KB banging forearm on clean",
+        "Pressing before stable rack",
+        "Using arm strength for clean"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "primary",
+        "activationFraction": 0.9
+      },
+      {
+        "muscleGroupId": "triceps",
+        "muscleName": "Triceps",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      },
+      {
+        "muscleGroupId": "forearms",
+        "muscleName": "Forearms",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      }
+    ]
+  },
+  {
+    "id": "kettlebell-snatch",
+    "name": "Kettlebell Snatch",
+    "description": "Swing kettlebell from between legs to full overhead lockout in one motion.",
+    "movementPattern": "bodyweight_compound",
+    "equipment": "kettlebell",
+    "difficulty": "advanced",
+    "isBodyweight": false,
+    "isUnilateral": true,
+    "primarySegmentsMoved": [
+      "upper_arm",
+      "lower_arm",
+      "upper_leg",
+      "torso"
+    ],
+    "romDegrees": 180,
+    "bodyMassFractionMoved": 0,
+    "isSystemDefault": true,
+    "metadata": {
+      "instructions": [
+        "Hinge and swing KB back between legs",
+        "Drive hips forward and pull KB overhead in one motion",
+        "Punch hand through at top to avoid KB flipping onto forearm",
+        "Lock out overhead, lower by guiding KB back down"
+      ],
+      "tips": [
+        "Master the swing and clean before snatching",
+        "Tame the arc to keep KB close",
+        "Powerful hip drive is key"
+      ],
+      "common_mistakes": [
+        "KB arcing too far from body",
+        "Forearm bruising from poor technique",
+        "Using arm pull instead of hip drive"
+      ]
+    },
+    "muscles": [
+      {
+        "muscleGroupId": "glutes",
+        "muscleName": "Glutes",
+        "involvement": "primary",
+        "activationFraction": 0.9
+      },
+      {
+        "muscleGroupId": "hamstrings",
+        "muscleName": "Hamstrings",
+        "involvement": "primary",
+        "activationFraction": 0.7
+      },
+      {
+        "muscleGroupId": "front_deltoid",
+        "muscleName": "Front Deltoid",
+        "involvement": "secondary",
+        "activationFraction": 0.6
+      },
+      {
+        "muscleGroupId": "upper_back",
+        "muscleName": "Upper Back (Traps/Rhombs)",
+        "involvement": "secondary",
+        "activationFraction": 0.5
+      },
+      {
+        "muscleGroupId": "abs",
+        "muscleName": "Abdominals",
+        "involvement": "stabilizer",
+        "activationFraction": 0.4
+      },
+      {
+        "muscleGroupId": "forearms",
+        "muscleName": "Forearms",
+        "involvement": "stabilizer",
+        "activationFraction": 0.4
+      }
+    ]
+  }
+]
