@@ -112,8 +112,7 @@ pub fn build_app(
         // Limit request body to 1 MB to prevent abuse
         .layer(DefaultBodyLimit::max(1024 * 1024))
         .layer(tower_http::cors::CorsLayer::new())
-        .layer(axum::extract::Extension(shared_pool))
-        .layer(axum::extract::Extension(Arc::new(crate::api::training::TrainingCache::new())));
+        .layer(axum::extract::Extension(shared_pool));
 
     app.layer(axum::extract::Extension(session_store))
 }
