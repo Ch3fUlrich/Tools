@@ -41,11 +41,14 @@ describe('Auth components', () => {
   });
 
   it('AuthProvider persists and restores user via localStorage', async () => {
+    const { getUserProfile } = await import('@/lib/api/client');
+    vi.mocked(getUserProfile).mockResolvedValueOnce({ id: '1', email: 'a@b.com', display_name: undefined, created_at: new Date().toISOString() });
+
     const TestComp = () => {
       const { login, user } = useAuth();
       return (
         <div>
-          <button onClick={() => login({ id: '1', email: 'a@b.com', created_at: new Date().toISOString() })}>Login</button>
+          <button onClick={() => login({ id: '1', email: 'a@b.com', created_at: new Date().toISOString() }, true)}>Login</button>
           <div data-testid="email">{user?.email ?? ''}</div>
         </div>
       );
@@ -62,6 +65,9 @@ describe('Auth components', () => {
 
     // unmount and remount to check persistence
     unmount();
+
+    // Clear the mock so the default from setup doesn't overwrite a@b.com with u@u.com
+    vi.mocked(getUserProfile).mockResolvedValueOnce({ id: '1', email: 'a@b.com', display_name: undefined, created_at: new Date().toISOString() });
 
     render(
       <TestWrapper>
@@ -82,7 +88,7 @@ describe('Auth components', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('u@u.com')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('u@u.com')).toBeInTheDocument());
     fireEvent.click(screen.getByText('Logout'));
 
     await waitFor(() => expect(screen.queryByText('u@u.com')).not.toBeInTheDocument());
