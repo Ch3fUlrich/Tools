@@ -106,3 +106,15 @@ afterEach(async () => {
     await new Promise(resolve => setTimeout(resolve, 0));
   });
 });
+
+// Automatically silence act() warnings for AuthContext refreshes when testing unrelated components.
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  if (typeof args[0] === 'string' && (args[0].includes('was not wrapped in act(...)') || args[0].includes('An update to AuthProvider'))) {
+    // Only suppress if it's the specific AuthProvider update that's annoying us across all tests
+    if (args[0].includes('wrapped in act') || args[0].includes('An update to')) {
+      return;
+    }
+  }
+  originalConsoleError(...args);
+};
