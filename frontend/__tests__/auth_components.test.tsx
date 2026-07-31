@@ -5,7 +5,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { UserProfile } from '@/components/auth/UserProfile';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -41,6 +41,8 @@ describe('Auth components', () => {
   });
 
   it('AuthProvider persists and restores user via localStorage', async () => {
+    const { getUserProfile } = await import('@/lib/api/client');
+    (getUserProfile as any).mockResolvedValue({ id: '1', email: 'a@b.com', created_at: new Date().toISOString() });
     const TestComp = () => {
       const { login, user } = useAuth();
       return (
@@ -57,7 +59,7 @@ describe('Auth components', () => {
       </TestWrapper>
     );
 
-    fireEvent.click(screen.getByText('Login'));
+    act(() => { fireEvent.click(screen.getByText('Login')); });
     await waitFor(() => expect(screen.getByTestId('email').textContent).toBe('a@b.com'));
 
     // unmount and remount to check persistence
@@ -73,6 +75,8 @@ describe('Auth components', () => {
   });
 
   it('UserProfile shows user and calls logout', async () => {
+    const { getUserProfile } = await import('@/lib/api/client');
+    (getUserProfile as any).mockResolvedValue({ id: '1', email: 'u@u.com', created_at: new Date().toISOString() });
     // set localstorage user so AuthProvider picks it up
     localStorage.setItem('auth_user', JSON.stringify({ id: '1', email: 'u@u.com', created_at: new Date().toISOString() }));
 
@@ -82,8 +86,11 @@ describe('Auth components', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('u@u.com')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Logout'));
+    // wait for AuthContext to resolve the profile
+    await waitFor(() => {
+      expect(screen.getByText('u@u.com')).toBeInTheDocument();
+    });
+    act(() => { fireEvent.click(screen.getByText('Logout')); });
 
     await waitFor(() => expect(screen.queryByText('u@u.com')).not.toBeInTheDocument());
   });
