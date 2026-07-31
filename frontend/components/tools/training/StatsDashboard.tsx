@@ -20,10 +20,9 @@ function todayStr(): string {
 }
 
 // Simple bar chart using div elements
-function BarChart({ data, valueKey, label, color }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: Array<any>;
-  valueKey: string;
+function BarChart<T extends { date?: string }>({ data, valueKey, label, color }: {
+  data: T[];
+  valueKey: keyof T;
   label: string;
   color: string;
 }) {
