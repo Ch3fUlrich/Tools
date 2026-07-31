@@ -5,7 +5,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { UserProfile } from '@/components/auth/UserProfile';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -45,7 +45,7 @@ describe('Auth components', () => {
       const { login, user } = useAuth();
       return (
         <div>
-          <button onClick={() => login({ id: '1', email: 'u@u.com', created_at: new Date().toISOString() })}>Login</button>
+          <button onClick={() => login({ id: '1', email: 'a@b.com', created_at: new Date().toISOString() })}>Login</button>
           <div data-testid="email">{user?.email ?? ''}</div>
         </div>
       );
@@ -57,41 +57,33 @@ describe('Auth components', () => {
       </TestWrapper>
     );
 
-    await act(async () => {
-      fireEvent.click(screen.getByText('Login'));
-    });
-    await waitFor(() => expect(screen.getByTestId('email').textContent).toBe('u@u.com'));
+    fireEvent.click(screen.getByText('Login'));
+    await waitFor(() => expect(screen.getByTestId('email').textContent).toBe('a@b.com'));
 
     // unmount and remount to check persistence
     unmount();
 
-    await act(async () => {
-      render(
-        <TestWrapper>
-          <TestComp />
-        </TestWrapper>
-      );
-    });
+    render(
+      <TestWrapper>
+        <TestComp />
+      </TestWrapper>
+    );
 
-    await waitFor(() => expect(screen.getByTestId('email').textContent).toBe('u@u.com'));
+    await waitFor(() => expect(screen.getByTestId('email').textContent).toBe('a@b.com'));
   });
 
   it('UserProfile shows user and calls logout', async () => {
     // set localstorage user so AuthProvider picks it up
     localStorage.setItem('auth_user', JSON.stringify({ id: '1', email: 'u@u.com', created_at: new Date().toISOString() }));
 
-    await act(async () => {
-      render(
-        <TestWrapper>
-          <UserProfile />
-        </TestWrapper>
-      );
-    });
+    render(
+      <TestWrapper>
+        <UserProfile />
+      </TestWrapper>
+    );
 
     expect(screen.getByText('u@u.com')).toBeInTheDocument();
-    await act(async () => {
-      fireEvent.click(screen.getByText('Logout'));
-    });
+    fireEvent.click(screen.getByText('Logout'));
 
     await waitFor(() => expect(screen.queryByText('u@u.com')).not.toBeInTheDocument());
   });
