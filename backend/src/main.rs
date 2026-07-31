@@ -84,7 +84,8 @@ fn configure_cors() -> CorsLayer {
         tracing::warn!("No valid origins configured, CORS will deny all origins");
         return CorsLayer::new()
             .allow_methods([Method::GET, Method::POST])
-            .allow_headers([header::CONTENT_TYPE]);
+            .allow_headers([header::CONTENT_TYPE])
+            .allow_credentials(true);
     }
 
     // Collect all valid HeaderValue origins into a Vec
@@ -116,7 +117,8 @@ fn configure_cors() -> CorsLayer {
         tracing::warn!("All origins failed to parse as HeaderValue, CORS will deny all origins");
         return CorsLayer::new()
             .allow_methods([Method::GET, Method::POST])
-            .allow_headers([header::CONTENT_TYPE]);
+            .allow_headers([header::CONTENT_TYPE])
+            .allow_credentials(true);
     }
 
     // Use AllowOrigin::list to configure multiple origins at once
@@ -125,6 +127,7 @@ fn configure_cors() -> CorsLayer {
     CorsLayer::new()
         .allow_methods([Method::GET, Method::POST])
         .allow_headers([header::CONTENT_TYPE])
+        .allow_credentials(true)
         .allow_origin(AllowOrigin::list(valid_origins))
 }
 
