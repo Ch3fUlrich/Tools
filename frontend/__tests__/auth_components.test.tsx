@@ -63,6 +63,9 @@ describe('Auth components', () => {
     // unmount and remount to check persistence
     unmount();
 
+    const { getUserProfile } = await import('@/lib/api/client');
+    (getUserProfile as any).mockResolvedValueOnce({ id: '1', email: 'a@b.com', created_at: new Date().toISOString() });
+
     render(
       <TestWrapper>
         <TestComp />
@@ -82,7 +85,7 @@ describe('Auth components', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('u@u.com')).toBeInTheDocument();
+    expect(await screen.findByText('u@u.com')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Logout'));
 
     await waitFor(() => expect(screen.queryByText('u@u.com')).not.toBeInTheDocument());
