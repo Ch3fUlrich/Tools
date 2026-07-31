@@ -40,16 +40,36 @@ describe('Auth components', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_) {
+      // Ignore if storage is unavailable in environment
+    }
+  })
+
   it('AuthProvider persists and restores user via localStorage', async () => {
     const TestComp = () => {
       const { login, user } = useAuth();
+      // Only render user info if not loading
       return (
         <div>
-          <button onClick={() => login({ id: '1', email: 'a@b.com', created_at: new Date().toISOString() })}>Login</button>
+          <button onClick={() => {
+              login({ id: '1', email: 'a@b.com', created_at: new Date().toISOString() }, true)
+          }}>Login</button>
           <div data-testid="email">{user?.email ?? ''}</div>
         </div>
       );
     };
+
+    // ensure localStorage is empty first
+    localStorage.clear();
+
+    // override mock BEFORE FIRST RENDER so we don't accidentally load u@u.com and store it
+    const { getUserProfile } = await import('@/lib/api/client');
+    (getUserProfile as any).mockResolvedValue({ id: '1', email: 'a@b.com', display_name: undefined, created_at: new Date().toISOString() });
 
     const { unmount } = render(
       <TestWrapper>
@@ -59,6 +79,12 @@ describe('Auth components', () => {
 
     fireEvent.click(screen.getByText('Login'));
     await waitFor(() => expect(screen.getByTestId('email').textContent).toBe('a@b.com'));
+
+    // wait for localstorage write which might be slightly delayed
+    await waitFor(() => {
+        const localUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        expect(localUser.email).toBe('a@b.com');
+    });
 
     // unmount and remount to check persistence
     unmount();
@@ -70,6 +96,9 @@ describe('Auth components', () => {
     );
 
     await waitFor(() => expect(screen.getByTestId('email').textContent).toBe('a@b.com'));
+
+    // reset to original mock after test
+    (getUserProfile as any).mockResolvedValue({ id: '1', email: 'u@u.com', display_name: undefined, created_at: new Date().toISOString() });
   });
 
   it('UserProfile shows user and calls logout', async () => {
@@ -82,7 +111,10 @@ describe('Auth components', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('u@u.com')).toBeInTheDocument();
+    await waitFor(() => {
+        expect(screen.getByText('u@u.com')).toBeInTheDocument();
+    });
+
     fireEvent.click(screen.getByText('Logout'));
 
     await waitFor(() => expect(screen.queryByText('u@u.com')).not.toBeInTheDocument());
