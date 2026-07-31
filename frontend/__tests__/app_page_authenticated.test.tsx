@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 
 // Mock next/router before importing the page
@@ -16,8 +16,10 @@ import Home from '@/app/page';
 import { TestWrapper } from '@/lib/test-utils';
 
 describe('Home page authenticated branch', () => {
-  test('shows UserProfile when authenticated', () => {
-    render(<TestWrapper><Home /></TestWrapper>);
+  test('shows UserProfile when authenticated', async () => {
+    await act(async () => {
+      render(<TestWrapper><Home /></TestWrapper>);
+    });
     expect(screen.getByText('MockUserProfile')).toBeInTheDocument();
     // Note: Sign In link is always present in header regardless of auth state
   });
