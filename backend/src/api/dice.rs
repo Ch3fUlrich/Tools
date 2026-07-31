@@ -112,8 +112,11 @@ pub async fn roll(
             let mut all_rolls = Vec::new();
             let mut total_requested = 0;
 
-            for req in reqs {
-                match dice_logic::handle_roll(req).await {
+            let futures: Vec<_> = reqs.into_iter().map(dice_logic::handle_roll).collect();
+            let results = futures::future::join_all(futures).await;
+
+            for result in results {
+                match result {
                     Ok(mut resp) => {
                         all_rolls.append(&mut resp.rolls);
                         if let Some(summary) = resp.summary.as_object() {
