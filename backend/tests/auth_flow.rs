@@ -125,6 +125,11 @@ async fn test_register_user_validation() {
     let result = auth_tools::register_user(&pool, "test@example.com", "", Some("Test")).await;
     assert!(result.is_err(), "Should reject empty password");
 
+    // Test invalid password (short)
+    let result =
+        auth_tools::register_user(&pool, "test_short@example.com", "short", Some("Test")).await;
+    assert!(result.is_err(), "Should reject short password");
+
     // Test duplicate email registration
     let email = format!("duplicate+{}@example.com", uuid::Uuid::new_v4());
     let _ = auth_tools::register_user(&pool, &email, "password123", Some("Test"))
