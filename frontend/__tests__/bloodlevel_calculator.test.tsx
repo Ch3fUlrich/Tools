@@ -30,31 +30,33 @@ describe('BloodLevelCalculator (consolidated)', () => {
     ] as any);
     const calc = vi.spyOn(api, 'calculateTolerance').mockResolvedValue({ blood_levels: [{ time: new Date().toISOString(), substance: 'TestSub', amountMg: 2 }] } as any);
 
-  let container: HTMLElement;
+  let localContainer: HTMLElement | null = null;
   await act(async () => {
     const res = render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
-    container = res.container;
+    localContainer = res.container;
   });
 
   // wait for substance options to load
   await waitFor(() => expect(getSub).toHaveBeenCalled());
 
-  // Add intake, choose substance, set dosage (scoped to this render)
-  const addBtn = within(container).getByRole('button', { name: /Add Intake|\+ Add Intake/i });
-  await act(async () => { fireEvent.click(addBtn); });
+  if (localContainer) {
+    // Add intake, choose substance, set dosage (scoped to this render)
+    const addBtn = within(localContainer).getByRole('button', { name: /Add Intake|\+ Add Intake/i });
+    await act(async () => { fireEvent.click(addBtn); });
 
-  const selects = within(container).getAllByRole('combobox');
-  expect(selects.length).toBeGreaterThan(0);
-  await act(async () => { fireEvent.change(selects[0], { target: { value: 'TestSub' } }); });
+    const selects = within(localContainer).getAllByRole('combobox');
+    expect(selects.length).toBeGreaterThan(0);
+    await act(async () => { fireEvent.change(selects[0], { target: { value: 'TestSub' } }); });
 
-  const dosageInputs = within(container).getAllByPlaceholderText('mg');
-  await act(async () => { fireEvent.change(dosageInputs[0], { target: { value: '10' } }); });
+    const dosageInputs = within(localContainer).getAllByPlaceholderText('mg');
+    await act(async () => { fireEvent.change(dosageInputs[0], { target: { value: '10' } }); });
 
-  const calcBtn = within(container).getByRole('button', { name: /Calculate Blood Levels|calculate blood levels/i });
-  await act(async () => { fireEvent.click(calcBtn); });
+    const calcBtn = within(localContainer).getByRole('button', { name: /Calculate Blood Levels|calculate blood levels/i });
+    await act(async () => { fireEvent.click(calcBtn); });
 
-  await waitFor(() => expect(calc).toHaveBeenCalled());
-  await waitFor(() => expect(container.querySelector('svg')).toBeTruthy());
+    await waitFor(() => expect(calc).toHaveBeenCalled());
+    await waitFor(() => expect(localContainer!.querySelector('svg')).toBeTruthy());
+  }
   });
 
   it('covers branches: loaded substances, error handling and interactions', async () => {

@@ -17,7 +17,9 @@ import { TestWrapper } from '@/lib/test-utils';
 
 describe('DiceRoller add buttons coverage', () => {
   it('renders and clicks all add-die buttons to exercise addDiceConfigWithType branches', async () => {
-    render(<TestWrapper><DiceRoller /></TestWrapper>);
+    await React.act(async () => {
+      render(<TestWrapper><DiceRoller /></TestWrapper>);
+    });
 
     const addLabels = ['Add D2','Add D3','Add D4','Add D6','Add D8','Add D10','Add D12','Add D20','Add Custom'];
 
@@ -27,7 +29,9 @@ describe('DiceRoller add buttons coverage', () => {
     // Click all buttons with small delays to prevent cascading re-renders
     for (const label of addLabels) {
       const btn = screen.getByRole('button', { name: label });
-      fireEvent.click(btn);
+      await React.act(async () => {
+        fireEvent.click(btn);
+      });
       // Small delay to allow React to process the state update
       await new Promise(resolve => setTimeout(resolve, 1));
     }
