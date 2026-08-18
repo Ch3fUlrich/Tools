@@ -350,19 +350,19 @@ Scope is optional but encouraged. For breaking changes, add `!` after the scope 
 Brief description of changes
 
 ## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
+- [​] Bug fix
+- [​] New feature
+- [​] Breaking change
+- [​] Documentation update
 
 ## Testing
 How was this tested?
 
 ## Checklist
-- [ ] Tests pass
-- [ ] Linting passes
-- [ ] Documentation updated
-- [ ] Follows coding standards
+- [​] Tests pass
+- [​] Linting passes
+- [​] Documentation updated
+- [​] Follows coding standards
 ```
 
 ### Review Process
