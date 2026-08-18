@@ -113,20 +113,22 @@ pub async fn roll(
             let mut total_requested = 0;
 
             for req in reqs {
-                match dice_logic::handle_roll(req).await {
-                    Ok(mut resp) => {
-                        all_rolls.append(&mut resp.rolls);
-                        if let Some(summary) = resp.summary.as_object() {
-                            if let Some(count) =
-                                summary.get("totalRollsRequested").and_then(|v| v.as_u64())
-                            {
-                                total_requested += count;
-                            }
-                        }
-                    }
+                let mut resp = match dice_logic::handle_roll(req).await {
+                    Ok(r) => r,
                     Err(e) => {
                         return (axum::http::StatusCode::BAD_REQUEST, axum::Json(e)).into_response()
                     }
+                };
+
+                all_rolls.append(&mut resp.rolls);
+
+                if let Some(count) = resp
+                    .summary
+                    .as_object()
+                    .and_then(|s| s.get("totalRollsRequested"))
+                    .and_then(|v| v.as_u64())
+                {
+                    total_requested += count;
                 }
             }
 
