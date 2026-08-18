@@ -114,8 +114,14 @@ async fn test_training_measurements_crud() {
 
     let first_item = &data[0];
     assert_eq!(first_item.get("id").unwrap().as_str().unwrap(), id);
-    assert_eq!(first_item.get("bodyWeightKg").unwrap().as_str().unwrap().parse::<f64>().unwrap(), 80.5);
-    assert_eq!(first_item.get("heightCm").unwrap().as_str().unwrap().parse::<f64>().unwrap(), 180.0);
+    assert_eq!(
+        first_item.get("bodyWeightKg").unwrap().as_str().unwrap().parse::<f64>().unwrap(),
+        80.5
+    );
+    assert_eq!(
+        first_item.get("heightCm").unwrap().as_str().unwrap().parse::<f64>().unwrap(),
+        180.0
+    );
 
     // 4. Get latest measurement
     let resp_latest = server
@@ -128,7 +134,10 @@ async fn test_training_measurements_crud() {
     let latest_json: serde_json::Value = resp_latest.json();
     let latest_data = latest_json.as_object().expect("Missing object");
     assert_eq!(latest_data.get("id").unwrap().as_str().unwrap(), id);
-    assert_eq!(latest_data.get("bodyWeightKg").unwrap().as_str().unwrap().parse::<f64>().unwrap(), 80.5);
+    assert_eq!(
+        latest_data.get("bodyWeightKg").unwrap().as_str().unwrap().parse::<f64>().unwrap(),
+        80.5
+    );
 
     // 5. Delete measurement
     let delete_url = format!("/api/tools/training/measurements/{}", id);

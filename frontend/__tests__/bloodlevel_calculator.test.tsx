@@ -30,7 +30,7 @@ describe('BloodLevelCalculator (consolidated)', () => {
     ] as any);
     const calc = vi.spyOn(api, 'calculateTolerance').mockResolvedValue({ blood_levels: [{ time: new Date().toISOString(), substance: 'TestSub', amountMg: 2 }] } as any);
 
-  let container: HTMLElement;
+  let container: HTMLElement = document.createElement('div');
   await act(async () => {
     const res = render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
     container = res.container;

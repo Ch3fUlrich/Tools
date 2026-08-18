@@ -11,7 +11,7 @@ vi.mock('@/lib/api/client', () => ({
 }));
 
 describe('UserProfile', () => {
-  let mockLogout: ReturnType<typeof vi.fn>;
+  let mockLogout: import("vitest").Mock<() => Promise<void>>;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
