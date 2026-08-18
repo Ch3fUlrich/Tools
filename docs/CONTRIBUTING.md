@@ -345,25 +345,7 @@ Scope is optional but encouraged. For breaking changes, add `!` after the scope 
 
 ### PR Template
 
-```markdown
-## Description
-Brief description of changes
-
-## Type of Change
-- [​] Bug fix
-- [​] New feature
-- [​] Breaking change
-- [​] Documentation update
-
-## Testing
-How was this tested?
-
-## Checklist
-- [​] Tests pass
-- [​] Linting passes
-- [​] Documentation updated
-- [​] Follows coding standards
-```
+See [PULL_REQUEST_TEMPLATE.md](../.github/PULL_REQUEST_TEMPLATE.md)
 
 ### Review Process
 
