@@ -355,65 +355,58 @@ pub async fn callback(
     };
 
     // Validate state/nonce if we stored them during start
-    if let Some(store_arc) = store {
-        let mut guard = store_arc.lock().await;
-        // attempt to take nonce by state
-        if let Some(_state) = q.state.clone() {
-            if let Some(stored_nonce) = stored_nonce {
-                // compare nonces if claims provided
-                if let Some(c) = &claims {
-                    if let Some(token_nonce) = c.nonce() {
-                        if token_nonce.secret() != stored_nonce.as_str() {
-                            return axum::http::Response::builder()
-                                .status(StatusCode::BAD_REQUEST)
-                                .body("nonce mismatch".to_string())
-                                .unwrap_or_default();
-                        }
+    let Some(store_arc) = store else {
+        // If no session store present, just return link result
+        return axum::http::Response::builder()
+            .status(StatusCode::OK)
+            .body(format!("linked user {uid}"))
+            .unwrap_or_default();
+    };
+
+    let mut guard = store_arc.lock().await;
+    // attempt to take nonce by state
+    if q.state.is_some() {
+        if let Some(stored_nonce) = stored_nonce {
+            // compare nonces if claims provided
+            if let Some(c) = &claims {
+                if let Some(token_nonce) = c.nonce() {
+                    if token_nonce.secret() != stored_nonce.as_str() {
+                        return axum::http::Response::builder()
+                            .status(StatusCode::BAD_REQUEST)
+                            .body("nonce mismatch".to_string())
+                            .unwrap_or_default();
                     }
                 }
-            } else {
-                // no stored state; continue but warn
-                tracing::warn!(
-                    "OIDC callback without stored state/nonce - CSRF protection disabled"
-                );
             }
-        }
-
-        // Create session
-        match guard.create_session(uid, 60 * 60 * 24).await {
-            Ok(sid) => {
-                // Only add Secure flag when not running on localhost
-                let secure_flag = match std::env::var("ALLOWED_ORIGINS") {
-                    Ok(origins)
-                        if origins.contains("localhost") || origins.contains("127.0.0.1") =>
-                    {
-                        ""
-                    }
-                    _ => "; Secure",
-                };
-                let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax{secure_flag}");
-                // Redirect to frontend (if configured) with cookie set
-                let frontend = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "/".to_string());
-                let http_resp = axum::http::Response::builder()
-                    .status(StatusCode::FOUND)
-                    .header(header::SET_COOKIE, cookie)
-                    .header(header::LOCATION, frontend)
-                    .body(String::new())
-                    .unwrap_or_default();
-                return http_resp;
-            }
-            Err(e) => {
-                return axum::http::Response::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(format!("session create failed: {e}"))
-                    .unwrap_or_default()
-            }
+        } else {
+            // no stored state; continue but warn
+            tracing::warn!("OIDC callback without stored state/nonce - CSRF protection disabled");
         }
     }
 
-    // If no session store present, just return link result
+    // Create session
+    let sid = match guard.create_session(uid, 60 * 60 * 24).await {
+        Ok(sid) => sid,
+        Err(e) => {
+            return axum::http::Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(format!("session create failed: {e}"))
+                .unwrap_or_default();
+        }
+    };
+
+    // Only add Secure flag when not running on localhost
+    let secure_flag = match std::env::var("ALLOWED_ORIGINS") {
+        Ok(origins) if origins.contains("localhost") || origins.contains("127.0.0.1") => "",
+        _ => "; Secure",
+    };
+    let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax{secure_flag}");
+    // Redirect to frontend (if configured) with cookie set
+    let frontend = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "/".to_string());
     axum::http::Response::builder()
-        .status(StatusCode::OK)
-        .body(format!("linked user {uid}"))
+        .status(StatusCode::FOUND)
+        .header(header::SET_COOKIE, cookie)
+        .header(header::LOCATION, frontend)
+        .body(String::new())
         .unwrap_or_default()
 }
