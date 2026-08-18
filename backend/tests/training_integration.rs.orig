@@ -115,23 +115,11 @@ async fn test_training_measurements_crud() {
     let first_item = &data[0];
     assert_eq!(first_item.get("id").unwrap().as_str().unwrap(), id);
     assert_eq!(
-        first_item.get("bodyWeightKg").and_then(|v| v.as_f64()).unwrap_or_else(|| first_item
-            .get("bodyWeightKg")
-            .unwrap()
-            .as_str()
-            .unwrap()
-            .parse::<f64>()
-            .unwrap()),
+        first_item.get("bodyWeightKg").unwrap().as_str().unwrap().parse::<f64>().unwrap(),
         80.5
     );
     assert_eq!(
-        first_item.get("heightCm").and_then(|v| v.as_f64()).unwrap_or_else(|| first_item
-            .get("heightCm")
-            .unwrap()
-            .as_str()
-            .unwrap()
-            .parse::<f64>()
-            .unwrap()),
+        first_item.get("heightCm").unwrap().as_str().unwrap().parse::<f64>().unwrap(),
         180.0
     );
 
@@ -147,13 +135,7 @@ async fn test_training_measurements_crud() {
     let latest_data = latest_json.as_object().expect("Missing object");
     assert_eq!(latest_data.get("id").unwrap().as_str().unwrap(), id);
     assert_eq!(
-        latest_data.get("bodyWeightKg").and_then(|v| v.as_f64()).unwrap_or_else(|| latest_data
-            .get("bodyWeightKg")
-            .unwrap()
-            .as_str()
-            .unwrap()
-            .parse::<f64>()
-            .unwrap()),
+        latest_data.get("bodyWeightKg").unwrap().as_str().unwrap().parse::<f64>().unwrap(),
         80.5
     );
 
