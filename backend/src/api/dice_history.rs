@@ -163,7 +163,7 @@ pub async fn history(
             .await;
         match rows {
             Ok(rs) => {
-                let mut out: Vec<HistoryEntry> = Vec::new();
+                let mut out: Vec<HistoryEntry> = Vec::with_capacity(rs.len());
                 for r in rs {
                     let id: Option<String> = r.try_get("id").ok();
                     let payload: JsonValue =
@@ -204,15 +204,26 @@ pub async fn history(
                 match vals {
                     Ok(list) => {
                         let now = Utc::now().to_rfc3339();
-                        let out: Vec<HistoryEntry> = list
-                            .into_iter()
-                            .map(|s| {
-                                let v: JsonValue =
-                                    serde_json::from_str(&s).unwrap_or(serde_json::json!(null));
-                                HistoryEntry { id: None, payload: v, created_at: now.clone() }
-                            })
-                            .collect();
-                        return (StatusCode::OK, axum::Json(out)).into_response();
+                        let mut out_str = String::with_capacity(list.len() * 100);
+                        out_str.push('[');
+                        for (i, s) in list.iter().enumerate() {
+                            if i > 0 {
+                                out_str.push(',');
+                            }
+                            out_str.push_str(r#"{"id":null,"payload":"#);
+                            out_str.push_str(s);
+                            out_str.push_str(r#","created_at":""#);
+                            out_str.push_str(&now);
+                            out_str.push_str(r#""}"#);
+                        }
+                        out_str.push(']');
+
+                        return axum::response::Response::builder()
+                            .status(StatusCode::OK)
+                            .header(axum::http::header::CONTENT_TYPE, "application/json")
+                            .body(axum::body::Body::from(out_str))
+                            .unwrap()
+                            .into_response();
                     }
                     Err(e) => {
                         return (
