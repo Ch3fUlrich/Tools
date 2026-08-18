@@ -20,7 +20,15 @@ mod tests {
     async fn test_calculate_fat_loss_valid() {
         let request = FatLossRequest { kcal_deficit: 3500.0, weight_loss_kg: 0.5 };
 
-        let _response = calculate_fat_loss(Json(request)).await;
-        // Response should be OK
+        let response = calculate_fat_loss(Json(request)).await;
+        assert_eq!(response.into_response().status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_calculate_fat_loss_invalid() {
+        let request = FatLossRequest { kcal_deficit: 0.0, weight_loss_kg: 0.5 };
+
+        let response = calculate_fat_loss(Json(request)).await;
+        assert_eq!(response.into_response().status(), StatusCode::BAD_REQUEST);
     }
 }
