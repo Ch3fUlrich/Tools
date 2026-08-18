@@ -78,17 +78,16 @@ pub async fn stats_muscle_energy(
     Extension(pool): Extension<Arc<PgPool>>,
     Query(_params): Query<StatsFilterParams>,
 ) -> impl IntoResponse {
-    // Get all completed session sets with their exercise muscle mappings
+    // Get all completed session sets with their exercise muscle mappings, summing energy directly in SQL
     match sqlx::query(
         "SELECT mg.name as muscle_name, mg.display_name, mg.relative_size, mg.body_map_position, mg.svg_region_id,
-                em.involvement, em.activation_fraction,
-                SUM(wse.energy_kcal) as exercise_energy
+                SUM(wse.energy_kcal) as total_energy
          FROM workout_sessions ws
          JOIN workout_sets wse ON wse.session_id = ws.id
          JOIN exercise_muscles em ON em.exercise_id = wse.exercise_id
          JOIN muscle_groups mg ON mg.id = em.muscle_group_id
          WHERE ws.user_id = $1 AND ws.status = 'completed'
-         GROUP BY mg.name, mg.display_name, mg.relative_size, mg.body_map_position, mg.svg_region_id, em.involvement, em.activation_fraction
+         GROUP BY mg.name, mg.display_name, mg.relative_size, mg.body_map_position, mg.svg_region_id
          ORDER BY mg.name"
     )
     .bind(user.id)
@@ -96,33 +95,22 @@ pub async fn stats_muscle_energy(
     .await
     {
         Ok(rows) => {
-            // Aggregate: for each muscle, sum up attributed energy
-            let mut muscle_totals: std::collections::HashMap<String, serde_json::Value> = std::collections::HashMap::new();
-
-            for row in &rows {
-                let name = row.try_get::<String, _>("muscle_name").unwrap_or_default();
-                let energy: f64 = row.try_get::<Option<sqlx::types::BigDecimal>, _>("exercise_energy")
+            let data: Vec<serde_json::Value> = rows.iter().map(|row| {
+                let energy: f64 = row.try_get::<Option<sqlx::types::BigDecimal>, _>("total_energy")
                     .ok().flatten()
                     .and_then(|d| d.to_string().parse::<f64>().ok())
                     .unwrap_or(0.0);
 
-                let entry = muscle_totals.entry(name.clone()).or_insert_with(|| {
-                    json!({
-                        "muscleName": name,
-                        "displayName": row.try_get::<String, _>("display_name").unwrap_or_default(),
-                        "relativeSize": row.try_get::<sqlx::types::BigDecimal, _>("relative_size").ok().map(|d| d.to_string()),
-                        "bodyMapPosition": row.try_get::<String, _>("body_map_position").unwrap_or_default(),
-                        "svgRegionId": row.try_get::<String, _>("svg_region_id").unwrap_or_default(),
-                        "energyKcal": 0.0,
-                    })
-                });
+                json!({
+                    "muscleName": row.try_get::<String, _>("muscle_name").unwrap_or_default(),
+                    "displayName": row.try_get::<String, _>("display_name").unwrap_or_default(),
+                    "relativeSize": row.try_get::<sqlx::types::BigDecimal, _>("relative_size").ok().map(|d| d.to_string()),
+                    "bodyMapPosition": row.try_get::<String, _>("body_map_position").unwrap_or_default(),
+                    "svgRegionId": row.try_get::<String, _>("svg_region_id").unwrap_or_default(),
+                    "energyKcal": energy,
+                })
+            }).collect();
 
-                if let Some(current) = entry.get("energyKcal").and_then(|v| v.as_f64()) {
-                    entry["energyKcal"] = json!(current + energy);
-                }
-            }
-
-            let data: Vec<serde_json::Value> = muscle_totals.into_values().collect();
             (StatusCode::OK, Json(json!({"muscles": data}))).into_response()
         }
         Err(e) => {
