@@ -361,15 +361,16 @@ pub async fn callback(
         if let Some(_state) = q.state.clone() {
             if let Some(stored_nonce) = stored_nonce {
                 // compare nonces if claims provided
-                if let Some(c) = &claims {
-                    if let Some(token_nonce) = c.nonce() {
-                        if token_nonce.secret() != stored_nonce.as_str() {
-                            return axum::http::Response::builder()
-                                .status(StatusCode::BAD_REQUEST)
-                                .body("nonce mismatch".to_string())
-                                .unwrap_or_default();
-                        }
-                    }
+                let mismatch = claims
+                    .as_ref()
+                    .and_then(|c| c.nonce())
+                    .is_some_and(|token_nonce| token_nonce.secret() != stored_nonce.as_str());
+
+                if mismatch {
+                    return axum::http::Response::builder()
+                        .status(StatusCode::BAD_REQUEST)
+                        .body("nonce mismatch".to_string())
+                        .unwrap_or_default();
                 }
             } else {
                 // no stored state; continue but warn
