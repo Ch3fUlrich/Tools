@@ -358,17 +358,15 @@ pub async fn callback(
     if let Some(store_arc) = store {
         let mut guard = store_arc.lock().await;
         // attempt to take nonce by state
-        if let Some(_state) = q.state.clone() {
+        if q.state.is_some() {
             if let Some(stored_nonce) = stored_nonce {
                 // compare nonces if claims provided
-                if let Some(c) = &claims {
-                    if let Some(token_nonce) = c.nonce() {
-                        if token_nonce.secret() != stored_nonce.as_str() {
-                            return axum::http::Response::builder()
-                                .status(StatusCode::BAD_REQUEST)
-                                .body("nonce mismatch".to_string())
-                                .unwrap_or_default();
-                        }
+                if let Some(token_nonce) = claims.as_ref().and_then(|c| c.nonce()) {
+                    if token_nonce.secret() != stored_nonce.as_str() {
+                        return axum::http::Response::builder()
+                            .status(StatusCode::BAD_REQUEST)
+                            .body("nonce mismatch".to_string())
+                            .unwrap_or_default();
                     }
                 }
             } else {
