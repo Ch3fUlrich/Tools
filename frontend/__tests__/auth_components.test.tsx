@@ -17,7 +17,7 @@ vi.mock('@/lib/api/client', async () => {
     loginUser: vi.fn().mockResolvedValue({ ok: true, id: 'u1' }),
     startOIDCLogin: vi.fn(),
     logoutUser: vi.fn().mockResolvedValue({ ok: true }),
-    getUserProfile: vi.fn().mockResolvedValue({ id: '1', email: 'u@u.com', display_name: undefined, created_at: new Date().toISOString() }),
+    getUserProfile: vi.fn().mockResolvedValue({ id: '1', email: 'a@b.com', display_name: undefined, created_at: new Date().toISOString() }),
     updateUserProfile: vi.fn().mockResolvedValue(undefined),
   };
 });
@@ -74,7 +74,7 @@ describe('Auth components', () => {
 
   it('UserProfile shows user and calls logout', async () => {
     // set localstorage user so AuthProvider picks it up
-    localStorage.setItem('auth_user', JSON.stringify({ id: '1', email: 'u@u.com', created_at: new Date().toISOString() }));
+    localStorage.setItem('auth_user', JSON.stringify({ id: '1', email: 'a@b.com', created_at: new Date().toISOString() }));
 
     render(
       <TestWrapper>
@@ -82,10 +82,10 @@ describe('Auth components', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('u@u.com')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('a@b.com')).toBeInTheDocument());
     fireEvent.click(screen.getByText('Logout'));
 
-    await waitFor(() => expect(screen.queryByText('u@u.com')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText('a@b.com')).not.toBeInTheDocument());
   });
 
   it('ProtectedRoute redirects when unauthenticated', async () => {
