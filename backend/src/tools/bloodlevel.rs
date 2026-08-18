@@ -114,17 +114,24 @@ pub fn get_substances() -> Vec<Substance> {
 
 pub fn find_substance_by_name<'a>(
     name: &str,
-    substances: &'a [Substance],
+    substance_map: &std::collections::HashMap<String, &'a Substance>,
 ) -> Option<&'a Substance> {
     // The frontend sends substance ids (e.g. "alcohol"); accept display names
     // too so older clients keep working.
-    substances.iter().find(|s| s.id.eq_ignore_ascii_case(name) || s.name.eq_ignore_ascii_case(name))
+    substance_map.get(&name.to_lowercase()).copied()
 }
 
 pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResponse, String> {
     let mut blood_levels = Vec::new();
     let mut substances_info = Vec::new();
     let substances = get_substances();
+
+    let mut substance_map: std::collections::HashMap<String, &Substance> =
+        std::collections::HashMap::with_capacity(substances.len() * 2);
+    for s in &substances {
+        substance_map.insert(s.id.to_lowercase(), s);
+        substance_map.insert(s.name.to_lowercase(), s);
+    }
 
     // Group intakes by substance
     let mut substance_intakes: std::collections::HashMap<String, Vec<&SubstanceIntake>> =
@@ -135,7 +142,7 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
     }
 
     for (substance_name, intakes) in substance_intakes {
-        let substance = find_substance_by_name(&substance_name, &substances)
+        let substance = find_substance_by_name(&substance_name, &substance_map)
             .ok_or_else(|| format!("Substance '{}' not found in database", substance_name))?;
 
         substances_info.push(SubstanceInfo {

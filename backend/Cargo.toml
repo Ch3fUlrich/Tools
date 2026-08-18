@@ -29,7 +29,13 @@ rust-embed = "8.11.0"
 moka = { version = "0.12.15", features = ["future"] }
 
 [dev-dependencies]
+criterion = "0.5"
+
 axum-test = "19.1"
 serial_test = "3.2"
 temp-env = "0.3.6"
 http = "1.4"
+
+[[bench]]
+name = "bloodlevel_bench"
+harness = false
