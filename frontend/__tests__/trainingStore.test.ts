@@ -29,10 +29,10 @@ describe('TrainingStore', () => {
     }
 
     // Clear the db completely
-    const dbs = await indexedDB.databases();
+    const dbs = await window.indexedDB.databases();
     for (const db of dbs) {
       if (db.name) {
-        indexedDB.deleteDatabase(db.name);
+        window.indexedDB.deleteDatabase(db.name);
       }
     }
   });
@@ -137,7 +137,7 @@ describe('TrainingStore', () => {
         name: 'Session 1',
       });
 
-      let sessionsList = await store.listSessions();
+      const sessionsList = await store.listSessions();
       expect(sessionsList.sessions).toHaveLength(1);
 
       await store.logSet(sessionId, {
