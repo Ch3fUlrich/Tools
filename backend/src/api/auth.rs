@@ -138,17 +138,17 @@ pub async fn logout(
     _headers: HeaderMap,
 ) -> Response<String> {
     if let Some(store) = store_opt {
-        if let Some(val) = _headers.get(header::COOKIE) {
-            if let Ok(s) = val.to_str() {
-                for part in s.split(';') {
-                    let kv: Vec<&str> = part.trim().splitn(2, '=').collect();
-                    if kv.len() == 2 && kv[0] == "sid" {
-                        let sid = kv[1];
-                        let mut guard = store.lock().await;
-                        let _ = guard.destroy_session(sid).await;
-                    }
-                }
-            }
+        let sid_opt =
+            _headers.get(header::COOKIE).and_then(|val| val.to_str().ok()).and_then(|s| {
+                s.split(';').find_map(|part| {
+                    let (k, v) = part.trim().split_once('=')?;
+                    (k == "sid").then_some(v)
+                })
+            });
+
+        if let Some(sid) = sid_opt {
+            let mut guard = store.lock().await;
+            let _ = guard.destroy_session(sid).await;
         }
     }
     // clear cookie
