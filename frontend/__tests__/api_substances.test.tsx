@@ -9,6 +9,5 @@ describe('API Client - getToleranceSubstances', () => {
     expect(substances.length).toBeGreaterThan(0);
     expect(substances[0]).toHaveProperty('id');
     expect(substances[0]).toHaveProperty('name');
-    console.log('Substances:', substances);
   });
 });
