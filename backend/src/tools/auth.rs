@@ -23,7 +23,7 @@ pub async fn register_user(
     if email.trim().is_empty() {
         return Err(sqlx::Error::RowNotFound); // Use a generic error for invalid input
     }
-    if password.trim().is_empty() {
+    if password.trim().chars().count() < 8 {
         return Err(sqlx::Error::RowNotFound);
     }
 
