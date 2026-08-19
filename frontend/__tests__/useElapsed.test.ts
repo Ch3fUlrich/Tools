@@ -61,8 +61,8 @@ describe('useElapsed', () => {
     vi.setSystemTime(new Date('2023-01-01T12:10:00Z'));
 
     const { result, rerender } = renderHook(
-      ({ startedAt }) => useElapsed(startedAt),
-      { initialProps: { startedAt: time1 } }
+      ({ startedAt }: { startedAt: string | null }) => useElapsed(startedAt),
+      { initialProps: { startedAt: time1 as string | null } }
     );
 
     // Elapsed since time1 (10 minutes)

@@ -122,11 +122,8 @@ pub async fn roll(
 
                 all_rolls.append(&mut resp.rolls);
 
-                if let Some(count) = resp
-                    .summary
-                    .as_object()
-                    .and_then(|s| s.get("totalRollsRequested"))
-                    .and_then(|v| v.as_u64())
+                if let Some(count) =
+                    resp.summary.get("totalRollsRequested").and_then(|v| v.as_u64())
                 {
                     total_requested += count;
                 }

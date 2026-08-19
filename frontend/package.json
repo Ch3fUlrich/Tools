@@ -18,11 +18,11 @@
     "screenshot": "playwright screenshot http://localhost:3000 --save-path tmp/home.png && playwright screenshot http://localhost:3000/auth --save-path tmp/auth.png"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.3.2",
+    "@tailwindcss/postcss": "^4.3.3",
     "autoprefixer": "^10.5.4",
-    "next": "^16.2.10",
+    "next": "^16.2.11",
     "react": "19.2.8",
-    "react-dom": "19.2.7"
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -32,16 +32,17 @@
     "@types/node": "^25.9.5",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "@typescript-eslint/eslint-plugin": "^8.64.0",
+    "@typescript-eslint/eslint-plugin": "^8.65.0",
     "@typescript-eslint/parser": "^8.65.0",
     "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^10.7.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "fake-indexeddb": "^6.0.0",
     "happy-dom": "^20.11.0",
     "jsdom": "^29.1.1",
-    "prettier": "^3.9.5",
+    "prettier": "^3.9.6",
     "stylelint": "^17.14.1",
     "stylelint-config-standard": "^40.0.0",
     "typescript": "^6.0.3",

@@ -3889,8 +3889,8 @@
 
     card.innerHTML = `
       <span class="template-card-heading">
-        <span class="template-card-title">${title}</span>
-        <span class="template-card-meta">${stageLabel}</span>
+        <span class="template-card-title">${escapeHtml(title)}</span>
+        <span class="template-card-meta">${escapeHtml(stageLabel)}</span>
       </span>
       <span class="template-card-preview template-card-preview-${layout}">
         ${previewZones.join("")}

@@ -172,6 +172,10 @@ pub async fn start(
         .unwrap_or_default()
 }
 
+fn error_response(status: StatusCode, message: impl Into<String>) -> axum::http::Response<String> {
+    axum::http::Response::builder().status(status).body(message.into()).unwrap_or_default()
+}
+
 // Callback: exchanges code, verifies ID token, finds/creates user, links oauth_account, creates session
 pub async fn callback(
     Query(q): Query<OidcCallbackQuery>,
@@ -180,46 +184,40 @@ pub async fn callback(
     _headers: HeaderMap,
 ) -> axum::http::Response<String> {
     if q.code.is_empty() {
-        return axum::http::Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body("missing code".to_string())
-            .unwrap_or_default();
+        return error_response(StatusCode::BAD_REQUEST, "missing code");
     }
 
     let issuer = match std::env::var("OIDC_ISSUER") {
         Ok(v) => v,
         Err(_) => {
-            return axum::http::Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body("OIDC_ISSUER not configured".to_string())
-                .unwrap_or_default()
+            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "OIDC_ISSUER not configured")
         }
     };
     let client_id = match std::env::var("OIDC_CLIENT_ID") {
         Ok(v) => v,
         Err(_) => {
-            return axum::http::Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body("OIDC_CLIENT_ID not configured".to_string())
-                .unwrap_or_default()
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OIDC_CLIENT_ID not configured",
+            )
         }
     };
     let client_secret = match std::env::var("OIDC_CLIENT_SECRET") {
         Ok(v) => v,
         Err(_) => {
-            return axum::http::Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body("OIDC_CLIENT_SECRET not configured".to_string())
-                .unwrap_or_default()
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OIDC_CLIENT_SECRET not configured",
+            )
         }
     };
     let redirect = match std::env::var("OIDC_REDIRECT_URI") {
         Ok(v) => v,
         Err(_) => {
-            return axum::http::Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body("OIDC_REDIRECT_URI not configured".to_string())
-                .unwrap_or_default()
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "OIDC_REDIRECT_URI not configured",
+            )
         }
     };
 
@@ -227,20 +225,20 @@ pub async fn callback(
     let issuer_url = match IssuerUrl::new(issuer.clone()) {
         Ok(u) => u,
         Err(e) => {
-            return axum::http::Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(format!("invalid OIDC_ISSUER: {e}"))
-                .unwrap_or_default()
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("invalid OIDC_ISSUER: {e}"),
+            )
         }
     };
 
     let http_client = match build_oidc_http_client() {
         Ok(client) => client,
         Err(e) => {
-            return axum::http::Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(format!("OIDC HTTP client failed: {e}"))
-                .unwrap_or_default()
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("OIDC HTTP client failed: {e}"),
+            )
         }
     };
 
@@ -248,10 +246,10 @@ pub async fn callback(
         match CoreProviderMetadata::discover_async(issuer_url, &http_client).await {
             Ok(m) => m,
             Err(e) => {
-                return axum::http::Response::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(format!("OIDC discovery failed: {e}"))
-                    .unwrap_or_default()
+                return error_response(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("OIDC discovery failed: {e}"),
+                )
             }
         };
 
@@ -274,20 +272,17 @@ pub async fn callback(
     let token_request = match client.exchange_code(AuthorizationCode::new(q.code.clone())) {
         Ok(req) => req,
         Err(e) => {
-            return axum::http::Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(format!("OIDC token request setup failed: {e}"))
-                .unwrap_or_default()
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("OIDC token request setup failed: {e}"),
+            )
         }
     };
 
     let token_response = match token_request.request_async(&http_client).await {
         Ok(t) => t,
         Err(e) => {
-            return axum::http::Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .body(format!("token exchange failed: {e}"))
-                .unwrap_or_default()
+            return error_response(StatusCode::BAD_REQUEST, format!("token exchange failed: {e}"))
         }
     };
 
@@ -321,10 +316,7 @@ pub async fn callback(
     let email = claims.as_ref().and_then(|c| c.email().map(|e| e.to_string()));
 
     if subject.is_empty() {
-        return axum::http::Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body("missing subject in id token".to_string())
-            .unwrap_or_default();
+        return error_response(StatusCode::BAD_REQUEST, "missing subject in id token");
     }
 
     // Find oauth_account by provider + subject
@@ -341,10 +333,7 @@ pub async fn callback(
         Ok(Some(rec)) => rec.try_get::<sqlx::types::Uuid, _>("user_id").ok(),
         Ok(None) => None,
         Err(e) => {
-            return axum::http::Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(format!("DB error: {e}"))
-                .unwrap_or_default()
+            return error_response(StatusCode::INTERNAL_SERVER_ERROR, format!("DB error: {e}"))
         }
     };
 
@@ -353,12 +342,7 @@ pub async fn callback(
     } else {
         match create_oauth_user(&pool, email.clone(), &subject, &provider).await {
             Ok(id) => id,
-            Err(e) => {
-                return axum::http::Response::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(e)
-                    .unwrap_or_default();
-            }
+            Err(e) => return error_response(StatusCode::INTERNAL_SERVER_ERROR, e),
         }
     };
 
@@ -371,10 +355,7 @@ pub async fn callback(
                 // compare nonces if claims provided
                 if let Some(token_nonce) = claims.as_ref().and_then(|c| c.nonce()) {
                     if token_nonce.secret() != stored_nonce.as_str() {
-                        return axum::http::Response::builder()
-                            .status(StatusCode::BAD_REQUEST)
-                            .body("nonce mismatch".to_string())
-                            .unwrap_or_default();
+                        return error_response(StatusCode::BAD_REQUEST, "nonce mismatch");
                     }
                 }
             } else {
@@ -409,10 +390,10 @@ pub async fn callback(
                 return http_resp;
             }
             Err(e) => {
-                return axum::http::Response::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(format!("session create failed: {e}"))
-                    .unwrap_or_default()
+                return error_response(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("session create failed: {e}"),
+                )
             }
         }
     }
