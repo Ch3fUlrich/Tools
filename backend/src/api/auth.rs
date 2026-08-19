@@ -52,96 +52,85 @@ pub async fn login(
     Extension(store_opt): Extension<Option<Arc<tokio::sync::Mutex<SessionStore>>>>,
     Json(payload): Json<LoginRequest>,
 ) -> Response<String> {
-    // Verify user exists and password (runtime query)
-    let row = sqlx::query("SELECT id, password_hash FROM users WHERE lower(email)=lower($1)")
-        .bind(&payload.email)
-        .fetch_optional(&*pool)
-        .await;
-    match row {
-        Ok(Some(rec)) => {
-            let pwd: Option<String> = rec.try_get("password_hash").ok();
-            let pwd = pwd.unwrap_or_default();
-            if auth_tools::verify_password(&pwd, &payload.password).await.unwrap_or(false) {
-                // create session
-                let uid: uuid::Uuid = match rec.try_get("id") {
-                    Ok(u) => u,
-                    Err(e) => {
-                        tracing::error!("failed to read id column: {}", e);
-                        return Response::builder()
-                            .status(StatusCode::INTERNAL_SERVER_ERROR)
-                            .body(
-                                serde_json::to_string(&json!({"error":"internal"}))
-                                    .unwrap_or_else(|_| "{\"error\":\"internal\"}".to_string()),
-                            )
-                            .unwrap_or_default();
-                    }
-                };
-
-                let store = match store_opt {
-                    Some(s) => s,
-                    None => {
-                        return Response::builder()
-                            .status(StatusCode::SERVICE_UNAVAILABLE)
-                            .body(
-                                serde_json::to_string(
-                                    &json!({"error":"session store unavailable"}),
-                                )
-                                .unwrap_or_else(|_| {
-                                    "{\"error\":\"session store unavailable\"}".to_string()
-                                }),
-                            )
-                            .unwrap_or_default();
-                    }
-                };
-                let mut guard = store.lock().await;
-                let sid = match guard.create_session(uid, 60 * 60 * 24).await {
-                    Ok(s) => s,
-                    Err(e) => {
-                        tracing::error!("failed to create session: {}", e);
-                        return Response::builder()
-                            .status(StatusCode::INTERNAL_SERVER_ERROR)
-                            .body(
-                                serde_json::to_string(&json!({"error":"internal"}))
-                                    .unwrap_or_else(|_| "{\"error\":\"internal\"}".to_string()),
-                            )
-                            .unwrap_or_default();
-                    }
-                };
-
-                // set cookie — only add Secure flag when not running on localhost
-                let secure_flag = match std::env::var("ALLOWED_ORIGINS") {
-                    Ok(origins)
-                        if origins.contains("localhost") || origins.contains("127.0.0.1") =>
-                    {
-                        ""
-                    }
-                    _ => "; Secure",
-                };
-                let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax{secure_flag}");
-                let body = serde_json::to_string(&json!({"ok": true}))
-                    .unwrap_or_else(|_| "{\"ok\":true}".to_string());
-                return Response::builder()
-                    .status(StatusCode::OK)
-                    .header(header::SET_COOKIE, cookie)
-                    .body(body)
-                    .unwrap_or_default();
-            }
-            Response::builder()
-                .status(StatusCode::UNAUTHORIZED)
-                .body(
-                    serde_json::to_string(&json!({"error":"invalid credentials"}))
-                        .unwrap_or_else(|_| "{\"error\":\"invalid credentials\"}".to_string()),
-                )
-                .unwrap_or_default()
-        }
-        _ => Response::builder()
+    let unauthorized = || {
+        Response::builder()
             .status(StatusCode::UNAUTHORIZED)
             .body(
                 serde_json::to_string(&json!({"error":"invalid credentials"}))
                     .unwrap_or_else(|_| "{\"error\":\"invalid credentials\"}".to_string()),
             )
-            .unwrap_or_default(),
+            .unwrap_or_default()
+    };
+
+    let internal_error = || {
+        Response::builder()
+            .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .body(
+                serde_json::to_string(&json!({"error":"internal"}))
+                    .unwrap_or_else(|_| "{\"error\":\"internal\"}".to_string()),
+            )
+            .unwrap_or_default()
+    };
+
+    // Verify user exists and password (runtime query)
+    let row = sqlx::query("SELECT id, password_hash FROM users WHERE lower(email)=lower($1)")
+        .bind(&payload.email)
+        .fetch_optional(&*pool)
+        .await;
+
+    let Ok(Some(rec)) = row else {
+        return unauthorized();
+    };
+
+    let pwd: Option<String> = rec.try_get("password_hash").ok();
+    let pwd = pwd.unwrap_or_default();
+
+    if !auth_tools::verify_password(&pwd, &payload.password).await.unwrap_or(false) {
+        return unauthorized();
     }
+
+    // create session
+    let uid: uuid::Uuid = match rec.try_get("id") {
+        Ok(u) => u,
+        Err(e) => {
+            tracing::error!("failed to read id column: {}", e);
+            return internal_error();
+        }
+    };
+
+    let Some(store) = store_opt else {
+        return Response::builder()
+            .status(StatusCode::SERVICE_UNAVAILABLE)
+            .body(
+                serde_json::to_string(&json!({"error":"session store unavailable"}))
+                    .unwrap_or_else(|_| "{\"error\":\"session store unavailable\"}".to_string()),
+            )
+            .unwrap_or_default();
+    };
+
+    let mut guard = store.lock().await;
+    let sid = match guard.create_session(uid, 60 * 60 * 24).await {
+        Ok(s) => s,
+        Err(e) => {
+            tracing::error!("failed to create session: {}", e);
+            return internal_error();
+        }
+    };
+
+    // set cookie — only add Secure flag when not running on localhost
+    let secure_flag = match std::env::var("ALLOWED_ORIGINS") {
+        Ok(origins) if origins.contains("localhost") || origins.contains("127.0.0.1") => "",
+        _ => "; Secure",
+    };
+    let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax{secure_flag}");
+    let body =
+        serde_json::to_string(&json!({"ok": true})).unwrap_or_else(|_| "{\"ok\":true}".to_string());
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(header::SET_COOKIE, cookie)
+        .body(body)
+        .unwrap_or_default()
 }
 
 pub async fn logout(
