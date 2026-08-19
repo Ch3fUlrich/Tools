@@ -8,6 +8,7 @@ import {
   checkBackend,
 } from '@/lib/api/backendStatus';
 import { rollDiceLocal, saveDiceRollLocal, getDiceHistoryLocal } from '@/lib/local/dice';
+import type { DiceRequest } from '@/lib/types/dice';
 import { calculateFatLossLocal } from '@/lib/local/fatLoss';
 import { analyzeN26DataLocal } from '@/lib/local/n26';
 import { getSubstancesLocal, calculateToleranceLocal } from '@/lib/local/bloodLevel';
@@ -185,13 +186,7 @@ function authDelete<T>(path: string, errorPrefix: string): Promise<T> {
 
 // ─── Dice ────────────────────────────────────────────────────────────────────
 
-export interface RollDicePayload {
-  die: { type: string; sides?: number };
-  count: number;
-  advantage?: 'none' | 'adv' | 'dis';
-}
-
-export async function rollDice(payload: RollDicePayload | RollDicePayload[]) {
+export async function rollDice(payload: DiceRequest | DiceRequest[]) {
   return withLocalFallback(
     () =>
       apiRequest(
@@ -203,8 +198,7 @@ export async function rollDice(payload: RollDicePayload | RollDicePayload[]) {
         },
         'Roll API error',
       ),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    () => rollDiceLocal(payload as any),
+    () => rollDiceLocal(payload),
   );
 }
 

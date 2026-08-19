@@ -3889,8 +3889,8 @@
 
     card.innerHTML = `
       <span class="template-card-heading">
-        <span class="template-card-title">${title}</span>
-        <span class="template-card-meta">${stageLabel}</span>
+        <span class="template-card-title">${escapeHtml(title)}</span>
+        <span class="template-card-meta">${escapeHtml(stageLabel)}</span>
       </span>
       <span class="template-card-preview template-card-preview-${layout}">
         ${previewZones.join("")}
@@ -5254,7 +5254,7 @@
       button.type = "button";
       button.className = "timeline-history-button";
       button.dataset.historyIndex = String(index);
-      button.innerHTML = `<span class="timeline-history-label">${entry.label}</span><span class="timeline-history-meta">${entry.at}</span>`;
+      button.innerHTML = `<span class="timeline-history-label">${escapeHtml(entry.label)}</span><span class="timeline-history-meta">${escapeHtml(entry.at)}</span>`;
 
       item.appendChild(button);
       state.ui.historyList.appendChild(item);

@@ -114,17 +114,25 @@ pub fn get_substances() -> Vec<Substance> {
 
 pub fn find_substance_by_name<'a>(
     name: &str,
-    substances: &'a [Substance],
+    substances_map: &std::collections::HashMap<String, &'a Substance>,
 ) -> Option<&'a Substance> {
     // The frontend sends substance ids (e.g. "alcohol"); accept display names
     // too so older clients keep working.
-    substances.iter().find(|s| s.id.eq_ignore_ascii_case(name) || s.name.eq_ignore_ascii_case(name))
+    substances_map.get(&name.to_ascii_lowercase()).copied()
 }
 
 pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResponse, String> {
     let mut blood_levels = Vec::new();
     let mut substances_info = Vec::new();
     let substances = get_substances();
+
+    // Build O(1) lookup map
+    let mut substances_map: std::collections::HashMap<String, &Substance> =
+        std::collections::HashMap::with_capacity(substances.len() * 2);
+    for sub in &substances {
+        substances_map.insert(sub.id.to_ascii_lowercase(), sub);
+        substances_map.insert(sub.name.to_ascii_lowercase(), sub);
+    }
 
     // Group intakes by substance
     let mut substance_intakes: std::collections::HashMap<String, Vec<&SubstanceIntake>> =
@@ -135,7 +143,7 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
     }
 
     for (substance_name, intakes) in substance_intakes {
-        let substance = find_substance_by_name(&substance_name, &substances)
+        let substance = find_substance_by_name(&substance_name, &substances_map)
             .ok_or_else(|| format!("Substance '{}' not found in database", substance_name))?;
 
         substances_info.push(SubstanceInfo {
@@ -194,4 +202,28 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
     }
 
     Ok(ToleranceResponse { blood_levels, substances: substances_info })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Utc;
+
+    #[test]
+    fn test_calculate_blood_levels_unknown_substance() {
+        let now = Utc::now();
+        let request = ToleranceRequest {
+            intakes: vec![SubstanceIntake {
+                substance: "unknown_magic_potion".to_string(),
+                time: now,
+                dosage_mg: 100.0,
+            }],
+            time_points: vec![now],
+        };
+
+        let result = calculate_blood_levels(request);
+
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Substance 'unknown_magic_potion' not found in database");
+    }
 }

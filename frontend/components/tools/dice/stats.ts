@@ -1,5 +1,12 @@
+const distCache = new Map<string, Map<number, number>>();
+
 // Compute exact probability distribution for numDice×sides using dynamic programming
 export function computeSumDist(numDice: number, sides: number): Map<number, number> {
+  const key = `${numDice},${sides}`;
+  if (distCache.has(key)) {
+    return distCache.get(key)!;
+  }
+
   let dist = new Map<number, number>([[0, 1]]);
   for (let d = 0; d < numDice; d++) {
     const next = new Map<number, number>();
@@ -11,6 +18,8 @@ export function computeSumDist(numDice: number, sides: number): Map<number, numb
     }
     dist = next;
   }
+
+  distCache.set(key, dist);
   return dist;
 }
 

@@ -364,6 +364,23 @@ mod tests {
     }
 
     #[test]
+    fn test_1rm_negative_weight() {
+        assert!(estimate_1rm(-10.0, 5).is_none());
+    }
+
+    #[test]
+    fn test_1rm_high_reps() {
+        let rm = estimate_1rm(100.0, 30).unwrap();
+        assert!((rm - 200.0).abs() < 0.1, "1RM estimate for high reps: {rm}");
+    }
+
+    #[test]
+    fn test_1rm_small_weight() {
+        let rm = estimate_1rm(0.5, 15).unwrap();
+        assert!((rm - 0.75).abs() < 0.01, "1RM estimate for small weight: {rm}");
+    }
+
+    #[test]
     fn test_volume_calculation() {
         let sets = vec![(100.0, 10u32), (90.0, 8), (80.0, 12)];
         let volume = compute_volume(&sets);

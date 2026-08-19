@@ -36,6 +36,25 @@ fn redact_database_url(url: &str) -> String {
     }
 }
 
+/// Helper function to parse an origin string into a HeaderValue,
+/// truncating and logging any errors safely.
+fn parse_origin_to_header(origin: String) -> Option<axum::http::HeaderValue> {
+    match origin.parse::<axum::http::HeaderValue>() {
+        Ok(header_value) => Some(header_value),
+        Err(e) => {
+            // Sanitize origin for logging by truncating and removing control characters
+            let safe_origin: String =
+                origin.chars().take(MAX_LOG_ORIGIN_LENGTH).filter(|c| !c.is_control()).collect();
+            tracing::warn!(
+                "Failed to parse origin '{}' as HeaderValue (error: {}). Origin will be ignored.",
+                safe_origin,
+                e
+            );
+            None
+        }
+    }
+}
+
 /// Configure CORS based on environment variables
 ///
 /// Reads `ALLOWED_ORIGINS` environment variable which should contain comma-separated origins.
@@ -84,39 +103,21 @@ fn configure_cors() -> CorsLayer {
         tracing::warn!("No valid origins configured, CORS will deny all origins");
         return CorsLayer::new()
             .allow_methods([Method::GET, Method::POST])
-            .allow_headers([header::CONTENT_TYPE]);
+            .allow_headers([header::CONTENT_TYPE])
+            .allow_credentials(true);
     }
 
     // Collect all valid HeaderValue origins into a Vec
-    let valid_origins: Vec<HeaderValue> = origins
-        .into_iter()
-        .filter_map(|origin| {
-            match origin.parse::<HeaderValue>() {
-                Ok(header_value) => Some(header_value),
-                Err(e) => {
-                    // Sanitize origin for logging by truncating and removing control characters
-                    let safe_origin: String = origin
-                        .chars()
-                        .take(MAX_LOG_ORIGIN_LENGTH)
-                        .filter(|c| !c.is_control())
-                        .collect();
-                    tracing::warn!(
-                        "Failed to parse origin '{}' as HeaderValue (error: {}). Origin will be ignored.",
-                        safe_origin,
-                        e
-                    );
-                    None
-                }
-            }
-        })
-        .collect();
+    let valid_origins: Vec<HeaderValue> =
+        origins.into_iter().filter_map(parse_origin_to_header).collect();
 
     // Handle the case when all origins failed to parse
     if valid_origins.is_empty() {
         tracing::warn!("All origins failed to parse as HeaderValue, CORS will deny all origins");
         return CorsLayer::new()
             .allow_methods([Method::GET, Method::POST])
-            .allow_headers([header::CONTENT_TYPE]);
+            .allow_headers([header::CONTENT_TYPE])
+            .allow_credentials(true);
     }
 
     // Use AllowOrigin::list to configure multiple origins at once
@@ -125,6 +126,7 @@ fn configure_cors() -> CorsLayer {
     CorsLayer::new()
         .allow_methods([Method::GET, Method::POST])
         .allow_headers([header::CONTENT_TYPE])
+        .allow_credentials(true)
         .allow_origin(AllowOrigin::list(valid_origins))
 }
 

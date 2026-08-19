@@ -39,29 +39,32 @@ const LEGEND = [
   { label: '80%+ (great)', color: '#7c3aed' },
 ];
 
+// Axis ranges
+const wMin = 0.1, wMax = 2.0;   // kg/week
+const dMin = 100, dMax = 1000;  // kcal/day
+
+const px = (w: number) => ((w - wMin) / (wMax - wMin)) * 100;
+const py = (d: number) => 100 - ((d - dMin) / (dMax - dMin)) * 100;
+
 export const FatLossVisualization: React.FC<FatLossVisualizationProps> = ({
   currentKcalDeficit,
   currentWeightLoss,
   currentFatLoss,
   currentMuscleLoss,
 }) => {
-  // Axis ranges
-  const wMin = 0.1, wMax = 2.0;   // kg/week
-  const dMin = 100, dMax = 1000;  // kcal/day
-
-  const px = (w: number) => ((w - wMin) / (wMax - wMin)) * 100;
-  const py = (d: number) => 100 - ((d - dMin) / (dMax - dMin)) * 100;
-
   // Build scatter data — coarser grid for performance
-  const dots: { cx: number; cy: number; color: string }[] = [];
-  for (let d = dMin; d <= dMax; d += 30) {
-    for (let w = wMin; w <= wMax; w += 0.1) {
-      const pct = estimateFatPct(d, w);
-      if (pct !== null) {
-        dots.push({ cx: px(w), cy: py(d), color: colorForFatPct(pct) });
+  const dots = React.useMemo(() => {
+    const arr: { cx: number; cy: number; color: string }[] = [];
+    for (let d = dMin; d <= dMax; d += 30) {
+      for (let w = wMin; w <= wMax; w += 0.1) {
+        const pct = estimateFatPct(d, w);
+        if (pct !== null) {
+          arr.push({ cx: px(w), cy: py(d), color: colorForFatPct(pct) });
+        }
       }
     }
-  }
+    return arr;
+  }, []);
 
   const curX = px(currentWeightLoss);
   const curY = py(currentKcalDeficit);
