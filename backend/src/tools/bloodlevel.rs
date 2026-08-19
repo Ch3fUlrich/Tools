@@ -195,3 +195,27 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
 
     Ok(ToleranceResponse { blood_levels, substances: substances_info })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Utc;
+
+    #[test]
+    fn test_calculate_blood_levels_unknown_substance() {
+        let now = Utc::now();
+        let request = ToleranceRequest {
+            intakes: vec![SubstanceIntake {
+                substance: "unknown_magic_potion".to_string(),
+                time: now,
+                dosage_mg: 100.0,
+            }],
+            time_points: vec![now],
+        };
+
+        let result = calculate_blood_levels(request);
+
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Substance 'unknown_magic_potion' not found in database");
+    }
+}

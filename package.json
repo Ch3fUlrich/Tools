@@ -3,11 +3,11 @@
   "private": true,
   "packageManager": "pnpm@10.33.0",
   "devDependencies": {
-    "@commitlint/cli": "^17.0.0",
-    "@commitlint/config-conventional": "^17.0.0",
+    "@commitlint/cli": "^17.8.1",
+    "@commitlint/config-conventional": "^17.8.1",
     "concurrently": "^9.2.4",
     "cross-env": "^10.1.0",
-    "husky": "^8.0.0"
+    "husky": "^8.0.3"
   },
   "scripts": {
     "dev": "pnpm run dev:services && npx --yes concurrently -k -p \"[{name}]\" -n \"backend,frontend\" -c \"magenta,cyan\" \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
@@ -30,7 +30,8 @@
   },
   "pnpm": {
     "overrides": {
-      "postcss": "8.5.10"
+      "postcss": "^8.5.18",
+      "sharp": "^0.35.0"
     }
   }
 }

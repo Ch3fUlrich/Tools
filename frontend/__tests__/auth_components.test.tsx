@@ -45,7 +45,7 @@ describe('Auth components', () => {
       const { login, user } = useAuth();
       return (
         <div>
-          <button onClick={() => login({ id: '1', email: 'a@b.com', created_at: new Date().toISOString() })}>Login</button>
+          <button onClick={() => login({ id: '1', email: 'u@u.com', created_at: new Date().toISOString() })}>Login</button>
           <div data-testid="email">{user?.email ?? ''}</div>
         </div>
       );
@@ -58,7 +58,7 @@ describe('Auth components', () => {
     );
 
     fireEvent.click(screen.getByText('Login'));
-    await waitFor(() => expect(screen.getByTestId('email').textContent).toBe('a@b.com'));
+    await waitFor(() => expect(screen.getByTestId('email').textContent).toBe('u@u.com'));
 
     // unmount and remount to check persistence
     unmount();
@@ -69,7 +69,7 @@ describe('Auth components', () => {
       </TestWrapper>
     );
 
-    await waitFor(() => expect(screen.getByTestId('email').textContent).toBe('a@b.com'));
+    await waitFor(() => expect(screen.getByTestId('email').textContent).toBe('u@u.com'));
   });
 
   it('UserProfile shows user and calls logout', async () => {
@@ -82,7 +82,7 @@ describe('Auth components', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('u@u.com')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('u@u.com')).toBeInTheDocument());
     fireEvent.click(screen.getByText('Logout'));
 
     await waitFor(() => expect(screen.queryByText('u@u.com')).not.toBeInTheDocument());
@@ -111,7 +111,7 @@ describe('Auth components', () => {
       </TestWrapper>
     );
 
-    fireEvent.change(screen.getByLabelText('Email Address'), { target: { value: 'a@b.com' } });
+    fireEvent.change(screen.getByLabelText('Email Address'), { target: { value: 'u@u.com' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'p' } });
     fireEvent.click(screen.getByRole('button', { name: 'Sign In' }));
 
