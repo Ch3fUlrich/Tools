@@ -447,7 +447,7 @@ When adding a new tool to the project:
 The project follows [Semantic Versioning](https://semver.org/):
 - MAJOR: Breaking changes
 - MINOR: New features (backward compatible)
-- PATCH: Bug fixes
+- PATCH: Bug fixes (backward compatible)
 
 Releases are fully automated via [semantic-release](https://github.com/semantic-release/semantic-release). When commits land on `main`, semantic-release analyzes the conventional commit messages, determines the next version, creates a GitHub Release with auto-generated release notes, and tags the commit. No manual CHANGELOG updates or version bumps are needed.
 
