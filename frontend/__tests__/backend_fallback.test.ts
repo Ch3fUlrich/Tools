@@ -79,7 +79,7 @@ describe('client fallback to local computation', () => {
     expect(res.fat_loss_percentage).toBeCloseTo(100, 6);
     // Only the background health re-probe may touch fetch — never the tool endpoint.
     const calls = ((globalThis as any).fetch as ReturnType<typeof vi.fn>).mock.calls;
-    expect(calls.every(([url]: [string]) => String(url).includes('/api/health'))).toBe(true);
+    expect(calls.every((args: any[]) => String(args[0]).includes('/api/health'))).toBe(true);
   });
 
   it('does NOT fall back on backend HTTP errors', async () => {
