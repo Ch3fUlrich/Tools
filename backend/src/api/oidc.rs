@@ -34,6 +34,40 @@ pub struct OidcStartQuery {
     pub _redirect_to: Option<String>,
 }
 
+async fn create_oauth_user(
+    pool: &PgPool,
+    email: Option<String>,
+    subject: &str,
+    provider: &str,
+) -> Result<sqlx::types::Uuid, String> {
+    let em = email.clone().unwrap_or_else(|| format!("{}@oauth", subject));
+    let rec = sqlx::query(
+        "INSERT INTO users (email, password_hash, display_name) VALUES ($1, $2, $3) RETURNING id",
+    )
+    .bind(&em)
+    .bind("")
+    .bind(None::<String>)
+    .fetch_one(pool)
+    .await
+    .map_err(|e| format!("DB error creating user: {e}"))?;
+
+    let id: sqlx::types::Uuid =
+        rec.try_get("id").map_err(|e| format!("DB returned malformed id: {e}"))?;
+
+    sqlx::query(
+        "INSERT INTO oauth_accounts (user_id, provider, provider_subject, metadata) VALUES ($1, $2, $3, $4)",
+    )
+    .bind(id)
+    .bind(provider)
+    .bind(subject)
+    .bind(serde_json::json!({"email": email}))
+    .execute(pool)
+    .await
+    .map_err(|e| format!("DB error linking account: {e}"))?;
+
+    Ok(id)
+}
+
 pub async fn start(
     Query(_q): Query<OidcStartQuery>,
     Extension(store): Extension<Option<Arc<Mutex<SessionStore>>>>,
@@ -317,41 +351,15 @@ pub async fn callback(
     let uid = if let Some(uid) = user_id {
         uid
     } else {
-        // create new user
-        let em = email.clone().unwrap_or_else(|| format!("{}@oauth", &subject));
-        let rec = match sqlx::query("INSERT INTO users (email, password_hash, display_name) VALUES ($1, $2, $3) RETURNING id")
-            .bind(&em)
-            .bind("")
-            .bind(None::<String>)
-            .fetch_one(&*pool)
-            .await
-        {
-            Ok(r) => r,
+        match create_oauth_user(&pool, email.clone(), &subject, &provider).await {
+            Ok(id) => id,
             Err(e) => {
                 return axum::http::Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(format!("DB error creating user: {e}"))
-                    .unwrap_or_default()
+                    .body(e)
+                    .unwrap_or_default();
             }
-        };
-        let id: sqlx::types::Uuid = match rec.try_get("id") {
-            Ok(u) => u,
-            Err(e) => {
-                return axum::http::Response::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(format!("DB returned malformed id: {e}"))
-                    .unwrap_or_default()
-            }
-        };
-        // insert oauth_account
-        let _ = sqlx::query("INSERT INTO oauth_accounts (user_id, provider, provider_subject, metadata) VALUES ($1, $2, $3, $4)")
-            .bind(id)
-            .bind(&provider)
-            .bind(&subject)
-            .bind(serde_json::json!({"email": email}))
-            .execute(&*pool)
-            .await;
-        id
+        }
     };
 
     // Validate state/nonce if we stored them during start
