@@ -15,7 +15,7 @@
     "dev:backend": "docker run --rm -v ./backend:/app -w /app --network tools-deps-network -e DATABASE_URL=postgres://test:test@postgres:5432/tools_test -e REDIS_URL=redis://redis:6379 -p 3001:3001 rust:1.90.0 cargo run --bin tools-backend",
     "dev:frontend": "cd frontend && cross-env NEXT_PUBLIC_API_URL=http://localhost:3001 pnpm run dev",
     "prepare": "husky install",
-    "commitlint": "commitlint --from=HEAD~1",
+    "commitlint": "commitlint --config commitlint.config.mjs --from=HEAD~1",
     "lint": "pnpm run lint:frontend && pnpm run lint:css && pnpm run lint:backend",
     "lint:fix": "pnpm run lint:fix:frontend && pnpm run lint:css:fix && pnpm run lint:fix:backend",
     "lint:css": "cd frontend && pnpm run lint:css",
@@ -30,7 +30,7 @@
   },
   "pnpm": {
     "overrides": {
-      "postcss": "8.5.10"
+      "postcss": "^8.5.23", "nanoid": "^3.3.18", "next": "^16.2.11", "sharp": "^0.35.0"
     }
   }
 }
