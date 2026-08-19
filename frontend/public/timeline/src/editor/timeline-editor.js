@@ -5254,7 +5254,7 @@
       button.type = "button";
       button.className = "timeline-history-button";
       button.dataset.historyIndex = String(index);
-      button.innerHTML = `<span class="timeline-history-label">${entry.label}</span><span class="timeline-history-meta">${entry.at}</span>`;
+      button.innerHTML = `<span class="timeline-history-label">${escapeHtml(entry.label)}</span><span class="timeline-history-meta">${escapeHtml(entry.at)}</span>`;
 
       item.appendChild(button);
       state.ui.historyList.appendChild(item);
