@@ -12,7 +12,7 @@ import { rollDice, saveDiceRoll, getDiceHistory } from '../../lib/api/client';
 import DiceHistory from './DiceHistory';
 import Boxplot from '../charts/Boxplot';
 import Histogram from '../charts/Histogram';
-import type { DiceResponse, DiceRequest } from '../../lib/types/dice';
+import type { DiceResponse, DiceRequest, DiceRollResult, PerDieDetail } from '../../lib/types/dice';
 import { randomDieValue } from '../../lib/local/dice';
 
 import {
@@ -98,7 +98,7 @@ const onRoll = async () => {
       ...combinedResult,
       rolls: combinedResult.rolls.map((roll, rollIdx) => {
         // clone roll
-        const cloned = { ...roll };
+        const cloned = { ...roll } as unknown as RollDetail;
         let anyChanged = false;
         let groupRerollCount = 0;
         const rollCfg = diceConfigs[Math.min(rollIdx, diceConfigs.length - 1)];
@@ -110,8 +110,8 @@ const onRoll = async () => {
           ? (rollCfg.advantage === 'adv' ? (rollCfg.numericModifier || 0) : -(rollCfg.numericModifier || 0))
           : 0;
 
-        cloned.perDie = roll.perDie.map((origD: PerDie) => {
-          const d = { ...origD };
+        cloned.perDie = roll.perDie.map((origD: PerDieDetail) => {
+          const d = { ...origD } as unknown as PerDie;
           const originalFinal = d.final;
 
           // Reroll logic — uses roll-level config for all dice in this group
@@ -144,7 +144,7 @@ const onRoll = async () => {
         } else {
           cloned.rawSum = cloned.sum; // no changes, rawSum = API-provided sum
         }
-        return cloned;
+        return cloned as unknown as DiceRollResult;
       })
     };
 
