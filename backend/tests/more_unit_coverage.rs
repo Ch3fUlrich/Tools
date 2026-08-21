@@ -48,4 +48,3 @@ async fn test_bloodlevel_missing_substance_error() {
     let res = tools_backend::tools::bloodlevel::calculate_blood_levels(req);
     assert!(res.is_err());
 }
-
