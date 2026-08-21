@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { getStoredTheme, setStoredTheme, prefersDark, applyTheme, resolveInitialTheme } from '../lib/theme';
 
 describe('theme utils', () => {
@@ -16,6 +16,27 @@ describe('theme utils', () => {
     expect(getStoredTheme()).toBe('dark');
     setStoredTheme(null);
     expect(getStoredTheme()).toBeNull();
+  });
+
+  it('handles localStorage errors gracefully', () => {
+    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('Quota exceeded');
+    });
+    expect(getStoredTheme()).toBeNull();
+
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('Quota exceeded');
+    });
+    expect(() => setStoredTheme('dark')).not.toThrow();
+
+    const removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new Error('Quota exceeded');
+    });
+    expect(() => setStoredTheme(null)).not.toThrow();
+
+    getItemSpy.mockRestore();
+    setItemSpy.mockRestore();
+    removeItemSpy.mockRestore();
   });
 
   it('prefersDark falls back safely', () => {
