@@ -301,8 +301,6 @@ function initializeTimeline() {
       },
     })
   );
-
-  console.log("Timeline initialized from config");
 }
 
 async function initializeTimelineWhenConfigReady() {
