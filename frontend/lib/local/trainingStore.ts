@@ -373,7 +373,7 @@ export class TrainingStore {
 
     const dataByDate: Record<string, number> = {};
     for (const s of allSets) {
-        const date = new Date(s.performedAt).toISOString().split('T')[0];
+        const date = s.performedAt.slice(0, 10);
         dataByDate[date] = (dataByDate[date] || 0) + (s.energyKcal || 0);
     }
 
@@ -398,7 +398,7 @@ export class TrainingStore {
 
     const dataByDate: Record<string, number> = {};
     for (const s of allSets) {
-        const date = new Date(s.performedAt).toISOString().split('T')[0];
+        const date = s.performedAt.slice(0, 10);
         dataByDate[date] = (dataByDate[date] || 0) + (s.weightKg * s.reps);
     }
 
