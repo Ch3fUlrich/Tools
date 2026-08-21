@@ -1,23 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('eslint.config.mjs', () => {
-  let originalConsoleWarn: any;
-  let warnMock: ReturnType<typeof vi.fn>;
+  let warnMock: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    warnMock = vi.fn();
-    originalConsoleWarn = console.warn;
-    console.warn = warnMock;
+    // Avoid Type 'Mock<Procedure | Constructable>' error by typing properly or casting
+    warnMock = vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.resetModules();
   });
 
   afterEach(() => {
-    console.warn = originalConsoleWarn;
+    warnMock.mockRestore();
     vi.restoreAllMocks();
   });
 
   it('handles missing @eslint/js dependency gracefully', async () => {
-    // Statically throw when module evaluates
     vi.doMock('@eslint/js', () => {
       throw new Error('Module @eslint/js not found');
     });
@@ -38,8 +35,6 @@ describe('eslint.config.mjs', () => {
 
     const config = await import('../eslint.config.mjs');
 
-    // Vitest wraps errors thrown in `vi.doMock` inside an internal Vitest Error object
-    // We expect the catch block to log this internal error message as expected fallback operation
     const expectedVitestError = expect.stringContaining('[vitest] There was an error when mocking a module');
 
     expect(warnMock).toHaveBeenCalledWith('Optional import @typescript-eslint/parser failed; continuing without it:', expectedVitestError);
