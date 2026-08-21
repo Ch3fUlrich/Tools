@@ -108,19 +108,23 @@ export function calculateToleranceLocal(
       throw new Error(`Substance '${substanceName}' not found in database`);
     }
 
+    const parsedIntakes = intakes.map(intake => ({
+      timeMs: Date.parse(intake.time),
+      bioavailableDose: intake.dosage_mg * (substance.bioavailabilityPercent / 100)
+    }));
+
     for (const timePoint of request.time_points) {
       let totalAmount = 0;
       const pointMs = Date.parse(timePoint);
 
-      for (const intake of intakes) {
-        const elapsedMs = pointMs - Date.parse(intake.time);
+      for (const parsedIntake of parsedIntakes) {
+        const elapsedMs = pointMs - parsedIntake.timeMs;
         if (!Number.isFinite(elapsedMs) || elapsedMs < 0) continue;
 
         const hoursElapsed = elapsedMs / 3_600_000;
-        const bioavailableDose = intake.dosage_mg * (substance.bioavailabilityPercent / 100);
         const remaining =
           substance.halfLifeHours > 0
-            ? bioavailableDose * Math.pow(0.5, hoursElapsed / substance.halfLifeHours)
+            ? parsedIntake.bioavailableDose * Math.pow(0.5, hoursElapsed / substance.halfLifeHours)
             : 0;
         totalAmount += Number.isFinite(remaining) ? remaining : 0;
       }
