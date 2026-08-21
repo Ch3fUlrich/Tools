@@ -16,6 +16,16 @@ describe('useElapsed', () => {
     expect(result.current).toBe('');
   });
 
+  it('returns empty string when startedAt is empty string', () => {
+    const { result } = renderHook(() => useElapsed(''));
+    expect(result.current).toBe('');
+  });
+
+  it('handles invalid dates', () => {
+    const { result } = renderHook(() => useElapsed('invalid-date'));
+    expect(result.current).toBe('NaN:NaN');
+  });
+
   it('formats correctly under an hour (M:SS)', () => {
     const startedAt = '2023-01-01T12:00:00Z';
     // Mock the current time to be 2 minutes and 30 seconds later
