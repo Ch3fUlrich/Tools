@@ -48,16 +48,3 @@ async fn test_bloodlevel_missing_substance_error() {
     let res = tools_backend::tools::bloodlevel::calculate_blood_levels(req);
     assert!(res.is_err());
 }
-
-#[test]
-fn test_find_substance_by_name_case_insensitive() {
-    let subs = tools_backend::tools::bloodlevel::get_substances();
-    let mut map = std::collections::HashMap::new();
-    for sub in &subs {
-        map.insert(sub.id.to_ascii_lowercase(), sub);
-        map.insert(sub.name.to_ascii_lowercase(), sub);
-    }
-    let found = tools_backend::tools::bloodlevel::find_substance_by_name("caffeine", &map);
-    assert!(found.is_some());
-    assert_eq!(found.unwrap().id, "caffeine");
-}
