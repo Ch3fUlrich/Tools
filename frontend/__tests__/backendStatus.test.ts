@@ -68,7 +68,7 @@ describe('checkBackend', () => {
 
   beforeEach(() => {
     resetBackendStatusForTests();
-    fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({ ok: true } as Response);
+    fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({ ok: true } as any);
     // Mock Date.now to control TTL consistently in some tests if needed
     vi.useFakeTimers({ toFake: ['Date'] });
   });
@@ -122,7 +122,7 @@ describe('checkBackend', () => {
   it('should return false and update status to offline if probe fails', async () => {
     resetBackendStatusForTests(); // Reset state
     fetchSpy.mockClear(); // Clear spy history
-    fetchSpy.mockResolvedValueOnce({ ok: false } as Response);
+    fetchSpy.mockResolvedValueOnce({ ok: false } as any);
 
     const result = await checkBackend();
     expect(result).toBe(false);
@@ -145,7 +145,7 @@ describe('checkBackend', () => {
     resetBackendStatusForTests(); // Reset state
     fetchSpy.mockClear(); // Clear spy history
     // Create a slow fetch to ensure concurrent calls overlap
-    fetchSpy.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ ok: true } as Response), 10)));
+    fetchSpy.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ ok: true } as any), 10)));
 
     const [result1, result2] = await Promise.all([
       checkBackend(),
