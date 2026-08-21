@@ -33,3 +33,8 @@ axum-test = "19.1"
 serial_test = "3.2"
 temp-env = "0.3.6"
 http = "1.4"
+criterion = "0.8.2"
+
+[[bench]]
+name = "bloodlevel_bench"
+harness = false
