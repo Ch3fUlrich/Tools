@@ -98,7 +98,7 @@ const onRoll = async () => {
       ...combinedResult,
       rolls: combinedResult.rolls.map((roll, rollIdx) => {
         // clone roll
-        const cloned = JSON.parse(JSON.stringify(roll));
+        const cloned = { ...roll };
         let anyChanged = false;
         let groupRerollCount = 0;
         const rollCfg = diceConfigs[Math.min(rollIdx, diceConfigs.length - 1)];
@@ -110,7 +110,8 @@ const onRoll = async () => {
           ? (rollCfg.advantage === 'adv' ? (rollCfg.numericModifier || 0) : -(rollCfg.numericModifier || 0))
           : 0;
 
-        cloned.perDie = cloned.perDie.map((d: PerDie) => {
+        cloned.perDie = roll.perDie.map((origD: PerDie) => {
+          const d = { ...origD };
           const originalFinal = d.final;
 
           // Reroll logic — uses roll-level config for all dice in this group
