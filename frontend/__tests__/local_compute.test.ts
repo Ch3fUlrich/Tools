@@ -100,8 +100,7 @@ describe('local dice rolling', () => {
 
   it('ignores storage errors gracefully when saving', () => {
     // Mock localStorage to throw an error
-    const originalSetItem = Storage.prototype.setItem;
-    Storage.prototype.setItem = vi.fn(() => {
+    const setItemSpy = vi.spyOn(globalThis.Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('QuotaExceededError');
     });
 
@@ -112,7 +111,7 @@ describe('local dice rolling', () => {
     }).not.toThrow();
 
     consoleErrorSpy.mockRestore();
-    Storage.prototype.setItem = originalSetItem;
+    setItemSpy.mockRestore();
   });
 });
 
