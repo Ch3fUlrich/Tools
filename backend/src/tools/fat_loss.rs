@@ -71,6 +71,38 @@ mod tests {
         assert!(result.is_valid);
         assert!(result.fat_loss_percentage.is_some());
         assert!(result.muscle_loss_percentage.is_some());
+
+        let fat = result.fat_loss_percentage.unwrap();
+        let muscle = result.muscle_loss_percentage.unwrap();
+
+        // Let's verify the exact calculation
+        // fat_percentage = ((1200 * -0.5) + 3500) / (7000 - 1200) / 0.5 = (2900 / 5800) / 0.5 = 0.5 / 0.5 = 1.0 (100%)
+        assert!((fat - 100.0).abs() < 1e-6);
+        assert!((muscle - 0.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_half_fat_half_muscle_loss() {
+        // We want a 50% split.
+        // 1kg total loss. 0.5kg fat * 7000 + 0.5kg muscle * 1200 = 3500 + 600 = 4100 kcal deficit
+        let result = calculate_fat_loss_percentage(4100.0, 1.0);
+        assert!(result.is_valid);
+        let fat = result.fat_loss_percentage.unwrap();
+        let muscle = result.muscle_loss_percentage.unwrap();
+        assert!((fat - 50.0).abs() < 1e-6);
+        assert!((muscle - 50.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_mostly_fat_loss() {
+        // We want a 75% fat / 25% muscle split.
+        // 1kg total loss. 0.75kg fat * 7000 + 0.25kg muscle * 1200 = 5250 + 300 = 5550 kcal deficit
+        let result = calculate_fat_loss_percentage(5550.0, 1.0);
+        assert!(result.is_valid);
+        let fat = result.fat_loss_percentage.unwrap();
+        let muscle = result.muscle_loss_percentage.unwrap();
+        assert!((fat - 75.0).abs() < 1e-6);
+        assert!((muscle - 25.0).abs() < 1e-6);
     }
 
     #[test]
