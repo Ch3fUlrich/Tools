@@ -81,6 +81,7 @@ async function buildConfig() {
     document: "readonly",
     localStorage: "readonly",
     sessionStorage: "readonly",
+    Storage: "readonly",
     fetch: "readonly",
     setTimeout: "readonly",
     clearTimeout: "readonly",
