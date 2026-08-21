@@ -83,3 +83,33 @@ async fn test_migrate_binary_missing_env() {
         stderr
     );
 }
+
+#[tokio::test]
+async fn test_migrate_binary_failure() {
+    let bad_database_url = "postgres://nonexistent:password@localhost:5432/nonexistent_db";
+
+    // Run the migrate binary
+    let output = Command::new("cargo")
+        .args(["run", "--bin", "migrate"])
+        .env("DATABASE_URL", bad_database_url)
+        .output()
+        .expect("Failed to run migrate binary");
+
+    // Should fail with exit code 1 (or at least non-zero)
+    assert!(!output.status.success(), "Migrate binary should fail with bad DB URL");
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    assert!(
+        stderr.contains("Error") || stderr.contains("error"),
+        "Error message should be logged to stderr: {}",
+        stderr
+    );
+
+    assert!(
+        !stdout.contains("Migrations ran successfully"),
+        "Should not print success message on stdout: {}",
+        stdout
+    );
+}
