@@ -117,6 +117,15 @@ describe('ExerciseCatalog', () => {
     render(<ExerciseCatalog />);
     await waitFor(() => expect(screen.getByText('barbell')).toBeInTheDocument());
   });
+
+  it('shows error message when fetching exercises fails', async () => {
+    const { listExercises } = await import('@/lib/api/client');
+    (listExercises as any).mockRejectedValueOnce(new Error('Failed to load'));
+
+    render(<ExerciseCatalog />);
+
+    await waitFor(() => expect(screen.getByText(/Failed to load/i)).toBeInTheDocument());
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
