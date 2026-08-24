@@ -112,47 +112,50 @@ pub fn get_substances() -> Vec<Substance> {
     ]
 }
 
-pub fn find_substance_by_name<'a>(
-    name: &str,
-    substances_map: &std::collections::HashMap<String, &'a Substance>,
-) -> Option<&'a Substance> {
-    // The frontend sends substance ids (e.g. "alcohol"); accept display names
-    // too so older clients keep working.
-    substances_map.get(&name.to_ascii_lowercase()).copied()
-}
-
 pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResponse, String> {
     let mut blood_levels = Vec::new();
     let mut substances_info = Vec::new();
-    let substances = get_substances();
+    let mut owned_substances: Vec<Option<Substance>> =
+        get_substances().into_iter().map(Some).collect();
 
     // Build O(1) lookup map
-    let mut substances_map: std::collections::HashMap<String, &Substance> =
-        std::collections::HashMap::with_capacity(substances.len() * 2);
-    for sub in &substances {
-        substances_map.insert(sub.id.to_ascii_lowercase(), sub);
-        substances_map.insert(sub.name.to_ascii_lowercase(), sub);
+    let mut substances_map: std::collections::HashMap<String, usize> =
+        std::collections::HashMap::with_capacity(owned_substances.len() * 2);
+    for (idx, sub) in owned_substances.iter().enumerate() {
+        if let Some(s) = sub {
+            substances_map.insert(s.id.to_ascii_lowercase(), idx);
+            substances_map.insert(s.name.to_ascii_lowercase(), idx);
+        }
     }
 
     // Group intakes by substance
-    let mut substance_intakes: std::collections::HashMap<String, Vec<&SubstanceIntake>> =
+    let mut substance_intakes: std::collections::HashMap<usize, Vec<&SubstanceIntake>> =
         std::collections::HashMap::new();
 
     for intake in &request.intakes {
-        substance_intakes.entry(intake.substance.clone()).or_default().push(intake);
+        let substance_name = &intake.substance;
+        let &idx = substances_map
+            .get(&substance_name.to_ascii_lowercase())
+            .ok_or_else(|| format!("Substance '{}' not found in database", substance_name))?;
+        substance_intakes.entry(idx).or_default().push(intake);
     }
 
-    for (substance_name, intakes) in substance_intakes {
-        let substance = find_substance_by_name(&substance_name, &substances_map)
-            .ok_or_else(|| format!("Substance '{}' not found in database", substance_name))?;
+    for (idx, intakes) in substance_intakes {
+        let substance = owned_substances[idx]
+            .take()
+            .expect("Substance already consumed (duplicate indexes in map)");
+
+        let half_life_hours = substance.half_life_hours;
+        let bioavailability_percent = substance.bioavailability_percent;
+        let substance_id_for_levels = substance.id.clone();
 
         substances_info.push(SubstanceInfo {
-            id: substance.id.clone(),
-            name: substance.name.clone(),
-            half_life_hours: substance.half_life_hours,
-            description: substance.description.clone(),
-            category: substance.category.clone(),
-            bioavailability_percent: substance.bioavailability_percent,
+            id: substance.id,
+            name: substance.name,
+            half_life_hours,
+            description: substance.description,
+            category: substance.category,
+            bioavailability_percent,
         });
 
         // Calculate blood levels at each time point
@@ -170,11 +173,11 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
 
                 // Apply bioavailability
                 let bioavailable_dose =
-                    intake.dosage_mg * (substance.bioavailability_percent.unwrap_or(100.0) / 100.0);
+                    intake.dosage_mg * (bioavailability_percent.unwrap_or(100.0) / 100.0);
 
                 // Calculate remaining amount using half-life decay
-                let remaining_amount = if substance.half_life_hours > 0.0 {
-                    bioavailable_dose * (0.5_f64).powf(hours_elapsed / substance.half_life_hours)
+                let remaining_amount = if half_life_hours > 0.0 {
+                    bioavailable_dose * (0.5_f64).powf(hours_elapsed / half_life_hours)
                 } else {
                     0.0 // Invalid half-life, treat as immediate elimination
                 };
@@ -195,7 +198,7 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
 
             blood_levels.push(BloodLevelPoint {
                 time: time_point,
-                substance: substance_name.clone(),
+                substance: substance_id_for_levels.clone(),
                 amount_mg: safe_total_amount,
             });
         }
