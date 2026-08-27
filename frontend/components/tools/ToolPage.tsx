@@ -48,7 +48,11 @@ export default function ToolPage({
               </h1>
             </div>
             {description && (
-              <p className="text-lg max-w-2xl mx-auto" style={{color:'var(--muted)'}}>
+              // maxWidth is set inline on purpose: Tailwind v4 does not always emit
+              // `max-w-2xl` here, and without a cap the description's max-content width
+              // drives the whole `w-fit` frame — a long description then makes the page
+              // wider than the viewport.
+              <p className="text-lg max-w-2xl mx-auto" style={{color:'var(--muted)', maxWidth:'42rem'}}>
                 {description}
               </p>
             )}
