@@ -274,6 +274,8 @@ Codecov token is optional — `fail_ci_if_error: false` is set so missing token 
 - **Do not** skip commitlint hooks (`--no-verify`) — fix the commit message instead
 - **Do not** add an external `@import` / `<link>` for fonts or scripts — it breaks the strict CSP and leaks visitor IPs; self-host via `next/font`
 - **Do not** hand-edit `docker/security-headers.generated.conf` — it is rebuilt by `scripts/generate-csp.mjs` on every `next build`
+- **Do not** assume a Tailwind utility works — Tailwind v4 does not emit many of them here (`max-w-*`, `p-6`, `text-lg`, `absolute`, `right-20` are all missing). Verify against the built CSS or use an inline style
+- **Do not** set `width: max-content` on a page-level container — it makes every wide child widen the whole page (see `.site-container` in `globals.css`)
 
 ---
 
