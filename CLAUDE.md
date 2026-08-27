@@ -272,6 +272,8 @@ Codecov token is optional — `fail_ci_if_error: false` is set so missing token 
 - **Do not** forget to commit `Cargo.lock` after changing backend dependencies — CI uses `--locked`
 - **Do not** commit generated files: `*.log`, `backend-deps.txt`, `backend-metadata.json`
 - **Do not** skip commitlint hooks (`--no-verify`) — fix the commit message instead
+- **Do not** add an external `@import` / `<link>` for fonts or scripts — it breaks the strict CSP and leaks visitor IPs; self-host via `next/font`
+- **Do not** hand-edit `docker/security-headers.generated.conf` — it is rebuilt by `scripts/generate-csp.mjs` on every `next build`
 
 ---
 
@@ -289,6 +291,9 @@ Codecov token is optional — `fail_ci_if_error: false` is set so missing token 
 | `frontend/components/ui/Button.tsx` | Typed button with variants |
 | `frontend/lib/animations.ts` | Reusable Tailwind animation class strings |
 | `frontend/vitest.setup.ts` | Global test setup — mocks fetch, storage, ResizeObserver |
+| `frontend/lib/local/germanTax.ts` | § 32a EStG tariff, SolZ, Kirchensteuer, § 32b Progressionsvorbehalt |
+| `frontend/lib/local/elterngeld.ts` | BEEG Elterngeld model + scenario comparison (browser-only, no API) |
+| `scripts/generate-csp.mjs` | Build-time CSP: hashes Next's inline scripts, runs as `postbuild` |
 | `backend/src/lib.rs` | Backend module tree root |
 | `backend/src/api/mod.rs` | Register all API modules here |
 | `backend/src/tools/mod.rs` | Register all tool logic modules here |
@@ -718,7 +723,7 @@ Pick a gradient that isn't already used by an existing tool:
 | N26 Analyzer | `from-blue-400 to-blue-700` / `#60a5fa→#0284c7` | 🏦 |
 | Dice Roller | `from-violet-400 to-pink-500` / `#a78bfa→#ec4899` | 🎲 |
 | Blood Level | `from-red-400 to-pink-700` / `#f87171→#db2777` | 🧪 |
-| **Available** | `from-amber-400 to-orange-500` | 🌡️ |
+| Elterngeld Optimizer | `from-amber-400 to-orange-500` / `#fbbf24→#f97316` | 🍼 |
 | **Available** | `from-cyan-400 to-teal-500` | 🧭 |
 | **Available** | `from-fuchsia-500 to-purple-600` | 🔮 |
 | **Available** | `from-sky-400 to-indigo-500` | 📡 |

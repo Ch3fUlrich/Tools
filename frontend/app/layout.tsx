@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 import AuthProviderClient from "@/components/auth/AuthProviderClient";
@@ -7,6 +8,16 @@ import Footer from "@/components/layout/Footer";
 import ThemeInitializer from "@/components/ThemeInitializer";
 import BackendBanner from "@/components/ui/BackendBanner";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
+
+// Downloaded and self-hosted at build time, so the browser never contacts a
+// third-party font CDN. That keeps `style-src`/`font-src` at 'self' in the
+// Content-Security-Policy and avoids leaking visitor IP addresses to Google.
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   // Base for resolving all relative metadata URLs (canonical, og:url, …).
@@ -55,7 +66,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <body className="antialiased vsc-initialized text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900">
         <AuthProviderClient>
           <ThemeInitializer />

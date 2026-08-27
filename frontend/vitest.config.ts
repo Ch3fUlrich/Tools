@@ -4,6 +4,12 @@ import path from 'path';
 export default defineConfig({
   resolve: {
     alias: [
+      // next/font/google is a build-time transform Vitest does not run; without
+      // this stub the real module's placeholder export is not callable.
+      {
+        find: 'next/font/google',
+        replacement: path.resolve(__dirname, '__mocks__/next-font-google.ts'),
+      },
       { find: '@', replacement: path.resolve(__dirname) },
     ],
   },

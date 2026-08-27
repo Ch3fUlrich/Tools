@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+/* Inter is self-hosted at build time via next/font in app/layout.tsx (--font-inter).
+   Never re-add an external @import: it leaks visitor IPs to a third party and
+   breaks the strict Content-Security-Policy in docker/security-headers.conf. */
 
 /* Tailwind v4: explicitly declare source paths so all TSX/JSX utility classes are generated */
 @source "../app";
@@ -12,7 +14,7 @@
 /* Enhanced base styles with modern design tokens */
 :root, html, body {
   /* Include a generic fallback to satisfy stylelint and ensure predictable rendering */
-  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Ensure consistent box-sizing and width so theme toggles don't affect layout metrics */

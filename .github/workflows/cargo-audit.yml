@@ -12,6 +12,10 @@ on:
       - 'backend/Cargo.toml'
       - 'backend/Cargo.lock'
 
+# Least-privilege default: no job here needs to write to the repository.
+permissions:
+  contents: read
+
 jobs:
   audit:
     name: cargo audit
