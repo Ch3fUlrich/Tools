@@ -51,7 +51,7 @@ describe('ElterngeldOptimizer', () => {
 
     expect(scope.getByText(/1 · From profit to Elterngeld-Netto/)).toBeInTheDocument();
     expect(scope.getByText(/2 · The replacement rate/)).toBeInTheDocument();
-    expect(scope.getByText(/5 · Progressionsvorbehalt/)).toBeInTheDocument();
+    expect(scope.getByText(/6 · Progressionsvorbehalt/)).toBeInTheDocument();
     expect(scope.getByText(/monthly gross\s+= Gewinn \/ 12/)).toBeInTheDocument();
   });
 
@@ -92,11 +92,46 @@ describe('ElterngeldOptimizer', () => {
     fireEvent.click(scope.getByRole('button', { name: /Married/i }));
     fireEvent.change(scope.getByLabelText(/Partner income.*leave yr/i), { target: { value: '55000' } });
 
-    const table = within(scope.getByRole('table'));
+    // The first table is the scenario comparison; the second is the filing advice.
+    const table = within(scope.getAllByRole('table')[0]);
     const row = table.getByText(/Progressionsvorbehalt \(§ 32b EStG\)/).closest('tr');
     expect(row).not.toBeNull();
     // Both option columns now carry a non-zero cost.
     expect(row?.textContent).toMatch(/-\s?\d/);
+  });
+
+  it('answers the joint-or-separate question', () => {
+    const scope = renderTool();
+
+    fireEvent.click(scope.getByRole('button', { name: /Married/i }));
+    fireEvent.change(scope.getByLabelText(/Partner income.*leave yr/i), { target: { value: '50000' } });
+    fireEvent.change(scope.getByLabelText(/Children for Kindergeld/i), { target: { value: '2' } });
+
+    // A 50k-versus-nothing gap makes Splitting worth more than the progression it costs.
+    expect(scope.getByText(/File together \(Zusammenveranlagung\)/)).toBeInTheDocument();
+    expect(scope.getByText(/It saves .* of leave-year tax/)).toBeInTheDocument();
+  });
+
+  it('adds Mutterschaftsgeld once the Krankengeld entitlement is elected', () => {
+    const scope = renderTool();
+    expect(scope.queryByText(/Mutterschaftsgeld \(14 wks\)/)).not.toBeInTheDocument();
+
+    fireEvent.click(scope.getByLabelText(/Krankengeld entitlement elected/i));
+
+    expect(scope.getByText(/Mutterschaftsgeld \(14 wks\)/)).toBeInTheDocument();
+    expect(scope.getByText(/Elterngeld credited away \(§ 3 BEEG\)/)).toBeInTheDocument();
+    expect(scope.getByText(/4 · Mutterschaftsgeld and the § 3 BEEG credit/)).toBeInTheDocument();
+  });
+
+  it('widens the case for the higher profit when Mutterschaftsgeld is in play', () => {
+    const scope = renderTool();
+    const before = verdictAmount(scope);
+
+    fireEvent.click(scope.getByLabelText(/Krankengeld entitlement elected/i));
+    const after = verdictAmount(scope);
+
+    expect(after).not.toBe(before);
+    expect(after).toContain('+');
   });
 
   it('warns when the income limit removes the entitlement', () => {

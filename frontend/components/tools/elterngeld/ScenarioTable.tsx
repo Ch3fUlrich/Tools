@@ -37,11 +37,23 @@ export default function ScenarioTable({ low, high }: Props) {
     { kind: 'section', label: 'Parental leave' },
     { kind: 'value', label: 'Basiselterngeld per month', low: low.amount.basisMonthly, high: high.amount.basisMonthly, format: 'eur' },
     { kind: 'value', label: 'ElterngeldPlus per month', low: low.amount.plusMonthly, high: high.amount.plusMonthly, format: 'eur' },
-    { kind: 'value', label: 'Elterngeld received in total', low: low.amount.total, high: high.amount.total, format: 'eur' },
+    { kind: 'value', label: 'Elterngeld before crediting', low: low.amount.total, high: high.amount.total, format: 'eur' },
+  ];
+
+  if (low.maternity || high.maternity) {
+    rows.push(
+      { kind: 'value', label: 'Mutterschaftsgeld (14 wks)', low: low.maternity?.total ?? 0, high: high.maternity?.total ?? 0, format: 'eur' },
+      { kind: 'value', label: 'Elterngeld credited away (§ 3 BEEG)', low: -(low.maternity?.elterngeldCredited ?? 0), high: -(high.maternity?.elterngeldCredited ?? 0), format: 'eur' },
+      { kind: 'value', label: 'Extra health-insurance contributions', low: -(low.maternity?.extraContributionTotal ?? 0), high: -(high.maternity?.extraContributionTotal ?? 0), format: 'eur' },
+    );
+  }
+
+  rows.push(
+    { kind: 'value', label: 'Benefits received in total', low: low.benefitsTotal, high: high.benefitsTotal, format: 'eur' },
     { kind: 'value', label: 'Progressionsvorbehalt (§ 32b EStG)', low: -low.progressionCost, high: -high.progressionCost, format: 'eur' },
     { kind: 'value', label: 'Later relief on postponed write-offs', low: low.deferredDeductionValue, high: high.deferredDeductionValue, format: 'eur' },
     { kind: 'total', label: 'Net position across both years', low: low.netPosition, high: high.netPosition },
-  ];
+  );
 
   return (
     <div style={{ overflowX: 'auto' }}>

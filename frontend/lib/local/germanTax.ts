@@ -51,6 +51,10 @@ export interface TaxTariff {
   readonly pvEmployeeRate: number;
   /** Employee share of statutory pension insurance (half of 18.6 %). */
   readonly rvEmployeeRate: number;
+  /** Full Kinderfreibetrag per child for both parents together (§ 32 Abs. 6 EStG), incl. BEA. */
+  readonly kinderfreibetragFull: number;
+  /** Kindergeld per child per month (§ 66 EStG). */
+  readonly kindergeldMonthly: number;
 }
 
 /** § 32a Abs. 1 EStG in the version applicable to Veranlagungszeitraum 2025. */
@@ -79,6 +83,9 @@ export const TARIFF_2025: TaxTariff = {
   pvEmployeeRate: 0.018,
   // 18.6 % / 2
   rvEmployeeRate: 0.093,
+  // 6.672 EUR Kinderfreibetrag + 2.928 EUR BEA-Freibetrag
+  kinderfreibetragFull: 9_600,
+  kindergeldMonthly: 255,
 };
 
 /** § 32a Abs. 1 EStG in the version applicable to Veranlagungszeitraum 2026 and later. */
@@ -105,6 +112,8 @@ export const TARIFF_2026: TaxTariff = {
   kvEmployeeRate: 0.0875,
   pvEmployeeRate: 0.018,
   rvEmployeeRate: 0.093,
+  kinderfreibetragFull: 9_756,
+  kindergeldMonthly: 259,
 };
 
 export const TARIFFS: Record<TaxYear, TaxTariff> = {
@@ -186,6 +195,10 @@ export interface TaxBreakdown {
   solidaritaetszuschlag: number;
   kirchensteuer: number;
   total: number;
+  /** Kinderfreibetrag actually deducted — 0 when Kindergeld was the better option. */
+  kinderfreibetragUsed: number;
+  /** Kindergeld the household receives for these children over the year. */
+  kindergeld: number;
 }
 
 export interface TaxOptions {
@@ -193,39 +206,85 @@ export interface TaxOptions {
   filing: FilingStatus;
   churchTaxPercent: ChurchTaxPercent;
   /**
-   * Tax-free income subject to Progressionsvorbehalt (§ 32b EStG) — e.g. Elterngeld,
-   * Mutterschaftsgeld, Krankengeld. Raises the rate applied to `zvE` without being
-   * taxed itself.
+   * Tax-free income subject to Progressionsvorbehalt (§ 32b EStG) — e.g. Elterngeld
+   * (Abs. 1 Nr. 1 Buchst. j) or Mutterschaftsgeld (Buchst. c). Raises the rate applied
+   * to `zvE` without being taxed itself.
    */
   progressionIncome?: number;
+  /** Number of children eligible for Kinderfreibetrag / Kindergeld. */
+  children?: number;
+  /**
+   * Share of the full Kinderfreibetrag this assessment gets: 1 for a joint assessment
+   * (both parents), 0.5 for one parent under Einzelveranlagung (§ 32 Abs. 6 EStG).
+   */
+  childAllowanceShare?: number;
 }
 
-/**
- * Full tax bill on a taxable income, optionally under Progressionsvorbehalt.
- *
- * § 32b Abs. 2 EStG: the special rate is the average rate that *would* apply to
- * (zvE + tax-free benefits); that rate is then applied to zvE alone.
- */
-export function calculateTax(zvE: number, options: TaxOptions): TaxBreakdown {
-  const { tariff, filing, churchTaxPercent, progressionIncome = 0 } = options;
-  const base = Math.max(0, zvE);
-
-  let einkommensteuer: number;
-  let effectiveRate: number;
-
+/** Assessed income tax and the average rate it implies, under Progressionsvorbehalt. */
+function assess(base: number, tariff: TaxTariff, filing: FilingStatus, progressionIncome: number) {
   if (progressionIncome > 0 && base > 0) {
     const combined = base + progressionIncome;
     const taxOnCombined = incomeTax(combined, tariff, filing);
     // § 32b: the special rate is rounded to four decimal places before it is applied.
-    effectiveRate = Math.round((taxOnCombined / combined) * 10_000) / 10_000;
-    einkommensteuer = Math.floor(effectiveRate * base);
-  } else {
-    einkommensteuer = incomeTax(base, tariff, filing);
-    effectiveRate = base > 0 ? einkommensteuer / base : 0;
+    const rate = Math.round((taxOnCombined / combined) * 10_000) / 10_000;
+    return { tax: Math.floor(rate * base), rate };
+  }
+  const tax = incomeTax(base, tariff, filing);
+  return { tax, rate: base > 0 ? tax / base : 0 };
+}
+
+/**
+ * Full tax bill on a taxable income, optionally under Progressionsvorbehalt and
+ * with children.
+ *
+ * § 32b Abs. 2 EStG: the special rate is the average rate that *would* apply to
+ * (zvE + tax-free benefits); that rate is then applied to zvE alone.
+ *
+ * § 31 EStG Günstigerprüfung: the Kinderfreibetrag is only deducted when it beats
+ * the Kindergeld; if it is applied, the Kindergeld is added back to the tax.
+ * § 51a Abs. 2a EStG: Solidaritätszuschlag and Kirchensteuer are *always* computed
+ * on the tax after deducting the Kinderfreibeträge, whichever way that check falls.
+ */
+export function calculateTax(zvE: number, options: TaxOptions): TaxBreakdown {
+  const {
+    tariff,
+    filing,
+    churchTaxPercent,
+    progressionIncome = 0,
+    children = 0,
+    childAllowanceShare = 1,
+  } = options;
+  const base = Math.max(0, zvE);
+
+  const withoutAllowance = assess(base, tariff, filing, progressionIncome);
+
+  const kinderfreibetrag = Math.max(0, children) * tariff.kinderfreibetragFull * childAllowanceShare;
+  const kindergeld = Math.max(0, children) * tariff.kindergeldMonthly * 12 * childAllowanceShare;
+
+  let einkommensteuer = withoutAllowance.tax;
+  let effectiveRate = withoutAllowance.rate;
+  let kinderfreibetragUsed = 0;
+  // § 51a: the surcharge base ignores the Günstigerprüfung outcome.
+  let surchargeBase = withoutAllowance.tax;
+
+  if (kinderfreibetrag > 0) {
+    const withAllowance = assess(
+      Math.max(0, base - kinderfreibetrag),
+      tariff,
+      filing,
+      progressionIncome,
+    );
+    surchargeBase = withAllowance.tax;
+
+    if (withoutAllowance.tax - withAllowance.tax > kindergeld) {
+      einkommensteuer = withAllowance.tax + kindergeld; // Hinzurechnung, § 31 Satz 5 EStG
+      effectiveRate = withAllowance.rate;
+      kinderfreibetragUsed = kinderfreibetrag;
+    }
   }
 
-  const solidaritaetszuschlag = solidaritySurcharge(einkommensteuer, tariff, filing);
-  const kirchensteuer = churchTax(einkommensteuer, churchTaxPercent);
+  const solidaritaetszuschlag = solidaritySurcharge(surchargeBase, tariff, filing);
+  const kirchensteuer = churchTax(surchargeBase, churchTaxPercent);
 
   return {
     zvE: base,
@@ -234,6 +293,8 @@ export function calculateTax(zvE: number, options: TaxOptions): TaxBreakdown {
     solidaritaetszuschlag,
     kirchensteuer,
     total: einkommensteuer + solidaritaetszuschlag + kirchensteuer,
+    kinderfreibetragUsed,
+    kindergeld,
   };
 }
 

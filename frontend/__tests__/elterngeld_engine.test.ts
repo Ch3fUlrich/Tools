@@ -12,10 +12,12 @@ import {
   BASIS_MAX,
   BASIS_MIN,
   BEMESSUNG_CAP,
+  compareFilingStatus,
   compareScenarios,
   elterngeldAmount,
   elterngeldNetto,
   findOptimum,
+  mutterschaftsgeld,
   replacementRate,
   socialContributionRate,
   sweepProfit,
@@ -50,6 +52,8 @@ const baseHousehold: HouseholdProfile = {
   deductionsBaseYear: 0,
   deductionsLeaveYear: 0,
   futureReliefRate: 0,
+  children: 0,
+  maternity: { enabled: false, weeksBefore: 6, weeksAfter: 8, extraContributionTotal: 0 },
 };
 
 describe('§ 32a EStG income tax tariff', () => {
@@ -352,6 +356,166 @@ describe('scenario comparison — the actual decision', () => {
     expect(empty.scenarios).toEqual([]);
     expect(empty.bestIndex).toBe(-1);
     expect(empty.advantage).toBe(0);
+  });
+});
+
+describe('Mutterschaftsgeld (§ 24i SGB V) and the § 3 BEEG credit', () => {
+  const withMaternity: HouseholdProfile = {
+    ...baseHousehold,
+    maternity: { enabled: true, weeksBefore: 6, weeksAfter: 8, extraContributionTotal: 540 },
+  };
+
+  it('pays 70 % of the contributory income per calendar day', () => {
+    const result = mutterschaftsgeld(
+      { ...baseProfile, annualProfit: 13_000 },
+      withMaternity.maternity,
+      674.44,
+      2026,
+    );
+    expect(result).not.toBeNull();
+    expect(result!.dailyRate).toBeCloseTo((0.7 * 13_000) / 360, 6);
+    // 14 weeks = 98 days — reproduces the figure quoted by the Krankenkasse.
+    expect(result!.total).toBeCloseTo(result!.dailyRate * 98, 6);
+    expect(result!.total).toBeCloseTo(2_477.2, 0);
+  });
+
+  it('keeps the pre-birth weeks in full but credits the post-birth weeks', () => {
+    const result = mutterschaftsgeld(baseProfile, withMaternity.maternity, 674.44, 2026)!;
+
+    expect(result.beforeBirth).toBeCloseTo(result.dailyRate * 42, 6);
+    expect(result.afterBirth).toBeCloseTo(result.dailyRate * 56, 6);
+    // Only the post-birth part is ever credited (§ 3 Abs. 1 BEEG: "ab dem Tag der Geburt").
+    expect(result.elterngeldCredited).toBeLessThanOrEqual(result.afterBirth);
+    expect(result.elterngeldCredited).toBeGreaterThan(0);
+  });
+
+  it('never credits more Elterngeld than those months would have paid', () => {
+    // A very high Elterngeld against a small Mutterschaftsgeld: the credit is capped
+    // by the Mutterschaftsgeld, not the other way round.
+    const result = mutterschaftsgeld(baseProfile, withMaternity.maternity, 5_000, 2026)!;
+    expect(result.elterngeldCredited).toBeCloseTo(result.afterBirth, 6);
+  });
+
+  it('caps the benefit at the Beitragsbemessungsgrenze', () => {
+    const huge = mutterschaftsgeld(
+      { ...baseProfile, annualProfit: 500_000 },
+      withMaternity.maternity,
+      1_800,
+      2026,
+    )!;
+    expect(huge.dailyRate).toBeCloseTo((0.7 * TARIFF_2026.bbgKrankenversicherung) / 360, 6);
+  });
+
+  it('returns null when the Krankengeld entitlement is not elected', () => {
+    expect(mutterschaftsgeld(baseProfile, baseHousehold.maternity, 674.44, 2026)).toBeNull();
+  });
+
+  it('is worth electing here, and worth more at the higher profit', () => {
+    const comparison = compareScenarios(
+      [
+        { label: 'low', annualProfit: 13_421.69 },
+        { label: 'high', annualProfit: 24_470.36 },
+      ],
+      baseProfile,
+      withMaternity,
+    );
+    const [low, high] = comparison.scenarios;
+
+    expect(low.maternity!.netGain).toBeGreaterThan(0);
+    expect(high.maternity!.netGain).toBeGreaterThan(low.maternity!.netGain);
+  });
+
+  it('raises the total benefits above the Elterngeld alone', () => {
+    const withoutMg = compareScenarios([{ label: 'a', annualProfit: 24_470.36 }], baseProfile, baseHousehold);
+    const withMg = compareScenarios([{ label: 'a', annualProfit: 24_470.36 }], baseProfile, withMaternity);
+
+    expect(withMg.scenarios[0].benefitsTotal).toBeGreaterThan(withoutMg.scenarios[0].benefitsTotal);
+    // The extra contributions are subtracted from the bottom line.
+    expect(withMg.scenarios[0].netPosition).toBeGreaterThan(
+      withoutMg.scenarios[0].netPosition + withMg.scenarios[0].maternity!.netGain - 1,
+    );
+  });
+});
+
+describe('children — Kindergeld vs Kinderfreibetrag (§ 31 EStG)', () => {
+  const options = { tariff: TARIFF_2026, filing: 'married' as const, churchTaxPercent: 0 as const };
+
+  it('keeps the Kindergeld at a modest income, where it beats the Freibetrag', () => {
+    const result = calculateTax(50_000, { ...options, children: 2 });
+    expect(result.kinderfreibetragUsed).toBe(0);
+    expect(result.kindergeld).toBeCloseTo(2 * 259 * 12, 6);
+    // Same income tax as without children — the relief comes as Kindergeld instead.
+    expect(result.einkommensteuer).toBe(calculateTax(50_000, options).einkommensteuer);
+  });
+
+  it('switches to the Kinderfreibetrag once it saves more than the Kindergeld', () => {
+    const result = calculateTax(250_000, { ...options, children: 2 });
+    expect(result.kinderfreibetragUsed).toBeCloseTo(2 * TARIFF_2026.kinderfreibetragFull, 6);
+    expect(result.einkommensteuer).toBeLessThan(calculateTax(250_000, options).einkommensteuer);
+  });
+
+  it('always uses the Kinderfreibetrag base for SolZ and Kirchensteuer (§ 51a EStG)', () => {
+    const withKids = calculateTax(120_000, { ...options, children: 2, churchTaxPercent: 9 });
+    const withoutKids = calculateTax(120_000, { ...options, churchTaxPercent: 9 });
+    // Even where Kindergeld wins for income tax, the surcharges drop.
+    expect(withKids.kirchensteuer).toBeLessThan(withoutKids.kirchensteuer);
+  });
+
+  it('splits the Kinderfreibetrag in half under a separate assessment', () => {
+    const joint = calculateTax(250_000, { ...options, children: 2, childAllowanceShare: 1 });
+    const half = calculateTax(250_000, { ...options, children: 2, childAllowanceShare: 0.5 });
+    expect(half.kinderfreibetragUsed).toBeCloseTo(joint.kinderfreibetragUsed / 2, 6);
+  });
+});
+
+describe('Zusammenveranlagung vs Einzelveranlagung', () => {
+  const params = {
+    applicantIncome: 0,
+    partnerIncome: 50_000,
+    progressionIncome: 18_000,
+    taxYear: 2026 as const,
+    churchTaxPercent: 0 as const,
+    children: 2,
+  };
+
+  it('prefers the joint assessment when the income gap is wide', () => {
+    const result = compareFilingStatus(params);
+    expect(result.better).toBe('married');
+    expect(result.joint.total).toBeLessThan(result.separateTotal);
+    expect(result.advantage).toBeGreaterThan(0);
+  });
+
+  it('confines the Progressionsvorbehalt to the recipient when filing separately', () => {
+    const result = compareFilingStatus(params);
+    const partnerAlone = compareFilingStatus({ ...params, progressionIncome: 0 });
+    // The partner's separate bill is untouched by the benefits.
+    expect(result.separatePartner.total).toBe(partnerAlone.separatePartner.total);
+    // The joint bill is not.
+    expect(result.joint.total).toBeGreaterThan(partnerAlone.joint.total);
+  });
+
+  it('turns towards the separate assessment as the incomes converge', () => {
+    const wideGap = compareFilingStatus(params);
+    const evenIncomes = compareFilingStatus({
+      ...params,
+      applicantIncome: 25_000,
+      partnerIncome: 25_000,
+    });
+    const gapEdge = wideGap.joint.total - wideGap.separateTotal;
+    const evenEdge = evenIncomes.joint.total - evenIncomes.separateTotal;
+    // Less negative (or positive) means the joint assessment lost ground.
+    expect(evenEdge).toBeGreaterThan(gapEdge);
+  });
+
+  it('is exposed on every scenario result', () => {
+    const result = compareScenarios([{ label: 'a', annualProfit: 24_470.36 }], baseProfile, {
+      ...baseHousehold,
+      filing: 'married',
+      children: 2,
+      partnerIncomeBaseYear: 50_000,
+      partnerIncomeLeaveYear: 50_000,
+    });
+    expect(result.scenarios[0].filingComparison.better).toBe('married');
   });
 });
 

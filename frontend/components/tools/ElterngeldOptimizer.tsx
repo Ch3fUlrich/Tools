@@ -16,6 +16,7 @@ import {
   type ProfitDeltaKind,
 } from '@/lib/local/elterngeld';
 import type { ChurchTaxPercent, FilingStatus, TaxYear } from '@/lib/local/germanTax';
+import FilingAdvice from './elterngeld/FilingAdvice';
 import MethodNotes from './elterngeld/MethodNotes';
 import ScenarioTable from './elterngeld/ScenarioTable';
 import TradeoffChart from './elterngeld/TradeoffChart';
@@ -137,6 +138,12 @@ export const ElterngeldOptimizer: React.FC = () => {
   const [pflichtAV, setPflichtAV] = useState(false);
   const [childless, setChildless] = useState(false);
 
+  const [children, setChildren] = useState('0');
+  const [maternityEnabled, setMaternityEnabled] = useState(false);
+  const [weeksBefore, setWeeksBefore] = useState('6');
+  const [weeksAfter, setWeeksAfter] = useState('8');
+  const [extraContribution, setExtraContribution] = useState('540');
+
   const [basisMonths, setBasisMonths] = useState('12');
   const [plusMonths, setPlusMonths] = useState('0');
   const [duringLeave, setDuringLeave] = useState('0');
@@ -192,6 +199,13 @@ export const ElterngeldOptimizer: React.FC = () => {
       deductionsBaseYear: 0,
       deductionsLeaveYear: 0,
       futureReliefRate: Math.min(1, Math.max(0, parseAmount(relief) / 100)),
+      children: Math.max(0, parseAmount(children)),
+      maternity: {
+        enabled: maternityEnabled,
+        weeksBefore: Math.max(0, parseAmount(weeksBefore)),
+        weeksAfter: Math.max(0, parseAmount(weeksAfter)),
+        extraContributionTotal: Math.max(0, parseAmount(extraContribution)),
+      },
     };
 
     const lowProfit = Math.min(a, b);
@@ -244,6 +258,11 @@ export const ElterngeldOptimizer: React.FC = () => {
     duringLeave,
     multiples,
     siblingBonus,
+    children,
+    maternityEnabled,
+    weeksBefore,
+    weeksAfter,
+    extraContribution,
   ]);
 
   const warnings: string[] = [];
@@ -416,6 +435,38 @@ export const ElterngeldOptimizer: React.FC = () => {
               ariaLabel="Sibling bonus applies"
             />
           </CardSection>
+
+          <CardSection title="Children & Mutterschaftsgeld" gradient="from-fuchsia-500 to-violet-600" delay="250ms">
+            <Field id="eg-children" label="Children" hint="for Kindergeld / Kinderfreibetrag">
+              <NumberInput id="eg-children" value={children} onChange={setChildren} step={1} min={0} />
+            </Field>
+            <ModernCheckbox
+              id="eg-maternity"
+              checked={maternityEnabled}
+              onChange={setMaternityEnabled}
+              label={<span className="text-sm">Krankengeld elected (§ 44 Abs. 2 SGB V)</span>}
+              ariaLabel="Krankengeld entitlement elected, which unlocks Mutterschaftsgeld"
+            />
+            <p className="text-sm mt-2 mb-3" style={{ color: 'var(--muted)' }}>
+              Self-employed people only receive Mutterschaftsgeld after electing the Krankengeld
+              entitlement, which raises the contribution rate by 0.6 pp and binds for years.
+            </p>
+            {maternityEnabled && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field id="eg-weeks-before" label="Weeks before birth" hint="§ 3 (1) MuSchG">
+                    <NumberInput id="eg-weeks-before" value={weeksBefore} onChange={setWeeksBefore} step={1} min={0} unit="wk" />
+                  </Field>
+                  <Field id="eg-weeks-after" label="Weeks after birth" hint="8, or 12 for multiples">
+                    <NumberInput id="eg-weeks-after" value={weeksAfter} onChange={setWeeksAfter} step={1} min={0} unit="wk" />
+                  </Field>
+                </div>
+                <Field id="eg-extra-contribution" label="Extra contributions" hint="total over the binding period">
+                  <NumberInput id="eg-extra-contribution" value={extraContribution} onChange={setExtraContribution} step={10} min={0} unit="€" />
+                </Field>
+              </>
+            )}
+          </CardSection>
         </div>
 
         {/* ── Results ── */}
@@ -476,6 +527,13 @@ export const ElterngeldOptimizer: React.FC = () => {
                     ))}
                   </ul>
                 )}
+              </CardSection>
+
+              <CardSection title="File together or separately?" gradient="from-fuchsia-500 to-violet-600" delay="120ms">
+                <FilingAdvice
+                  comparison={model.high.filingComparison}
+                  benefitsTotal={model.high.benefitsTotal}
+                />
               </CardSection>
 
               <CardSection title="Where the optimum sits" gradient="from-orange-400 to-rose-500" delay="150ms">

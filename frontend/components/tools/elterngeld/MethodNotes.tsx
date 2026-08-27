@@ -126,7 +126,33 @@ higher profit:  ${percent(high.amount.rate)} × ${eur2(high.amount.cappedNetto)}
                 → ${eur2(high.amount.basisMonthly)} per month × ${basisMonths} = ${eur2(high.amount.totalBasis)}`}</Equation>
       </Step>
 
-      <Step title="4 · The cost side — and why it is smaller than it looks">
+      {high.maternity && (
+        <Step title="4 · Mutterschaftsgeld and the § 3 BEEG credit">
+          <Equation>{`daily rate = 70 % × contributory income / 360
+           = 70 % × ${eur2(Math.min(high.annualProfit, 69_750))} / 360 = ${eur2(high.maternity.dailyRate)}
+
+before birth (${high.maternity.daysBefore} days) = ${eur2(high.maternity.beforeBirth)}   ← kept in full
+after birth  (${high.maternity.daysAfter} days) = ${eur2(high.maternity.afterBirth)}   ← credited against Elterngeld
+
+Elterngeld credited away = ${eur2(high.maternity.elterngeldCredited)}   (§ 3 Abs. 1 BEEG)
+extra contributions      = ${eur2(high.maternity.extraContributionTotal)}
+net gain from electing   = ${eur2(high.maternity.netGain)}`}</Equation>
+          <Note>
+            The asymmetry is what makes this worth doing. § 3 Abs. 1 BEEG only credits maternity benefits
+            &ldquo;ab dem Tag der Geburt&rdquo;, so the six weeks paid <strong style={{ color: 'var(--fg)' }}>before</strong>{' '}
+            the birth fall outside every Lebensmonat and are kept on top of the Elterngeld. The weeks after the birth
+            merely replace Elterngeld euro for euro — and because the credit can only push Elterngeld down to zero,
+            never below, anything above it is kept too. There is no 300 € exemption here: § 3 Abs. 2 BEEG excludes it
+            where Mutterschaftsleistungen are credited.
+          </Note>
+          <Note>
+            Since the benefit scales with the declared profit, electing Krankengeld makes the case for the higher profit
+            stronger, not weaker.
+          </Note>
+        </Step>
+      )}
+
+      <Step title="5 · The cost side — and why it is smaller than it looks">
         <Equation>{`extra income tax = tax(zvE_higher) − tax(zvE_lower)
                  = ${eur2(high.baseYearTax.total)} − ${eur2(low.baseYearTax.total)} = ${eur2(extraTax)}
 
@@ -152,21 +178,25 @@ ${
         </Note>
       </Step>
 
-      <Step title="5 · Progressionsvorbehalt (§ 32b EStG)">
-        <Equation>{`special rate = tax(zvE + Elterngeld) / (zvE + Elterngeld)
-tax due      = special rate × zvE        ← the Elterngeld itself stays tax-free
+      <Step title="6 · Progressionsvorbehalt (§ 32b EStG)">
+        <Equation>{`special rate = tax(zvE + benefits) / (zvE + benefits)
+tax due      = special rate × zvE        ← the benefits themselves stay tax-free
+
+benefits = Elterngeld (Abs. 1 Nr. 1 Buchst. j) + Mutterschaftsgeld (Buchst. c)
+         = ${eur2(high.benefitsTotal)}
 
 higher profit: ${eur2(high.leaveYearTaxWithoutProgression.total)} → ${eur2(high.leaveYearTax.total)}  (costs ${eur2(high.progressionCost)})`}</Equation>
         <Note>
-          Elterngeld is tax-free, but it lifts the rate applied to every other euro the household earns in the leave
-          year. With no other income in that year it costs nothing — which is exactly why a partner&rsquo;s salary
-          matters here.
+          Both Elterngeld and Mutterschaftsgeld are tax-free, but they lift the rate applied to every other euro the
+          household earns in the leave year. With no other income in that year it costs nothing — which is exactly why a
+          partner&rsquo;s salary matters here, and why the joint-or-separate question above is worth checking.
         </Note>
       </Step>
 
-      <Step title="6 · The bottom line">
+      <Step title="7 · The bottom line">
         <Equation>{`net position = base-year income after tax
-             + Elterngeld received
+             + Elterngeld after the § 3 BEEG credit + Mutterschaftsgeld
+             − extra health-insurance contributions
              − leave-year tax (incl. Progressionsvorbehalt)
              + later relief on postponed write-offs
 
@@ -174,7 +204,8 @@ lower profit:  ${eur2(low.netPosition)}
 higher profit: ${eur2(high.netPosition)}
 difference:    ${eur2(high.netPosition - low.netPosition)}`}</Equation>
         <Note>
-          The higher profit buys {eur2(extraElterngeld)} of extra Elterngeld for {eur2(extraTax)} of extra income tax.
+          The higher profit buys {eur2(extraElterngeld)} of extra Elterngeld for {eur2(extraTax)} of extra income tax
+          {high.maternity ? `, plus ${eur2(high.maternity.netGain - (low.maternity?.netGain ?? 0))} more from the Mutterschaftsgeld` : ''}.
         </Note>
       </Step>
     </div>

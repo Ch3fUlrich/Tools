@@ -58,6 +58,17 @@ export const MULTIPLE_BIRTH_SUPPLEMENT = 300;
 /** § 1 Abs. 8 BEEG — births from 1 April 2025, couples and single parents alike. */
 export const INCOME_LIMIT_ZVE = 175_000;
 
+/** § 24i SGB V / § 47 SGB V — Mutterschaftsgeld equals the Krankengeld rate. */
+export const MUTTERSCHAFTSGELD_RATE = 0.7;
+/** Social-insurance convention: a year counts as 360 days for the Regelentgelt. */
+export const SV_DAYS_PER_YEAR = 360;
+/** § 3 Abs. 1 MuSchG — protection period before the expected date of birth. */
+export const MUTTERSCHUTZ_WEEKS_BEFORE = 6;
+/** § 3 Abs. 2 MuSchG — 8 weeks normally, 12 for multiple/premature births. */
+export const MUTTERSCHUTZ_WEEKS_AFTER = 8;
+/** Average length of a Lebensmonat (365.25 / 12). */
+export const DAYS_PER_LEBENSMONAT = 365.25 / 12;
+
 /** § 9a Satz 1 Nr. 1 Buchst. a EStG — only applied when there is employment income. */
 export const ARBEITNEHMER_PAUSCHBETRAG = 1_230;
 /** § 39b Abs. 2 Satz 5 Nr. 3 Buchst. e EStG — Mindestvorsorgepauschale ceiling. */
@@ -118,11 +129,29 @@ export interface ElterngeldProfile {
  */
 export type ProfitDeltaKind = 'timing' | 'cash';
 
+/**
+ * Mutterschaftsgeld from the statutory health insurer. A self-employed person only
+ * qualifies after electing the Krankengeld entitlement under § 44 Abs. 2 SGB V,
+ * which raises the contribution rate by 0.6 percentage points and binds for years —
+ * hence `extraContributionTotal`.
+ */
+export interface MaternityProfile {
+  /** Whether the Krankengeld entitlement (and thus Mutterschaftsgeld) is elected. */
+  enabled: boolean;
+  weeksBefore: number;
+  weeksAfter: number;
+  /** Total extra health-insurance contributions over the binding period of the election. */
+  extraContributionTotal: number;
+}
+
 export interface HouseholdProfile {
   filing: FilingStatus;
   churchTaxPercent: ChurchTaxPercent;
   /** Whether the profit difference between scenarios is cash or merely timing. */
   profitDeltaKind: ProfitDeltaKind;
+  /** Children eligible for Kindergeld / Kinderfreibetrag, excluding none. */
+  children: number;
+  maternity: MaternityProfile;
   /** Tax year in which the parental leave (and the Elterngeld) falls. */
   leaveYear: TaxYear;
   /** Partner's taxable income in the assessment year, 0 when single. */
@@ -330,6 +359,160 @@ export function elterngeldAmount(profile: ElterngeldProfile, netto: number): Elt
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Mutterschaftsgeld (§ 24i SGB V) and its credit against Elterngeld (§ 3 BEEG)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface MaternityResult {
+  /** Daily Mutterschaftsgeld: 70 % of the contributory income per calendar day. */
+  dailyRate: number;
+  daysBefore: number;
+  daysAfter: number;
+  /** Paid before the birth — outside any Lebensmonat, so *not* credited. */
+  beforeBirth: number;
+  /** Paid after the birth — credited against the Elterngeld of those Lebensmonate. */
+  afterBirth: number;
+  total: number;
+  /** Lebensmonate the post-birth payment covers. */
+  monthsOffset: number;
+  /** Elterngeld lost to the § 3 Abs. 1 BEEG credit. */
+  elterngeldCredited: number;
+  extraContributionTotal: number;
+  /** Cash gained by electing the entitlement, after the credit and the contributions. */
+  netGain: number;
+}
+
+/**
+ * Mutterschaftsgeld and what it actually adds.
+ *
+ * The crucial asymmetry: § 3 Abs. 1 BEEG credits other maternity benefits against
+ * Elterngeld only "ab dem Tag der Geburt". The six weeks paid *before* the birth fall
+ * outside every Lebensmonat and are therefore kept in full on top of the Elterngeld,
+ * while the weeks after the birth merely replace Elterngeld euro for euro (Elterngeld
+ * is reduced to zero at worst, never below).
+ *
+ * There is no 300 € exemption here — § 3 Abs. 2 BEEG excludes it where income under
+ * Absatz 1 Nr. 1 to 3 is credited, and Mutterschaftsleistungen are Nr. 1.
+ */
+export function mutterschaftsgeld(
+  profile: ElterngeldProfile,
+  maternity: MaternityProfile,
+  basisMonthly: number,
+  taxYear: TaxYear,
+): MaternityResult | null {
+  if (!maternity.enabled) return null;
+
+  const tariff = getTariff(taxYear);
+  // Contributions — and therefore the benefit — stop at the Beitragsbemessungsgrenze.
+  const contributoryIncome = Math.min(
+    Math.max(0, profile.annualProfit) + Math.max(0, profile.annualEmploymentGross),
+    tariff.bbgKrankenversicherung,
+  );
+  const dailyRate = (MUTTERSCHAFTSGELD_RATE * contributoryIncome) / SV_DAYS_PER_YEAR;
+
+  const daysBefore = Math.max(0, maternity.weeksBefore) * 7;
+  const daysAfter = Math.max(0, maternity.weeksAfter) * 7;
+  const beforeBirth = dailyRate * daysBefore;
+  const afterBirth = dailyRate * daysAfter;
+
+  const monthsOffset = daysAfter / DAYS_PER_LEBENSMONAT;
+  // Only months actually drawn as Basiselterngeld can be credited against.
+  const creditableMonths = Math.min(monthsOffset, Math.max(0, profile.basisMonths));
+  const elterngeldCredited = Math.min(basisMonthly * creditableMonths, afterBirth);
+
+  const extraContributionTotal = Math.max(0, maternity.extraContributionTotal);
+
+  return {
+    dailyRate,
+    daysBefore,
+    daysAfter,
+    beforeBirth,
+    afterBirth,
+    total: beforeBirth + afterBirth,
+    monthsOffset,
+    elterngeldCredited,
+    extraContributionTotal,
+    netGain: beforeBirth + afterBirth - elterngeldCredited - extraContributionTotal,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Zusammenveranlagung vs. Einzelveranlagung
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface FilingComparison {
+  /** Joint assessment: Splitting applies, but the benefits raise the rate on both incomes. */
+  joint: TaxBreakdown;
+  /** Separate assessment: the benefits only raise the rate on the recipient's own income. */
+  separateApplicant: TaxBreakdown;
+  separatePartner: TaxBreakdown;
+  separateTotal: number;
+  better: FilingStatus;
+  /** How much the better option saves. */
+  advantage: number;
+}
+
+/**
+ * Which assessment type costs less in the leave year.
+ *
+ * Two effects pull in opposite directions. Splitting favours the joint assessment
+ * whenever the two incomes differ a lot. Progressionsvorbehalt favours the separate
+ * one, because the benefits then only lift the rate on the recipient's own — usually
+ * small — income instead of on the couple's combined income. Which wins is not
+ * predictable by inspection; it has to be computed both ways.
+ */
+export function compareFilingStatus(params: {
+  applicantIncome: number;
+  partnerIncome: number;
+  progressionIncome: number;
+  taxYear: TaxYear;
+  churchTaxPercent: ChurchTaxPercent;
+  children: number;
+}): FilingComparison {
+  const { applicantIncome, partnerIncome, progressionIncome, taxYear, churchTaxPercent, children } =
+    params;
+  const tariff = getTariff(taxYear);
+
+  const joint = calculateTax(Math.max(0, applicantIncome) + Math.max(0, partnerIncome), {
+    tariff,
+    filing: 'married',
+    churchTaxPercent,
+    progressionIncome,
+    children,
+    childAllowanceShare: 1,
+  });
+
+  // Under Einzelveranlagung each parent gets half the Kinderfreibetrag (§ 32 Abs. 6 EStG).
+  const separateApplicant = calculateTax(Math.max(0, applicantIncome), {
+    tariff,
+    filing: 'single',
+    churchTaxPercent,
+    progressionIncome,
+    children,
+    childAllowanceShare: 0.5,
+  });
+  const separatePartner = calculateTax(Math.max(0, partnerIncome), {
+    tariff,
+    filing: 'single',
+    churchTaxPercent,
+    progressionIncome: 0,
+    children,
+    childAllowanceShare: 0.5,
+  });
+
+  const separateTotal = separateApplicant.total + separatePartner.total;
+  const better: FilingStatus = joint.total <= separateTotal ? 'married' : 'single';
+
+  return {
+    joint,
+    separateApplicant,
+    separatePartner,
+    separateTotal,
+    better,
+    advantage: Math.abs(joint.total - separateTotal),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Scenario evaluation
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -354,10 +537,19 @@ export interface ScenarioResult {
   exceedsIncomeLimit: boolean;
   /** Household cash after tax in the assessment year. */
   baseYearNetIncome: number;
+  /** Mutterschaftsgeld, or null when the Krankengeld entitlement is not elected. */
+  maternity: MaternityResult | null;
+  /** Elterngeld actually paid out, after the § 3 BEEG credit. */
+  elterngeldAfterCredit: number;
+  /** Elterngeld after credit + Mutterschaftsgeld — the § 32b progression base. */
+  benefitsTotal: number;
+  /** Joint vs. separate assessment in the leave year. */
+  filingComparison: FilingComparison;
   /**
    * Bottom line across both years:
    *   base-year income after tax
-   * + Elterngeld received
+   * + Elterngeld received (after the § 3 BEEG credit) + Mutterschaftsgeld
+   * − extra health-insurance contributions for the Krankengeld election
    * − leave-year tax
    * + later relief for the postponed deductions
    */
@@ -392,6 +584,7 @@ export function evaluateScenario(
     tariff: baseTariff,
     filing: household.filing,
     churchTaxPercent: household.churchTaxPercent,
+    children: household.children,
   });
 
   // § 1 Abs. 8 BEEG — above the limit there is no entitlement at all.
@@ -407,18 +600,37 @@ export function evaluateScenario(
       household.partnerIncomeLeaveYear -
       household.deductionsLeaveYear,
   );
+  // ── Mutterschaftsgeld and its § 3 BEEG credit against the Elterngeld ──
+  const maternity = exceedsIncomeLimit
+    ? mutterschaftsgeld(profile, household.maternity, 0, profile.baseYear)
+    : mutterschaftsgeld(profile, household.maternity, amount.basisMonthly, profile.baseYear);
+  const elterngeldAfterCredit = Math.max(0, amount.total - (maternity?.elterngeldCredited ?? 0));
+  const benefitsTotal = elterngeldAfterCredit + (maternity?.total ?? 0);
+
   const leaveTariff = getTariff(household.leaveYear);
   const leaveTaxOptions = {
     tariff: leaveTariff,
     filing: household.filing,
     churchTaxPercent: household.churchTaxPercent,
+    children: household.children,
   };
   const leaveYearTaxWithoutProgression = calculateTax(leaveYearZvE, leaveTaxOptions);
+  // Both Elterngeld (§ 32b Abs. 1 Nr. 1 Buchst. j) and Mutterschaftsgeld (Buchst. c)
+  // are tax-free but lift the rate on everything else.
   const leaveYearTax = calculateTax(leaveYearZvE, {
     ...leaveTaxOptions,
-    progressionIncome: amount.total,
+    progressionIncome: benefitsTotal,
   });
   const progressionCost = leaveYearTax.total - leaveYearTaxWithoutProgression.total;
+
+  const filingComparison = compareFilingStatus({
+    applicantIncome: Math.max(0, household.applicantIncomeLeaveYear - household.deductionsLeaveYear),
+    partnerIncome: household.partnerIncomeLeaveYear,
+    progressionIncome: benefitsTotal,
+    taxYear: household.leaveYear,
+    churchTaxPercent: household.churchTaxPercent,
+    children: household.children,
+  });
 
   // Only a timing election postpones a deduction into a later year; genuinely
   // earning more money does not create anything to claim later.
@@ -448,8 +660,16 @@ export function evaluateScenario(
     deferredDeductionValue,
     exceedsIncomeLimit,
     baseYearNetIncome,
+    maternity,
+    elterngeldAfterCredit,
+    benefitsTotal,
+    filingComparison,
     netPosition:
-      baseYearNetIncome + amount.total - leaveYearTax.total + deferredDeductionValue,
+      baseYearNetIncome +
+      benefitsTotal -
+      (maternity?.extraContributionTotal ?? 0) -
+      leaveYearTax.total +
+      deferredDeductionValue,
   };
 }
 
@@ -503,7 +723,8 @@ export function compareScenarios(
 
 export interface SweepPoint {
   annualProfit: number;
-  elterngeldTotal: number;
+  /** Elterngeld after the § 3 BEEG credit, plus Mutterschaftsgeld. */
+  benefitsTotal: number;
   baseYearTax: number;
   progressionCost: number;
   netPosition: number;
@@ -532,7 +753,7 @@ export function sweepProfit(
     const result = evaluateScenario('sweep', { ...profile, annualProfit }, household, lo);
     points.push({
       annualProfit,
-      elterngeldTotal: result.amount.total,
+      benefitsTotal: result.benefitsTotal,
       baseYearTax: result.baseYearTax.total,
       progressionCost: result.progressionCost,
       netPosition: result.netPosition,
