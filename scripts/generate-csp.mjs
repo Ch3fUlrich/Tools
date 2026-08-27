@@ -24,7 +24,7 @@
 
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -51,9 +51,40 @@ function parseArgs(argv) {
   return args;
 }
 
+/**
+ * Next's env-file precedence for a production build. A real environment variable
+ * still wins over all of them.
+ *
+ * This has to be read here as well: Next inlines NEXT_PUBLIC_* from these files at
+ * build time, but a plain node script sees only process.env. Missing them silently
+ * produced a `connect-src` that blocked the app's own API calls.
+ */
+const ENV_FILES = ['.env.production.local', '.env.local', '.env.production', '.env'];
+
+function readEnvFiles(dir, key) {
+  for (const name of ENV_FILES) {
+    const file = path.join(dir, name);
+    if (!existsSync(file)) continue;
+
+    for (const line of readFileSync(file, 'utf8').split(/\r?\n/)) {
+      const match = line.match(/^\s*(?:export\s+)?([\w.-]+)\s*=\s*(.*)$/);
+      if (!match || match[1] !== key) continue;
+
+      let value = match[2].trim();
+      const quoted =
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"));
+      value = quoted ? value.slice(1, -1) : value.split('#')[0].trim();
+      if (value) return value;
+    }
+  }
+  return null;
+}
+
 /** Origin of the configured backend, or null when it is served same-origin. */
 function apiOrigin() {
-  const raw = process.env.NEXT_PUBLIC_API_URL;
+  const raw =
+    process.env.NEXT_PUBLIC_API_URL || readEnvFiles(path.join(REPO_ROOT, 'frontend'), 'NEXT_PUBLIC_API_URL');
   if (!raw) return null;
   try {
     return new URL(raw).origin;
@@ -66,6 +97,9 @@ function apiOrigin() {
 function sha256(source) {
   return `'sha256-${createHash('sha256').update(source, 'utf8').digest('base64')}'`;
 }
+
+/** buildPolicy runs once per page; the http warning only needs saying once. */
+let warnedPlainHttp = false;
 
 /**
  * Builds the policy. `frameAncestors` is only meaningful as a real header —
@@ -88,9 +122,23 @@ function buildPolicy(hashes, { frameAncestors }) {
     `object-src 'none'`,
     `base-uri 'self'`,
     `form-action 'self'`,
-    `upgrade-insecure-requests`,
   ];
-  if (frameAncestors) directives.splice(directives.length - 1, 0, `frame-ancestors 'none'`);
+  if (frameAncestors) directives.push(`frame-ancestors 'none'`);
+
+  // upgrade-insecure-requests would rewrite an explicitly configured http:// API
+  // origin to https:// and break every call to it. Emit it only when nothing in the
+  // policy actually depends on plain http — which is the case for any real deployment.
+  if (origin && origin.startsWith('http://')) {
+    if (!warnedPlainHttp) {
+      warnedPlainHttp = true;
+      console.warn(
+        `[csp] NEXT_PUBLIC_API_URL is plain http (${origin}); omitting upgrade-insecure-requests. Use https in production.`,
+      );
+    }
+  } else {
+    directives.push('upgrade-insecure-requests');
+  }
+
   return `${directives.join('; ')};`;
 }
 
