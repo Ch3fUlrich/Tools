@@ -899,9 +899,11 @@ mod tests {
     #[test]
     fn ethanol_is_eliminated_at_a_near_constant_rate() {
         let now = Utc::now();
-        // Two standard drinks, then measure the decline once absorption is done.
+        // Four standard drinks, sampled once absorption is over and while the amount is
+        // still well above Km — that is where the rate is genuinely near-constant. Two
+        // drinks would be all but cleared by hour three and the rate would tail off.
         let request = ToleranceRequest {
-            intakes: vec![intake("alcohol", now, 28_000.0)],
+            intakes: vec![intake("alcohol", now, 56_000.0)],
             time_points: vec![
                 now + Duration::hours(2),
                 now + Duration::hours(3),
