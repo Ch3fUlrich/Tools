@@ -14,6 +14,30 @@ use sqlx::PgPool;
 use sqlx::Row;
 use std::sync::Arc;
 
+/// Whether the session cookie may travel over plain HTTP.
+///
+/// This used to drop `Secure` whenever ALLOWED_ORIGINS merely *contained* "localhost" —
+/// so a deployment that allows both its production domain and a local dev origin shipped
+/// session cookies unprotected in production. It now only relaxes when every configured
+/// origin is local, and defaults to Secure when nothing is configured at all.
+fn secure_cookie_flag() -> &'static str {
+    match std::env::var("ALLOWED_ORIGINS") {
+        Ok(origins) if !origins.trim().is_empty() => {
+            let all_local = origins.split(',').map(str::trim).filter(|o| !o.is_empty()).all(|o| {
+                o.starts_with("http://localhost")
+                    || o.starts_with("http://127.0.0.1")
+                    || o.starts_with("http://[::1]")
+            });
+            if all_local {
+                ""
+            } else {
+                "; Secure"
+            }
+        }
+        _ => "; Secure",
+    }
+}
+
 #[derive(Deserialize)]
 pub struct RegisterRequest {
     pub email: String,
@@ -25,6 +49,12 @@ pub async fn register(
     Extension(pool): Extension<Arc<PgPool>>,
     Json(payload): Json<RegisterRequest>,
 ) -> impl IntoResponse {
+    // Reject bad input with a reason. Previously every failure - malformed address, short
+    // password, duplicate email - came back as a blanket 500.
+    if let Err(invalid) = auth_tools::validate_credentials(&payload.email, &payload.password) {
+        return (StatusCode::BAD_REQUEST, AxumJson(json!({ "error": invalid.message() })));
+    }
+
     match auth_tools::register_user(
         &pool,
         &payload.email,
@@ -79,11 +109,19 @@ pub async fn login(
         .await;
 
     let Ok(Some(rec)) = row else {
+        // Spend the same CPU an existing account would, so a miss cannot be told from a
+        // hit by timing alone. Without this, login enumerates registered addresses.
+        auth_tools::verify_password_dummy(&payload.password).await;
         return unauthorized();
     };
 
     let pwd: Option<String> = rec.try_get("password_hash").ok();
-    let pwd = pwd.unwrap_or_default();
+    let Some(pwd) = pwd.filter(|p| !p.is_empty()) else {
+        // An account with no password hash (registered through OIDC) must not be a fast
+        // path either.
+        auth_tools::verify_password_dummy(&payload.password).await;
+        return unauthorized();
+    };
 
     if !auth_tools::verify_password(&pwd, &payload.password).await.unwrap_or(false) {
         return unauthorized();
@@ -117,12 +155,7 @@ pub async fn login(
         }
     };
 
-    // set cookie — only add Secure flag when not running on localhost
-    let secure_flag = match std::env::var("ALLOWED_ORIGINS") {
-        Ok(origins) if origins.contains("localhost") || origins.contains("127.0.0.1") => "",
-        _ => "; Secure",
-    };
-    let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax{secure_flag}");
+    let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax{}", secure_cookie_flag());
     let body =
         serde_json::to_string(&json!({"ok": true})).unwrap_or_else(|_| "{\"ok\":true}".to_string());
 
@@ -152,7 +185,13 @@ pub async fn logout(
         }
     }
     // clear cookie
-    let cookie = "sid=deleted; HttpOnly; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    // A clearing cookie only replaces the original when its attributes match. The session
+    // cookie is set with SameSite=Lax (and Secure off localhost), so this must say the same
+    // or the browser keeps the old one.
+    let cookie = format!(
+        "sid=deleted; HttpOnly; Path=/; SameSite=Lax{}; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+        secure_cookie_flag()
+    );
     Response::builder()
         .status(StatusCode::OK)
         .header(header::SET_COOKIE, cookie)
