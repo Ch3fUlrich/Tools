@@ -142,9 +142,11 @@ describe('local blood level calculation', () => {
 
   it('gives every substance a usable half-life and bioavailability', () => {
     for (const s of getSubstancesLocal()) {
-      // A non-positive half-life would make the decay term collapse to zero.
-      expect(s.halfLifeHours).toBeGreaterThan(0);
-      expect(s.halfLifeHours).toBeLessThan(100);
+      // Ethanol is the exception: saturating elimination has no half-life at all.
+      if (s.id !== 'alcohol') {
+        expect(s.halfLifeHours).toBeGreaterThan(0);
+        expect(s.halfLifeHours).toBeLessThan(100);
+      }
       expect(s.bioavailabilityPercent).toBeGreaterThan(0);
       expect(s.bioavailabilityPercent).toBeLessThanOrEqual(100);
       expect(s.commonDosageMg).toBeGreaterThan(0);
@@ -160,18 +162,118 @@ describe('local blood level calculation', () => {
     expect(byId.get('caffeine')!.halfLifeHours).toBeGreaterThan(byId.get('ibuprofen')!.halfLifeHours);
   });
 
-  it('applies bioavailability and half-life decay', () => {
+  it('models an absorption phase rather than an instant peak', () => {
+    const t0 = '2026-01-01T00:00:00.000Z';
+    const atTmax = '2026-01-01T00:45:00.000Z'; // caffeine oral Tmax = 45 min
+    const later = '2026-01-01T06:00:00.000Z';
+    const res = calculateToleranceLocal({
+      intakes: [{ substance: 'caffeine', time: t0, dosage_mg: 100 }],
+      time_points: [t0, atTmax, later],
+    });
+
+    expect(res.blood_levels).toHaveLength(3);
+    // Nothing is in the blood the instant a swallowed dose is taken.
+    expect(res.blood_levels[0].amount_mg).toBeCloseTo(0, 6);
+    // It peaks around the published Tmax, then declines.
+    expect(res.blood_levels[1].amount_mg).toBeGreaterThan(res.blood_levels[0].amount_mg);
+    expect(res.blood_levels[1].amount_mg).toBeGreaterThan(res.blood_levels[2].amount_mg);
+    // The peak can never exceed the bioavailable dose.
+    expect(res.blood_levels[1].amount_mg).toBeLessThan(99);
+  });
+
+  it('puts an intravenous dose straight into the blood', () => {
     const t0 = '2026-01-01T00:00:00.000Z';
     const oneHalfLifeLater = '2026-01-01T05:42:00.000Z'; // caffeine t1/2 = 5.7 h
     const res = calculateToleranceLocal({
-      intakes: [{ substance: 'caffeine', time: t0, dosage_mg: 100 }],
+      intakes: [{ substance: 'caffeine', time: t0, dosage_mg: 100, route: 'intravenous' }],
       time_points: [t0, oneHalfLifeLater],
     });
-    expect(res.blood_levels).toHaveLength(2);
-    // At t0: 100 mg * 99% bioavailability.
-    expect(res.blood_levels[0].amount_mg).toBeCloseTo(99, 6);
-    // One half-life later: half remains.
-    expect(res.blood_levels[1].amount_mg).toBeCloseTo(49.5, 6);
+
+    // No absorption phase and F = 100 %, so this is the old pure-decay behaviour.
+    expect(res.blood_levels[0].amount_mg).toBeCloseTo(100, 6);
+    expect(res.blood_levels[1].amount_mg).toBeCloseTo(50, 4);
+  });
+
+  it('lets food delay absorption without destroying the dose', () => {
+    const t0 = '2026-01-01T00:00:00.000Z';
+    const atOneHour = '2026-01-01T01:00:00.000Z';
+    const atSixHours = '2026-01-01T06:00:00.000Z';
+    const base = { substance: 'ibuprofen', time: t0, dosage_mg: 400 };
+
+    const fasted = calculateToleranceLocal({ intakes: [base], time_points: [atOneHour, atSixHours] });
+    const fed = calculateToleranceLocal({
+      intakes: [{ ...base, with_food: true }],
+      time_points: [atOneHour, atSixHours],
+    });
+
+    // Food flattens the early curve, and the dose is still there afterwards.
+    expect(fed.blood_levels[0].amount_mg).toBeLessThan(fasted.blood_levels[0].amount_mg);
+    expect(fed.blood_levels[1].amount_mg).toBeGreaterThan(0);
+  });
+
+  it('routes a substance without that route back to oral', () => {
+    const t0 = '2026-01-01T00:00:00.000Z';
+    const atTmax = '2026-01-01T01:00:00.000Z';
+    // Ibuprofen has no nasal route in the database.
+    const nasal = calculateToleranceLocal({
+      intakes: [{ substance: 'ibuprofen', time: t0, dosage_mg: 400, route: 'nasal' }],
+      time_points: [atTmax],
+    });
+    const oral = calculateToleranceLocal({
+      intakes: [{ substance: 'ibuprofen', time: t0, dosage_mg: 400, route: 'oral' }],
+      time_points: [atTmax],
+    });
+    expect(nasal.blood_levels[0].amount_mg).toBeCloseTo(oral.blood_levels[0].amount_mg, 6);
+  });
+
+  it('uses a faster route where the substance has one', () => {
+    const t0 = '2026-01-01T00:00:00.000Z';
+    const soonAfter = '2026-01-01T00:10:00.000Z';
+    // Nicotine is absorbed far faster inhaled than swallowed, and survives first pass.
+    const inhaled = calculateToleranceLocal({
+      intakes: [{ substance: 'nicotine', time: t0, dosage_mg: 1, route: 'inhaled' }],
+      time_points: [soonAfter],
+    });
+    const oral = calculateToleranceLocal({
+      intakes: [{ substance: 'nicotine', time: t0, dosage_mg: 1, route: 'oral' }],
+      time_points: [soonAfter],
+    });
+    expect(inhaled.blood_levels[0].amount_mg).toBeGreaterThan(oral.blood_levels[0].amount_mg * 3);
+  });
+
+  it('eliminates ethanol at a near-constant rate, not by a half-life', () => {
+    const t0 = '2026-01-01T00:00:00.000Z';
+    // Four standard drinks, sampled once absorption is over and while the amount is still
+    // well above Km — that is the region where the rate is genuinely near-constant. Two
+    // drinks would be all but cleared by hour three and the rate would tail off.
+    const res = calculateToleranceLocal({
+      intakes: [{ substance: 'alcohol', time: t0, dosage_mg: 56_000 }],
+      time_points: [
+        '2026-01-01T02:00:00.000Z',
+        '2026-01-01T03:00:00.000Z',
+        '2026-01-01T04:00:00.000Z',
+      ],
+    });
+
+    const firstDrop = res.blood_levels[0].amount_mg - res.blood_levels[1].amount_mg;
+    const secondDrop = res.blood_levels[1].amount_mg - res.blood_levels[2].amount_mg;
+
+    expect(firstDrop).toBeGreaterThan(0);
+    // Equal time, near-equal loss. First-order decay would roughly halve the second drop.
+    expect(secondDrop / firstDrop).toBeGreaterThan(0.85);
+    expect(secondDrop / firstDrop).toBeLessThan(1.15);
+    // Approaching the textbook Vmax of 8.5 g/h for a 70 kg adult.
+    expect(firstDrop).toBeGreaterThan(6_500);
+    expect(firstDrop).toBeLessThan(8_500);
+  });
+
+  it('never lets ethanol go negative once it has cleared', () => {
+    const res = calculateToleranceLocal({
+      intakes: [{ substance: 'alcohol', time: '2026-01-01T00:00:00.000Z', dosage_mg: 8_000 }],
+      time_points: ['2026-01-02T00:00:00.000Z'],
+    });
+    expect(res.blood_levels[0].amount_mg).toBeGreaterThanOrEqual(0);
+    expect(res.blood_levels[0].amount_mg).toBeLessThan(1);
   });
 
   it('accepts substance ids and display names, skips future intakes', () => {
@@ -183,13 +285,16 @@ describe('local blood level calculation', () => {
       ],
       time_points: [t0],
     });
-    expect(res.blood_levels[0].amount_mg).toBeCloseTo(100, 6); // only the past intake counts
+    // At t0 the dose has not been absorbed yet, and the future intake contributes nothing.
+    const atT0 = res.blood_levels[0].amount_mg;
+    expect(atT0).toBeGreaterThanOrEqual(0);
+    expect(atT0).toBeLessThan(1);
 
     const byId = calculateToleranceLocal({
       intakes: [{ substance: 'alcohol', time: t0, dosage_mg: 100 }],
       time_points: [t0],
     });
-    expect(byId.blood_levels[0].amount_mg).toBeCloseTo(100, 6);
+    expect(byId.blood_levels[0].amount_mg).toBeCloseTo(atT0, 6);
   });
 
   it('throws for unknown substances like the backend', () => {

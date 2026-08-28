@@ -25,9 +25,27 @@ interface SubstanceIntake {
  * Only applied when the loaded substance list actually contains both, so a backend (or a
  * test) serving a different catalogue still starts blank.
  */
-const EXAMPLE_INTAKES: { id: string; dosageMg: number; hoursAgo: number }[] = [
-  { id: 'caffeine', dosageMg: 100, hoursAgo: 2 },
-  { id: 'ibuprofen', dosageMg: 400, hoursAgo: 1 },
+/**
+ * Gastric emptying is what food actually delays, and that effect has largely passed about
+ * two hours after a meal — so an intake logged within that window counts as fed. The column
+ * takes minutes since eating; leaving it blank means fasted.
+ */
+const FED_WINDOW_MINUTES = 120;
+
+const isFed = (minutesAfterMeal: number | null) =>
+  minutesAfterMeal !== null && minutesAfterMeal >= 0 && minutesAfterMeal <= FED_WINDOW_MINUTES;
+
+const EXAMPLE_INTAKES: {
+  id: string;
+  dosageMg: number;
+  hoursAgo: number;
+  route: string;
+  minutesAfterMeal: number | null;
+}[] = [
+  // A coffee on an empty stomach, then ibuprofen taken with lunch — so the example shows
+  // both the route column and the food delay doing something.
+  { id: 'caffeine', dosageMg: 100, hoursAgo: 2, route: 'oral', minutesAfterMeal: null },
+  { id: 'ibuprofen', dosageMg: 400, hoursAgo: 1, route: 'oral', minutesAfterMeal: 15 },
 ];
 
 const BloodLevelCalculator: React.FC = () => {
@@ -59,8 +77,8 @@ const BloodLevelCalculator: React.FC = () => {
             ? {
                 substance: match.name,
                 time: new Date(Date.now() - example.hoursAgo * 3_600_000).toISOString(),
-                intakeType: 'oral',
-                timeAfterMeal: null,
+                intakeType: example.route,
+                timeAfterMeal: example.minutesAfterMeal,
                 dosageMg: example.dosageMg,
               }
             : null;
@@ -136,6 +154,8 @@ const BloodLevelCalculator: React.FC = () => {
             substance: intake.substance,
             time: intake.time,
             dosage_mg: intake.dosageMg,
+            route: intake.intakeType,
+            with_food: isFed(intake.timeAfterMeal),
           })),
         time_points: timePoints,
       };
@@ -207,8 +227,9 @@ const BloodLevelCalculator: React.FC = () => {
                       >
                         <option value="oral">Oral</option>
                         <option value="intravenous">Intravenous</option>
+                        <option value="nasal">Nasal</option>
                         <option value="inhaled">Inhaled</option>
-                        <option value="topical">Topical</option>
+                        <option value="sublingual">Sublingual</option>
                       </select>
                     </td>
                     <td className="px-3 py-2" data-label="After meal">
@@ -362,26 +383,38 @@ const BloodLevelCalculator: React.FC = () => {
             color: 'var(--fg-secondary)',
             whiteSpace: 'pre',
           }}
-        >{`amount(t) = Σ  dose_i × F × 0.5 ^ ((t − t_i) / t½)
+        >{`amount(t) = Σ  F·D_i · ka/(ka − ke) · ( e^(−ke·(t−t_i)) − e^(−ka·(t−t_i)) )
             i
 
-  F   bioavailability — the fraction that reaches the bloodstream
-  t½  elimination half-life: the time to clear half of what is present
+  F   bioavailability for the route taken — how much reaches the bloodstream
+  ka  absorption rate, solved from that route's published Tmax
+  ke  elimination rate = ln2 / half-life
   t_i time of intake i; terms with t < t_i contribute nothing`}</pre>
         <p className="text-sm" style={{ color: 'var(--muted)', margin: '0 0 0.5rem' }}>
-          This is a one-compartment model with first-order elimination. It assumes a dose
-          reaches the blood the moment it is taken, so it has no absorption phase and no
-          Tmax: right after an oral dose the real curve is still rising while this one is
-          already at its peak. Past roughly an hour the two agree closely, which is the part
-          that matters for stacking doses and for judging when a substance has washed out.
+          A one-compartment model with first-order absorption and elimination. The dose has
+          to be absorbed before it can act, so the curve starts at zero, climbs to a peak at
+          roughly the substance&rsquo;s Tmax, and only then decays — an intravenous dose is
+          the exception, and skips straight to the peak because it is already in the blood.
+        </p>
+        <p className="text-sm" style={{ color: 'var(--muted)', margin: '0 0 0.5rem' }}>
+          The <strong style={{ color: 'var(--fg)' }}>Type</strong> and{' '}
+          <strong style={{ color: 'var(--fg)' }}>Time After Meal</strong> columns both feed
+          into this. Route changes how much is absorbed and how fast — swallowed nicotine
+          largely does not survive first-pass metabolism, while inhaled nicotine peaks within
+          minutes. Food delays gastric emptying, so an intake logged within two hours of a
+          meal absorbs more slowly: ibuprofen&rsquo;s peak arrives about twice as late and
+          noticeably lower, though the total exposure is unchanged. For a few substances food
+          genuinely reduces the total too, which is why omeprazole is taken before breakfast.
         </p>
         <p className="text-sm" style={{ color: 'var(--muted)', margin: 0 }}>
-          Half-lives are adult population averages, and individuals vary widely — caffeine
-          alone ranges from about 2 to 10 hours depending on CYP1A2 activity, smoking,
-          pregnancy and oral contraceptives. Ethanol is the one substance here that does not
-          obey this equation at all: it is cleared at a near-constant rate rather than by a
-          fixed half-life, so treat its curve as a rough shape only. Educational tool, not
-          medical or dosing advice.
+          Ethanol gets its own equation. It has no half-life: alcohol dehydrogenase saturates
+          far below the concentration of a single drink, so it is cleared at a near-constant
+          rate of roughly 8.5 g/h for a 70 kg adult. It is modelled as Michaelis-Menten
+          (Vmax 8.5 g/h, Km ≈ 80 mg/L) and integrated numerically, because non-linear
+          elimination means separate drinks do not simply add up. Everything else here is
+          adult population averages and individuals vary widely — caffeine alone ranges from
+          about 2 to 10 hours depending on CYP1A2 activity, smoking, pregnancy and oral
+          contraceptives. Educational tool, not medical or dosing advice.
         </p>
       </CardSection>
     </div>

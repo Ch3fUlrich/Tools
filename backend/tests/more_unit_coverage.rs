@@ -9,6 +9,8 @@ async fn test_bloodlevel_single_intake_amount_positive() {
         substance: "Caffeine".to_string(),
         time: now - chrono::Duration::hours(1),
         dosage_mg: 100.0,
+        route: None,
+        with_food: None,
     };
 
     let req = ToleranceRequest { intakes: vec![intake], time_points: vec![now] };
@@ -25,6 +27,8 @@ async fn test_bloodlevel_future_intake_skipped() {
         substance: "Caffeine".to_string(),
         time: now + chrono::Duration::hours(1),
         dosage_mg: 100.0,
+        route: None,
+        with_food: None,
     };
 
     let req = ToleranceRequest { intakes: vec![intake], time_points: vec![now] };
@@ -41,6 +45,8 @@ async fn test_bloodlevel_missing_substance_error() {
         substance: "NotARealDrug".to_string(),
         time: now - chrono::Duration::hours(1),
         dosage_mg: 50.0,
+        route: None,
+        with_food: None,
     };
 
     let req = ToleranceRequest { intakes: vec![intake], time_points: vec![now] };
