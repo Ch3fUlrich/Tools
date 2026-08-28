@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import { useTranslation } from '@/components/i18n/LanguageProvider';
 import type { FilingComparison } from '@/lib/local/elterngeld';
 import { eur2 } from './format';
 
@@ -24,6 +25,7 @@ const labelCell: React.CSSProperties = { ...cell, textAlign: 'left', color: 'var
  * pull in opposite directions, so the answer has to be computed, not guessed.
  */
 export default function FilingAdvice({ comparison, benefitsTotal }: Props) {
+  const { t } = useTranslation();
   const { joint, separateApplicant, separatePartner, separateTotal, better, advantage } = comparison;
   const jointWins = better === 'married';
 
@@ -46,43 +48,41 @@ export default function FilingAdvice({ comparison, benefitsTotal }: Props) {
         }}
       >
         <div style={{ fontWeight: 700, color: 'var(--fg)', fontSize: '0.9375rem' }}>
-          {jointWins ? 'File together (Zusammenveranlagung)' : 'File separately (Einzelveranlagung)'}
+          {jointWins ? t('eg.filingJoint') : t('eg.filingSeparate')}
         </div>
         <div className="text-sm" style={{ color: 'var(--fg-secondary)', marginTop: '0.25rem' }}>
-          {advantage < 1
-            ? 'Both routes cost the same here — take the joint assessment for the simpler paperwork.'
-            : `It saves ${eur2(advantage)} of leave-year tax.`}
+          {advantage < 1 ? t('eg.filingTie') : t('eg.filingSaves', { amount: eur2(advantage) })}
         </div>
       </div>
 
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-          <caption className="sr-only">Leave-year tax under joint and separate assessment</caption>
+          <caption className="sr-only">{t('eg.filingCaption')}</caption>
           <thead>
             <tr>
               <th scope="col" style={{ ...labelCell, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }} />
               <th scope="col" style={{ ...cell, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>
-                Together
+                {t('eg.filingTogether')}
               </th>
               <th scope="col" style={{ ...cell, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>
-                Separately
+                {t('eg.filingSeparately')}
               </th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <th scope="row" style={labelCell}>Parent on leave</th>
+              <th scope="row" style={labelCell}>{t('eg.filingParent')}</th>
               <td style={cell}>—</td>
               <td style={cell}>{eur2(separateApplicant.total)}</td>
             </tr>
             <tr>
-              <th scope="row" style={labelCell}>Partner</th>
+              <th scope="row" style={labelCell}>{t('eg.filingPartner')}</th>
               <td style={cell}>—</td>
               <td style={cell}>{eur2(separatePartner.total)}</td>
             </tr>
             <tr>
               <th scope="row" style={{ ...labelCell, fontWeight: 800, borderTop: '2px solid var(--card-border)', borderBottom: 'none' }}>
-                Leave-year tax
+                {t('eg.filingTotal')}
               </th>
               <td
                 style={{

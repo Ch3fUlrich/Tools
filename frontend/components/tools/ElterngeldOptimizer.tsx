@@ -5,6 +5,7 @@ import CardSection from '@/components/ui/CardSection';
 import ErrorAlert from '@/components/ui/ErrorAlert';
 import ModernCheckbox from '@/components/ui/ModernCheckbox';
 import NumberInput from '@/components/ui/NumberInput';
+import { useTranslation } from '@/components/i18n/LanguageProvider';
 import {
   BEMESSUNG_CAP,
   INCOME_LIMIT_ZVE,
@@ -19,6 +20,7 @@ import type { ChurchTaxPercent, FilingStatus, TaxYear } from '@/lib/local/german
 import FilingAdvice from './elterngeld/FilingAdvice';
 import MethodNotes from './elterngeld/MethodNotes';
 import ScenarioTable from './elterngeld/ScenarioTable';
+import Sources from './elterngeld/Sources';
 import TradeoffChart from './elterngeld/TradeoffChart';
 import { eur, eur2, eurSigned, parseAmount } from './elterngeld/format';
 
@@ -109,48 +111,70 @@ function Segmented<T extends string>({
   );
 }
 
-/** The figures from a real Kindertagespflege EÜR, used by the example button. */
+/**
+ * A real Kindertagespflege case, shown as greyed-out placeholders so the page
+ * demonstrates a full worked example on first load. Empty fields fall back to these
+ * values, so the numbers on screen always match what is being calculated; typing in a
+ * field replaces the example for that field only.
+ */
 const EXAMPLE = {
   profitLow: '13421.69',
   profitHigh: '24470.36',
   employmentGross: '0',
   relief: '0',
+  partnerBase: '50000',
+  partnerLeave: '50000',
+  prepaidBase: '6500',
+  prepaidLeave: '6500',
+  ownLeave: '0',
+  children: '2',
+  extraContribution: '540',
+  basisMonths: '12',
+  plusMonths: '0',
+  duringLeave: '0',
+  multiples: '0',
+  weeksBefore: '6',
+  weeksAfter: '8',
 };
 
+/** An untouched field is worth its example, so the displayed numbers are the real inputs. */
+const valueOr = (value: string, example: string) => (value.trim() === '' ? example : value);
+
 export const ElterngeldOptimizer: React.FC = () => {
-  const [filing, setFiling] = useState<FilingStatus>('single');
+  const { t } = useTranslation();
+  const [filing, setFiling] = useState<FilingStatus>('married');
   const [profitDeltaKind, setProfitDeltaKind] = useState<ProfitDeltaKind>('timing');
   const [churchTaxPercent, setChurchTaxPercent] = useState<ChurchTaxPercent>(0);
   const [baseYear, setBaseYear] = useState<TaxYear>(2026);
   const [leaveYear, setLeaveYear] = useState<TaxYear>(2026);
 
-  const [profitLow, setProfitLow] = useState(EXAMPLE.profitLow);
-  const [profitHigh, setProfitHigh] = useState(EXAMPLE.profitHigh);
-  const [employmentGross, setEmploymentGross] = useState(EXAMPLE.employmentGross);
-  const [relief, setRelief] = useState(EXAMPLE.relief);
+  const [profitLow, setProfitLow] = useState('');
+  const [profitHigh, setProfitHigh] = useState('');
+  const [employmentGross, setEmploymentGross] = useState('');
+  const [relief, setRelief] = useState('');
 
-  const [prepaidBase, setPrepaidBase] = useState('0');
-  const [prepaidLeave, setPrepaidLeave] = useState('0');
+  const [prepaidBase, setPrepaidBase] = useState('');
+  const [prepaidLeave, setPrepaidLeave] = useState('');
 
-  const [partnerBase, setPartnerBase] = useState('0');
-  const [partnerLeave, setPartnerLeave] = useState('0');
-  const [ownLeave, setOwnLeave] = useState('0');
+  const [partnerBase, setPartnerBase] = useState('');
+  const [partnerLeave, setPartnerLeave] = useState('');
+  const [ownLeave, setOwnLeave] = useState('');
 
   const [pflichtKV, setPflichtKV] = useState(false);
   const [pflichtRV, setPflichtRV] = useState(true);
   const [pflichtAV, setPflichtAV] = useState(false);
   const [childless, setChildless] = useState(false);
 
-  const [children, setChildren] = useState('0');
+  const [children, setChildren] = useState('');
   const [maternityEnabled, setMaternityEnabled] = useState(false);
-  const [weeksBefore, setWeeksBefore] = useState('6');
-  const [weeksAfter, setWeeksAfter] = useState('8');
-  const [extraContribution, setExtraContribution] = useState('540');
+  const [weeksBefore, setWeeksBefore] = useState('');
+  const [weeksAfter, setWeeksAfter] = useState('');
+  const [extraContribution, setExtraContribution] = useState('');
 
-  const [basisMonths, setBasisMonths] = useState('12');
-  const [plusMonths, setPlusMonths] = useState('0');
-  const [duringLeave, setDuringLeave] = useState('0');
-  const [multiples, setMultiples] = useState('0');
+  const [basisMonths, setBasisMonths] = useState('');
+  const [plusMonths, setPlusMonths] = useState('');
+  const [duringLeave, setDuringLeave] = useState('');
+  const [multiples, setMultiples] = useState('');
   const [siblingBonus, setSiblingBonus] = useState(false);
 
   const loadExample = () => {
@@ -168,27 +192,27 @@ export const ElterngeldOptimizer: React.FC = () => {
   };
 
   const model = useMemo(() => {
-    const a = parseAmount(profitLow);
-    const b = parseAmount(profitHigh);
+    const a = parseAmount(valueOr(profitLow, EXAMPLE.profitLow));
+    const b = parseAmount(valueOr(profitHigh, EXAMPLE.profitHigh));
 
     if (a < 0 || b < 0) {
-      return { error: 'Declared profit cannot be negative.' as const };
+      return { ok: false as const, error: t('eg.errNegative') };
     }
     if (Math.abs(a - b) < 0.01) {
-      return { error: 'Enter two different profit figures to compare.' as const };
+      return { ok: false as const, error: t('eg.errIdentical') };
     }
 
     const profile: ElterngeldProfile = {
       baseYear,
       annualProfit: a,
-      annualEmploymentGross: Math.max(0, parseAmount(employmentGross)),
+      annualEmploymentGross: Math.max(0, parseAmount(valueOr(employmentGross, EXAMPLE.employmentGross))),
       insurance: { pflichtKV, pflichtRV, pflichtAV, childless },
       churchTaxPercent,
-      monthlyNetIncomeDuringLeave: Math.max(0, parseAmount(duringLeave)),
+      monthlyNetIncomeDuringLeave: Math.max(0, parseAmount(valueOr(duringLeave, EXAMPLE.duringLeave))),
       siblingBonus,
-      multipleBirthExtraChildren: Math.max(0, parseAmount(multiples)),
-      basisMonths: Math.max(0, parseAmount(basisMonths)),
-      plusMonths: Math.max(0, parseAmount(plusMonths)),
+      multipleBirthExtraChildren: Math.max(0, parseAmount(valueOr(multiples, EXAMPLE.multiples))),
+      basisMonths: Math.max(0, parseAmount(valueOr(basisMonths, EXAMPLE.basisMonths))),
+      plusMonths: Math.max(0, parseAmount(valueOr(plusMonths, EXAMPLE.plusMonths))),
     };
 
     const household: HouseholdProfile = {
@@ -196,20 +220,20 @@ export const ElterngeldOptimizer: React.FC = () => {
       profitDeltaKind,
       churchTaxPercent,
       leaveYear,
-      partnerIncomeBaseYear: Math.max(0, parseAmount(partnerBase)),
-      partnerIncomeLeaveYear: Math.max(0, parseAmount(partnerLeave)),
-      applicantIncomeLeaveYear: Math.max(0, parseAmount(ownLeave)),
+      partnerIncomeBaseYear: Math.max(0, parseAmount(valueOr(partnerBase, EXAMPLE.partnerBase))),
+      partnerIncomeLeaveYear: Math.max(0, parseAmount(valueOr(partnerLeave, EXAMPLE.partnerLeave))),
+      applicantIncomeLeaveYear: Math.max(0, parseAmount(valueOr(ownLeave, EXAMPLE.ownLeave))),
       deductionsBaseYear: 0,
       deductionsLeaveYear: 0,
-      taxPrepaidBaseYear: Math.max(0, parseAmount(prepaidBase)),
-      taxPrepaidLeaveYear: Math.max(0, parseAmount(prepaidLeave)),
-      futureReliefRate: Math.min(1, Math.max(0, parseAmount(relief) / 100)),
-      children: Math.max(0, parseAmount(children)),
+      taxPrepaidBaseYear: Math.max(0, parseAmount(valueOr(prepaidBase, EXAMPLE.prepaidBase))),
+      taxPrepaidLeaveYear: Math.max(0, parseAmount(valueOr(prepaidLeave, EXAMPLE.prepaidLeave))),
+      futureReliefRate: Math.min(1, Math.max(0, parseAmount(valueOr(relief, EXAMPLE.relief)) / 100)),
+      children: Math.max(0, parseAmount(valueOr(children, EXAMPLE.children))),
       maternity: {
         enabled: maternityEnabled,
-        weeksBefore: Math.max(0, parseAmount(weeksBefore)),
-        weeksAfter: Math.max(0, parseAmount(weeksAfter)),
-        extraContributionTotal: Math.max(0, parseAmount(extraContribution)),
+        weeksBefore: Math.max(0, parseAmount(valueOr(weeksBefore, EXAMPLE.weeksBefore))),
+        weeksAfter: Math.max(0, parseAmount(valueOr(weeksAfter, EXAMPLE.weeksAfter))),
+        extraContributionTotal: Math.max(0, parseAmount(valueOr(extraContribution, EXAMPLE.extraContribution))),
       },
     };
 
@@ -230,6 +254,7 @@ export const ElterngeldOptimizer: React.FC = () => {
     const points = sweepProfit(profile, household, sweepFrom, sweepTo, 90);
 
     return {
+      ok: true as const,
       error: null,
       low,
       high,
@@ -270,28 +295,29 @@ export const ElterngeldOptimizer: React.FC = () => {
     weeksBefore,
     weeksAfter,
     extraContribution,
+    t,
   ]);
 
   const warnings: string[] = [];
-  if (!model.error) {
+  if (model.ok) {
     if (model.low.exceedsIncomeLimit || model.high.exceedsIncomeLimit) {
       warnings.push(
-        `A taxable household income above ${eur(INCOME_LIMIT_ZVE)} removes the Elterngeld claim entirely (§ 1 Abs. 8 BEEG).`,
+        t('eg.warnIncomeLimit', { limit: eur(INCOME_LIMIT_ZVE) }),
       );
     }
     if (Math.max(model.low.netto.monthlyNetto, model.high.netto.monthlyNetto) > BEMESSUNG_CAP) {
       warnings.push(
-        `Elterngeld-Netto above ${eur(BEMESSUNG_CAP)} is ignored (§ 2 Abs. 1 Satz 3 BEEG), so profit beyond that point buys no extra Elterngeld.`,
+        t('eg.warnCap', { cap: eur(BEMESSUNG_CAP) }),
       );
     }
-    if (profitDeltaKind === 'timing' && parseAmount(relief) === 0) {
+    if (profitDeltaKind === 'timing' && parseAmount(valueOr(relief, EXAMPLE.relief)) === 0) {
       warnings.push(
-        'Postponed write-offs are valued at zero. They are not lost — they lower a later year’s tax. Set a later-relief rate to count them.',
+        t('eg.warnRelief'),
       );
     }
   }
 
-  const verdictTone = model.error
+  const verdictTone = !model.ok
     ? 'neutral'
     : Math.abs(model.delta) < 50
       ? 'neutral'
@@ -311,18 +337,18 @@ export const ElterngeldOptimizer: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* ── Inputs ── */}
         <div className="space-y-6 xl:col-span-1">
-          <CardSection title="Household" gradient="from-amber-400 to-orange-500" delay="100ms">
+          <CardSection title={t('eg.household')} gradient="from-amber-400 to-orange-500" delay="100ms">
             <Segmented
-              legend="Assessment (Veranlagung)"
+              legend={t('eg.filingLegend')}
               value={filing}
               onChange={setFiling}
               options={[
-                { value: 'single', label: 'Single' },
-                { value: 'married', label: 'Married (Splitting)' },
+                { value: 'single', label: t('eg.single') },
+                { value: 'married', label: t('eg.married') },
               ]}
             />
             <div className="grid grid-cols-2 gap-3 mt-4">
-              <Field id="eg-church" label="Church tax">
+              <Field id="eg-church" label={t('eg.churchTax')}>
                 <select
                   id="eg-church"
                   className="form-input h-12"
@@ -334,7 +360,7 @@ export const ElterngeldOptimizer: React.FC = () => {
                   <option value={9}>9 %</option>
                 </select>
               </Field>
-              <Field id="eg-base-year" label="Assessment year" hint="Bemessungszeitraum">
+              <Field id="eg-base-year" label={t('eg.baseYear')} hint={t('eg.baseYearHint')}>
                 <select
                   id="eg-base-year"
                   className="form-input h-12"
@@ -347,26 +373,26 @@ export const ElterngeldOptimizer: React.FC = () => {
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Field id="eg-partner-base" label="Partner income" hint="assessment yr">
-                <NumberInput id="eg-partner-base" value={partnerBase} onChange={setPartnerBase} step={500} min={0} unit="€" />
+              <Field id="eg-partner-base" label={t('eg.partnerIncome')} hint={t('eg.assessmentYr')}>
+                <NumberInput id="eg-partner-base" value={partnerBase} onChange={setPartnerBase} step={500} min={0} unit="€" placeholder={EXAMPLE.partnerBase} />
               </Field>
-              <Field id="eg-partner-leave" label="Partner income" hint="leave yr">
-                <NumberInput id="eg-partner-leave" value={partnerLeave} onChange={setPartnerLeave} step={500} min={0} unit="€" />
-              </Field>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Field id="eg-prepaid-base" label="Tax already paid" hint="Lohnsteuer + Vorauszahlungen, assessment yr">
-                <NumberInput id="eg-prepaid-base" value={prepaidBase} onChange={setPrepaidBase} step={500} min={0} unit="€" />
-              </Field>
-              <Field id="eg-prepaid-leave" label="Tax already paid" hint="leave yr">
-                <NumberInput id="eg-prepaid-leave" value={prepaidLeave} onChange={setPrepaidLeave} step={500} min={0} unit="€" />
+              <Field id="eg-partner-leave" label={t('eg.partnerIncome')} hint={t('eg.leaveYr')}>
+                <NumberInput id="eg-partner-leave" value={partnerLeave} onChange={setPartnerLeave} step={500} min={0} unit="€" placeholder={EXAMPLE.partnerLeave} />
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Field id="eg-own-leave" label="Your other income" hint="leave yr">
-                <NumberInput id="eg-own-leave" value={ownLeave} onChange={setOwnLeave} step={500} min={0} unit="€" />
+              <Field id="eg-prepaid-base" label={t('eg.prepaidBase')} hint={t('eg.prepaidBaseHint')}>
+                <NumberInput id="eg-prepaid-base" value={prepaidBase} onChange={setPrepaidBase} step={500} min={0} unit="€" placeholder={EXAMPLE.prepaidBase} />
               </Field>
-              <Field id="eg-leave-year" label="Leave year">
+              <Field id="eg-prepaid-leave" label={t('eg.prepaidLeave')} hint={t('eg.prepaidLeaveHint')}>
+                <NumberInput id="eg-prepaid-leave" value={prepaidLeave} onChange={setPrepaidLeave} step={500} min={0} unit="€" placeholder={EXAMPLE.prepaidLeave} />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="eg-own-leave" label={t('eg.ownIncome')} hint={t('eg.leaveYr')}>
+                <NumberInput id="eg-own-leave" value={ownLeave} onChange={setOwnLeave} step={500} min={0} unit="€" placeholder={EXAMPLE.ownLeave} />
+              </Field>
+              <Field id="eg-leave-year" label={t('eg.leaveYear')}>
                 <select
                   id="eg-leave-year"
                   className="form-input h-12"
@@ -380,104 +406,103 @@ export const ElterngeldOptimizer: React.FC = () => {
             </div>
           </CardSection>
 
-          <CardSection title="The two options" gradient="from-orange-400 to-rose-500" delay="150ms">
+          <CardSection title={t('eg.options')} gradient="from-orange-400 to-rose-500" delay="150ms">
             <Segmented
-              legend="What creates the profit difference?"
+              legend={t('eg.deltaLegend')}
               value={profitDeltaKind}
               onChange={setProfitDeltaKind}
               options={[
-                { value: 'timing', label: 'Write-off timing' },
-                { value: 'cash', label: 'Real extra earnings' },
+                { value: 'timing', label: t('eg.timing') },
+                { value: 'cash', label: t('eg.cash') },
               ]}
             />
             <p className="text-sm mt-2 mb-4" style={{ color: 'var(--muted)' }}>
               {profitDeltaKind === 'timing'
-                ? 'Depreciation is non-cash: the same money is in your account either way, only the taxable profit moves — and the write-off returns in a later year.'
-                : 'The extra profit is real money you actually earned on top.'}
+                ? t('eg.timingHint')
+                : t('eg.cashHint')}
             </p>
             <div className="grid grid-cols-2 gap-3">
-              <Field id="eg-profit-low" label="Lower profit" hint="€/yr">
-                <NumberInput id="eg-profit-low" value={profitLow} onChange={setProfitLow} step={100} min={0} unit="€" />
+              <Field id="eg-profit-low" label={t('eg.lowerProfit')} hint={t('eg.perYear')}>
+                <NumberInput id="eg-profit-low" value={profitLow} onChange={setProfitLow} step={100} min={0} unit="€" placeholder={EXAMPLE.profitLow} />
               </Field>
-              <Field id="eg-profit-high" label="Higher profit" hint="€/yr">
-                <NumberInput id="eg-profit-high" value={profitHigh} onChange={setProfitHigh} step={100} min={0} unit="€" />
+              <Field id="eg-profit-high" label={t('eg.higherProfit')} hint={t('eg.perYear')}>
+                <NumberInput id="eg-profit-high" value={profitHigh} onChange={setProfitHigh} step={100} min={0} unit="€" placeholder={EXAMPLE.profitHigh} />
               </Field>
             </div>
-            <Field id="eg-emp-gross" label="Employment gross" hint="Bruttoarbeitslohn, § 2c BEEG">
-              <NumberInput id="eg-emp-gross" value={employmentGross} onChange={setEmploymentGross} step={500} min={0} unit="€" />
+            <Field id="eg-emp-gross" label={t('eg.employmentGross')} hint={t('eg.employmentGrossHint')}>
+              <NumberInput id="eg-emp-gross" value={employmentGross} onChange={setEmploymentGross} step={500} min={0} unit="€" placeholder={EXAMPLE.employmentGross} />
             </Field>
-            <Field id="eg-relief" label="Later relief on postponed write-offs" hint="marginal rate when the deduction lands">
-              <NumberInput id="eg-relief" value={relief} onChange={setRelief} step={1} min={0} unit="%" />
+            <Field id="eg-relief" label={t('eg.relief')} hint={t('eg.reliefHint')}>
+              <NumberInput id="eg-relief" value={relief} onChange={setRelief} step={1} min={0} unit="%" placeholder={EXAMPLE.relief} />
             </Field>
             <button type="button" className="btn-ghost w-full h-11 text-sm font-semibold" onClick={loadExample}>
-              Load Kindertagespflege example
+              {t('eg.loadExample')}
             </button>
           </CardSection>
 
-          <CardSection title="Insurance & leave" gradient="from-rose-400 to-fuchsia-500" delay="200ms">
+          <CardSection title={t('eg.insurance')} gradient="from-rose-400 to-fuchsia-500" delay="200ms">
             <fieldset style={{ border: 0, padding: 0, margin: '0 0 0.875rem' }}>
               <legend style={labelStyle}>
-                Compulsory insurance <span style={hintStyle}>§ 2f BEEG flat deductions</span>
+                {t('eg.insuranceLegend')} <span style={hintStyle}>{t('eg.insuranceLegendHint')}</span>
               </legend>
               <div className="flex flex-wrap gap-x-4 gap-y-2">
-                <ModernCheckbox id="eg-kv" checked={pflichtKV} onChange={setPflichtKV} label={<span className="text-sm">Health 9 %</span>} ariaLabel="Compulsory health insurance" />
-                <ModernCheckbox id="eg-rv" checked={pflichtRV} onChange={setPflichtRV} label={<span className="text-sm">Pension 10 %</span>} ariaLabel="Compulsory pension insurance" />
-                <ModernCheckbox id="eg-av" checked={pflichtAV} onChange={setPflichtAV} label={<span className="text-sm">Unemployment 2 %</span>} ariaLabel="Compulsory unemployment insurance" />
-                <ModernCheckbox id="eg-childless" checked={childless} onChange={setChildless} label={<span className="text-sm">Childless</span>} ariaLabel="Childless surcharge on long-term care insurance" />
+                <ModernCheckbox id="eg-kv" checked={pflichtKV} onChange={setPflichtKV} label={<span className="text-sm">{t('eg.health')}</span>} ariaLabel={t('eg.healthAria')} />
+                <ModernCheckbox id="eg-rv" checked={pflichtRV} onChange={setPflichtRV} label={<span className="text-sm">{t('eg.pension')}</span>} ariaLabel={t('eg.pensionAria')} />
+                <ModernCheckbox id="eg-av" checked={pflichtAV} onChange={setPflichtAV} label={<span className="text-sm">{t('eg.unemployment')}</span>} ariaLabel={t('eg.unemploymentAria')} />
+                <ModernCheckbox id="eg-childless" checked={childless} onChange={setChildless} label={<span className="text-sm">{t('eg.childless')}</span>} ariaLabel={t('eg.childlessAria')} />
               </div>
             </fieldset>
             <div className="grid grid-cols-2 gap-3">
-              <Field id="eg-basis-months" label="Basiselterngeld" hint="months">
-                <NumberInput id="eg-basis-months" value={basisMonths} onChange={setBasisMonths} step={1} min={0} unit="mo" />
+              <Field id="eg-basis-months" label={t('eg.basisMonths')} hint={t('eg.months')}>
+                <NumberInput id="eg-basis-months" value={basisMonths} onChange={setBasisMonths} step={1} min={0} unit="mo" placeholder={EXAMPLE.basisMonths} />
               </Field>
-              <Field id="eg-plus-months" label="ElterngeldPlus" hint="months">
-                <NumberInput id="eg-plus-months" value={plusMonths} onChange={setPlusMonths} step={1} min={0} unit="mo" />
+              <Field id="eg-plus-months" label={t('eg.plusMonths')} hint={t('eg.months')}>
+                <NumberInput id="eg-plus-months" value={plusMonths} onChange={setPlusMonths} step={1} min={0} unit="mo" placeholder={EXAMPLE.plusMonths} />
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Field id="eg-during" label="Net income during leave" hint="€/month">
-                <NumberInput id="eg-during" value={duringLeave} onChange={setDuringLeave} step={50} min={0} unit="€" />
+              <Field id="eg-during" label={t('eg.duringLeave')} hint={t('eg.perMonth')}>
+                <NumberInput id="eg-during" value={duringLeave} onChange={setDuringLeave} step={50} min={0} unit="€" placeholder={EXAMPLE.duringLeave} />
               </Field>
-              <Field id="eg-multiples" label="Extra children" hint="multiple birth">
-                <NumberInput id="eg-multiples" value={multiples} onChange={setMultiples} step={1} min={0} />
+              <Field id="eg-multiples" label={t('eg.multiples')} hint={t('eg.multiplesHint')}>
+                <NumberInput id="eg-multiples" value={multiples} onChange={setMultiples} step={1} min={0} placeholder={EXAMPLE.multiples} />
               </Field>
             </div>
             <ModernCheckbox
               id="eg-sibling"
               checked={siblingBonus}
               onChange={setSiblingBonus}
-              label={<span className="text-sm">Geschwisterbonus applies</span>}
-              ariaLabel="Sibling bonus applies"
+              label={<span className="text-sm">{t('eg.siblingBonus')}</span>}
+              ariaLabel={t('eg.siblingBonusAria')}
             />
           </CardSection>
 
-          <CardSection title="Children & Mutterschaftsgeld" gradient="from-fuchsia-500 to-violet-600" delay="250ms">
-            <Field id="eg-children" label="Children" hint="for Kindergeld / Kinderfreibetrag">
-              <NumberInput id="eg-children" value={children} onChange={setChildren} step={1} min={0} />
+          <CardSection title={t('eg.childrenSection')} gradient="from-fuchsia-500 to-violet-600" delay="250ms">
+            <Field id="eg-children" label={t('eg.children')} hint={t('eg.childrenHint')}>
+              <NumberInput id="eg-children" value={children} onChange={setChildren} step={1} min={0} placeholder={EXAMPLE.children} />
             </Field>
             <ModernCheckbox
               id="eg-maternity"
               checked={maternityEnabled}
               onChange={setMaternityEnabled}
-              label={<span className="text-sm">Krankengeld elected (§ 44 Abs. 2 SGB V)</span>}
-              ariaLabel="Krankengeld entitlement elected, which unlocks Mutterschaftsgeld"
+              label={<span className="text-sm">{t('eg.maternityElected')}</span>}
+              ariaLabel={t('eg.maternityElectedAria')}
             />
             <p className="text-sm mt-2 mb-3" style={{ color: 'var(--muted)' }}>
-              Self-employed people only receive Mutterschaftsgeld after electing the Krankengeld
-              entitlement, which raises the contribution rate by 0.6 pp and binds for years.
+              {t('eg.maternityHint')}
             </p>
             {maternityEnabled && (
               <>
                 <div className="grid grid-cols-2 gap-3">
-                  <Field id="eg-weeks-before" label="Weeks before birth" hint="§ 3 (1) MuSchG">
-                    <NumberInput id="eg-weeks-before" value={weeksBefore} onChange={setWeeksBefore} step={1} min={0} unit="wk" />
+                  <Field id="eg-weeks-before" label={t('eg.weeksBefore')} hint={t('eg.weeksBeforeHint')}>
+                    <NumberInput id="eg-weeks-before" value={weeksBefore} onChange={setWeeksBefore} step={1} min={0} unit="wk" placeholder={EXAMPLE.weeksBefore} />
                   </Field>
-                  <Field id="eg-weeks-after" label="Weeks after birth" hint="8, or 12 for multiples">
-                    <NumberInput id="eg-weeks-after" value={weeksAfter} onChange={setWeeksAfter} step={1} min={0} unit="wk" />
+                  <Field id="eg-weeks-after" label={t('eg.weeksAfter')} hint={t('eg.weeksAfterHint')}>
+                    <NumberInput id="eg-weeks-after" value={weeksAfter} onChange={setWeeksAfter} step={1} min={0} unit="wk" placeholder={EXAMPLE.weeksAfter} />
                   </Field>
                 </div>
-                <Field id="eg-extra-contribution" label="Extra contributions" hint="total over the binding period">
-                  <NumberInput id="eg-extra-contribution" value={extraContribution} onChange={setExtraContribution} step={10} min={0} unit="€" />
+                <Field id="eg-extra-contribution" label={t('eg.extraContribution')} hint={t('eg.extraContributionHint')}>
+                  <NumberInput id="eg-extra-contribution" value={extraContribution} onChange={setExtraContribution} step={10} min={0} unit="€" placeholder={EXAMPLE.extraContribution} />
                 </Field>
               </>
             )}
@@ -486,9 +511,9 @@ export const ElterngeldOptimizer: React.FC = () => {
 
         {/* ── Results ── */}
         <div className="space-y-6 xl:col-span-2">
-          {model.error && <ErrorAlert error={model.error} />}
+          {!model.ok && <ErrorAlert error={model.error} />}
 
-          {!model.error && (
+          {model.ok && (
             <>
               <div
                 className="rounded-2xl animate-scale-in"
@@ -497,31 +522,23 @@ export const ElterngeldOptimizer: React.FC = () => {
                 aria-live="polite"
               >
                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.9 }}>
-                  Recommendation
+                  {t('eg.recommendation')}
                 </div>
                 <div style={{ fontSize: 'clamp(1.875rem, 5vw, 3rem)', fontWeight: 800, lineHeight: 1.05, margin: '0.5rem 0' }}>
                   {eurSigned(model.delta)}
                 </div>
                 <p style={{ fontSize: '0.9375rem', opacity: 0.95, maxWidth: '62ch', margin: 0 }}>
-                  {verdictTone === 'neutral' ? (
-                    <>Both routes land within €50 of each other — the choice is essentially a wash. Pick the simpler filing.</>
-                  ) : verdictTone === 'positive' ? (
-                    <>
-                      Declaring the <strong>higher</strong> profit of {eur2(model.highProfit)} leaves you better off. You pay{' '}
-                      {eur2(model.high.baseYearTax.total - model.low.baseYearTax.total)} more income tax and gain{' '}
-                      {eur2(model.high.amount.total - model.low.amount.total)} more Elterngeld.
-                    </>
-                  ) : (
-                    <>
-                      Keeping the <strong>lower</strong> profit of {eur2(model.lowProfit)} wins. The extra{' '}
-                      {eur2(model.high.baseYearTax.total - model.low.baseYearTax.total)} of income tax outweighs the{' '}
-                      {eur2(Math.abs(model.high.amount.total - model.low.amount.total))} difference in Elterngeld.
-                    </>
-                  )}
+                  {verdictTone === 'neutral'
+                    ? t('eg.verdictWash')
+                    : t(verdictTone === 'positive' ? 'eg.verdictHigher' : 'eg.verdictLower', {
+                        profit: eur2(verdictTone === 'positive' ? model.highProfit : model.lowProfit),
+                        tax: eur2(model.high.baseYearTax.total - model.low.baseYearTax.total),
+                        benefit: eur2(Math.abs(model.high.benefitsTotal - model.low.benefitsTotal)),
+                      })}
                 </p>
               </div>
 
-              <CardSection title="Side by side" gradient="from-amber-400 to-orange-500" delay="100ms">
+              <CardSection title={t('eg.sideBySide')} gradient="from-amber-400 to-orange-500" delay="100ms">
                 <ScenarioTable low={model.low} high={model.high} />
                 {warnings.length > 0 && (
                   <ul className="mt-4 space-y-2 list-none p-0">
@@ -544,17 +561,16 @@ export const ElterngeldOptimizer: React.FC = () => {
                 )}
               </CardSection>
 
-              <CardSection title="File together or separately?" gradient="from-fuchsia-500 to-violet-600" delay="120ms">
+              <CardSection title={t('eg.filingTitle')} gradient="from-fuchsia-500 to-violet-600" delay="120ms">
                 <FilingAdvice
                   comparison={model.high.filingComparison}
                   benefitsTotal={model.high.benefitsTotal}
                 />
               </CardSection>
 
-              <CardSection title="Where the optimum sits" gradient="from-orange-400 to-rose-500" delay="150ms">
+              <CardSection title={t('eg.optimumTitle')} gradient="from-orange-400 to-rose-500" delay="150ms">
                 <p className="text-sm mb-3" style={{ color: 'var(--muted)' }}>
-                  Net position across both years for every declared profit between the two options, extended 30 % either
-                  side.
+                  {t('eg.optimumIntro')}
                 </p>
                 <TradeoffChart
                   points={model.points}
@@ -564,7 +580,7 @@ export const ElterngeldOptimizer: React.FC = () => {
                 />
               </CardSection>
 
-              <CardSection title="The reasoning & the equations" gradient="from-rose-400 to-fuchsia-500" delay="200ms">
+              <CardSection title={t('eg.reasoningTitle')} gradient="from-rose-400 to-fuchsia-500" delay="200ms">
                 <MethodNotes
                   low={model.low}
                   high={model.high}
@@ -581,11 +597,12 @@ export const ElterngeldOptimizer: React.FC = () => {
                     color: 'var(--fg-secondary)',
                   }}
                 >
-                  <strong>Not tax advice.</strong> The § 2e step reproduces the Lohnsteuer procedure the Elterngeldstelle
-                  applies, but the binding figure is the one in your Elterngeldbescheid, and depreciation elections are
-                  only open in the year of acquisition. Everything is calculated in your browser — no figure entered here
-                  is sent anywhere.
+                  {t('eg.disclaimer')}
                 </div>
+              </CardSection>
+
+              <CardSection title={t('eg.sourcesTitle')} gradient="from-slate-400 to-slate-600" delay="250ms">
+                <Sources />
               </CardSection>
             </>
           )}

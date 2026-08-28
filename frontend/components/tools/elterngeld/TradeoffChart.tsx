@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useId } from 'react';
+import { useTranslation } from '@/components/i18n/LanguageProvider';
 import type { SweepPoint } from '@/lib/local/elterngeld';
 import { eur } from './format';
 
@@ -23,12 +24,13 @@ const PAD = { top: 24, right: 20, bottom: 38, left: 76 };
  * so it is sampled rather than differentiated.
  */
 export default function TradeoffChart({ points, optimum, lowProfit, highProfit }: Props) {
+  const { t } = useTranslation();
   const gradientId = useId();
 
   if (points.length < 2) {
     return (
       <p className="text-sm" style={{ color: 'var(--muted)' }}>
-        Not enough data to plot the trade-off.
+        {t('eg.chartNoData')}
       </p>
     );
   }
@@ -78,7 +80,7 @@ export default function TradeoffChart({ points, optimum, lowProfit, highProfit }
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       style={{ width: '100%', height: 'auto', overflow: 'visible' }}
       role="img"
-      aria-label={`Net position by declared profit. Best result at ${optimum ? eur(optimum.annualProfit) : 'unknown'}.`}
+      aria-label={t('eg.chartAria', { profit: optimum ? eur(optimum.annualProfit) : '—' })}
     >
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -105,8 +107,8 @@ export default function TradeoffChart({ points, optimum, lowProfit, highProfit }
       <path d={area} fill={`url(#${gradientId})`} />
       <path d={line} fill="none" stroke="#f59e0b" strokeWidth={2.5} strokeLinejoin="round" />
 
-      {marker(lowProfit, 'lower')}
-      {marker(highProfit, 'higher')}
+      {marker(lowProfit, t('eg.chartLower'))}
+      {marker(highProfit, t('eg.chartHigher'))}
 
       {optimum && (
         <g>
@@ -126,7 +128,7 @@ export default function TradeoffChart({ points, optimum, lowProfit, highProfit }
             fontWeight={700}
             fill="var(--success)"
           >
-            {`best ${eur(optimum.annualProfit)}`}
+            {t('eg.chartBest', { profit: eur(optimum.annualProfit) })}
           </text>
         </g>
       )}

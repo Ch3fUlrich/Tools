@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 import AuthProviderClient from "@/components/auth/AuthProviderClient";
+import { LanguageProvider } from "@/components/i18n/LanguageProvider";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ThemeInitializer from "@/components/ThemeInitializer";
@@ -69,6 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.variable}>
       <body className="antialiased vsc-initialized text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900">
         <AuthProviderClient>
+          <LanguageProvider>
           <ThemeInitializer />
           {/* Skip-to-content link for keyboard / screen reader users */}
           <a
@@ -84,6 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="site-container">{children}</div>
           </ErrorBoundary>
           <Footer />
+          </LanguageProvider>
         </AuthProviderClient>
       </body>
     </html>

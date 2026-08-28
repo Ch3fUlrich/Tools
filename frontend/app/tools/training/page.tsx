@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function TrainingPage() {
   return (
-    <ToolPage title="Training Tracker" description="Track workouts with physics-based energy calculation and muscle activation heat maps." emoji="💪" gradientFrom="from-orange-500" gradientTo="to-red-600">
+    <ToolPage titleKey="tools.training.title" descriptionKey="tools.training.description" title="Training Tracker" description="Track workouts with physics-based energy calculation and muscle activation heat maps." emoji="💪" gradientFrom="from-orange-500" gradientTo="to-red-600">
       <TrainingTracker />
     </ToolPage>
   );
