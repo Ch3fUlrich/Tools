@@ -52,6 +52,8 @@ const baseHousehold: HouseholdProfile = {
   deductionsBaseYear: 0,
   deductionsLeaveYear: 0,
   futureReliefRate: 0,
+  taxPrepaidBaseYear: 0,
+  taxPrepaidLeaveYear: 0,
   children: 0,
   maternity: { enabled: false, weeksBefore: 6, weeksAfter: 8, extraContributionTotal: 0 },
 };
@@ -516,6 +518,78 @@ describe('Zusammenveranlagung vs Einzelveranlagung', () => {
       partnerIncomeLeaveYear: 50_000,
     });
     expect(result.scenarios[0].filingComparison.better).toBe('married');
+  });
+});
+
+describe('net position accounting', () => {
+  const bare = { ...baseHousehold, profitDeltaKind: 'cash' as const };
+
+  it('is exactly income − tax + Elterngeld in the simplest case', () => {
+    const s = compareScenarios([{ label: 'a', annualProfit: 20_000 }], baseProfile, bare).scenarios[0];
+    expect(s.netPosition).toBeCloseTo(20_000 - s.baseYearTax.total + s.amount.total, 6);
+  });
+
+  it('treats leave-year earnings as income, not as a pure tax bill', () => {
+    const idle = compareScenarios([{ label: 'a', annualProfit: 20_000 }], baseProfile, bare).scenarios[0];
+    const earning = compareScenarios([{ label: 'a', annualProfit: 20_000 }], baseProfile, {
+      ...bare,
+      applicantIncomeLeaveYear: 30_000,
+    }).scenarios[0];
+
+    // Earning 30,000 must leave the household better off, never worse.
+    expect(earning.netPosition).toBeGreaterThan(idle.netPosition);
+    expect(earning.netPosition - idle.netPosition).toBeCloseTo(
+      30_000 - (earning.leaveYearTax.total - idle.leaveYearTax.total),
+      6,
+    );
+  });
+
+  it('credits the Kindergeld it charges back through the Hinzurechnung', () => {
+    const noKids = compareScenarios([{ label: 'a', annualProfit: 20_000 }], baseProfile, bare).scenarios[0];
+    const kids = compareScenarios([{ label: 'a', annualProfit: 20_000 }], baseProfile, {
+      ...bare,
+      children: 2,
+    }).scenarios[0];
+
+    // Kindergeld is received in both the assessment year and the leave year.
+    const kindergeldPerYear = 2 * 259 * 12;
+    expect(kids.netPosition - noKids.netPosition).toBeCloseTo(2 * kindergeldPerYear, 6);
+  });
+
+  it('never lets children make a high-earning household look poorer', () => {
+    const rich = { ...bare, filing: 'married' as const, partnerIncomeBaseYear: 250_000 };
+    const without = compareScenarios([{ label: 'a', annualProfit: 20_000 }], baseProfile, rich).scenarios[0];
+    const with2 = compareScenarios([{ label: 'a', annualProfit: 20_000 }], baseProfile, {
+      ...rich,
+      children: 2,
+    }).scenarios[0];
+
+    // Here the Kinderfreibetrag wins, so the assessed tax carries the Kindergeld as a
+    // Hinzurechnung (§ 31 Satz 5 EStG). The payment has to be credited alongside it.
+    expect(with2.baseYearTax.kinderfreibetragUsed).toBeGreaterThan(0);
+    expect(with2.netPosition).toBeGreaterThan(without.netPosition);
+  });
+
+  it('reports the refund or back-payment against what was already paid', () => {
+    const s = compareScenarios([{ label: 'a', annualProfit: 20_000 }], baseProfile, {
+      ...bare,
+      taxPrepaidBaseYear: 6_500,
+    }).scenarios[0];
+    expect(s.baseYearSettlement).toBeCloseTo(6_500 - s.baseYearTax.total, 6);
+  });
+});
+
+describe('§ 2e Abs. 4 BEEG church tax', () => {
+  it('uses the statutory flat 8 % regardless of the household rate', () => {
+    const at8 = elterngeldNetto({ ...baseProfile, annualProfit: 40_000, churchTaxPercent: 8 });
+    const at9 = elterngeldNetto({ ...baseProfile, annualProfit: 40_000, churchTaxPercent: 9 });
+    expect(at9.monthlyNetto).toBeCloseTo(at8.monthlyNetto, 10);
+  });
+
+  it('still charges nothing for someone who is not a church member', () => {
+    const none = elterngeldNetto({ ...baseProfile, annualProfit: 40_000, churchTaxPercent: 0 });
+    const at8 = elterngeldNetto({ ...baseProfile, annualProfit: 40_000, churchTaxPercent: 8 });
+    expect(none.monthlyNetto).toBeGreaterThan(at8.monthlyNetto);
   });
 });
 

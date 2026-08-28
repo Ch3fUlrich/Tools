@@ -34,6 +34,7 @@ export default function ScenarioTable({ low, high }: Props) {
     { kind: 'value', label: 'Elterngeld-Netto per month', low: low.netto.monthlyNetto, high: high.netto.monthlyNetto, format: 'eur' },
     { kind: 'value', label: 'Replacement rate', low: low.amount.rate, high: high.amount.rate, format: 'percent' },
     { kind: 'value', label: 'Income tax + SolZ + KiSt', low: -low.baseYearTax.total, high: -high.baseYearTax.total, format: 'eur' },
+    { kind: 'value', label: 'Refund (+) or back-payment (−)', low: low.baseYearSettlement, high: high.baseYearSettlement, format: 'eur' },
     { kind: 'section', label: 'Parental leave' },
     { kind: 'value', label: 'Basiselterngeld per month', low: low.amount.basisMonthly, high: high.amount.basisMonthly, format: 'eur' },
     { kind: 'value', label: 'ElterngeldPlus per month', low: low.amount.plusMonthly, high: high.amount.plusMonthly, format: 'eur' },

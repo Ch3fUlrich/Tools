@@ -164,6 +164,10 @@ export interface HouseholdProfile {
   deductionsBaseYear: number;
   /** Sonderausgaben / Vorsorgeaufwendungen deducted from zvE in the leave year. */
   deductionsLeaveYear: number;
+  /** Lohnsteuer withheld plus Vorauszahlungen already made for the assessment year. */
+  taxPrepaidBaseYear: number;
+  /** Lohnsteuer withheld plus Vorauszahlungen already made for the leave year. */
+  taxPrepaidLeaveYear: number;
   /**
    * Marginal rate at which deductions postponed out of the assessment year will
    * eventually be usable. Depreciation and write-offs are timing differences, not
@@ -259,10 +263,13 @@ export function elterngeldNetto(profile: ElterngeldProfile): ElterngeldNettoBrea
   const taxSimulationBase = Math.max(0, annualBase - arbeitnehmerPauschbetrag - vp);
 
   // Steuerklasse IV means the Grundtarif is applied to the individual's own income.
+  // § 2e Abs. 4 BEEG fixes the Kirchensteuer at 8 % for this simulation regardless of
+  // the Land's actual 8/9 % rate, so a Bavarian and a Berlin claimant with the same
+  // profit get the same Elterngeld.
   const tax = calculateTax(taxSimulationBase, {
     tariff: getTariff(profile.baseYear),
     filing: 'single',
-    churchTaxPercent: profile.churchTaxPercent,
+    churchTaxPercent: profile.churchTaxPercent > 0 ? 8 : 0,
   });
 
   const monthlyTax = tax.total / 12;
@@ -535,8 +542,14 @@ export interface ScenarioResult {
   deferredDeductionValue: number;
   /** Entitlement is lost above 175,000 € zvE (§ 1 Abs. 8 BEEG). */
   exceedsIncomeLimit: boolean;
-  /** Household cash after tax in the assessment year. */
+  /** Household cash after tax in the assessment year, incl. Kindergeld. */
   baseYearNetIncome: number;
+  /** Household cash after tax in the leave year, incl. Kindergeld, excl. the benefits. */
+  leaveYearNetIncome: number;
+  /** Positive = refund, negative = back-payment, for the assessment year. */
+  baseYearSettlement: number;
+  /** Positive = refund, negative = back-payment, for the leave year. */
+  leaveYearSettlement: number;
   /** Mutterschaftsgeld, or null when the Krankengeld entitlement is not elected. */
   maternity: MaternityResult | null;
   /** Elterngeld actually paid out, after the § 3 BEEG credit. */
@@ -546,11 +559,11 @@ export interface ScenarioResult {
   /** Joint vs. separate assessment in the leave year. */
   filingComparison: FilingComparison;
   /**
-   * Bottom line across both years:
-   *   base-year income after tax
-   * + Elterngeld received (after the § 3 BEEG credit) + Mutterschaftsgeld
+   * Household money across both years:
+   *   assessment-year income + Kindergeld − assessment-year tax
+   * + leave-year income     + Kindergeld − leave-year tax (incl. Progressionsvorbehalt)
+   * + Elterngeld after the § 3 BEEG credit + Mutterschaftsgeld
    * − extra health-insurance contributions for the Krankengeld election
-   * − leave-year tax
    * + later relief for the postponed deductions
    */
   netPosition: number;
@@ -643,9 +656,23 @@ export function evaluateScenario(
   const cashProfit =
     household.profitDeltaKind === 'timing' ? referenceProfit : profile.annualProfit;
 
-  const baseYearNetIncome =
-    cashProfit + profile.annualEmploymentGross + household.partnerIncomeBaseYear
-    - baseYearTax.total;
+  // Kindergeld is money the household actually receives. It has to be counted, because
+  // where the Kinderfreibetrag wins the Günstigerprüfung the assessed tax already
+  // includes the Kindergeld as a Hinzurechnung (§ 31 Satz 5 EStG) — charging that
+  // without crediting the payment would make children look like a pure cost.
+  const baseYearIncome =
+    cashProfit + profile.annualEmploymentGross + household.partnerIncomeBaseYear;
+  const baseYearNetIncome = baseYearIncome + baseYearTax.kindergeld - baseYearTax.total;
+
+  // The leave year is a full year of the household's life, not just a tax bill: the
+  // partner keeps earning. Subtracting its tax without adding its income made earning
+  // more in the leave year look like a loss.
+  const leaveYearIncome =
+    household.applicantIncomeLeaveYear + household.partnerIncomeLeaveYear;
+  const leaveYearNetIncome = leaveYearIncome + leaveYearTax.kindergeld - leaveYearTax.total;
+
+  const baseYearSettlement = household.taxPrepaidBaseYear - baseYearTax.total;
+  const leaveYearSettlement = household.taxPrepaidLeaveYear - leaveYearTax.total;
 
   return {
     label,
@@ -664,11 +691,14 @@ export function evaluateScenario(
     elterngeldAfterCredit,
     benefitsTotal,
     filingComparison,
+    leaveYearNetIncome,
+    baseYearSettlement,
+    leaveYearSettlement,
     netPosition:
       baseYearNetIncome +
+      leaveYearNetIncome +
       benefitsTotal -
-      (maternity?.extraContributionTotal ?? 0) -
-      leaveYearTax.total +
+      (maternity?.extraContributionTotal ?? 0) +
       deferredDeductionValue,
   };
 }

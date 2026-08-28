@@ -129,6 +129,9 @@ export const ElterngeldOptimizer: React.FC = () => {
   const [employmentGross, setEmploymentGross] = useState(EXAMPLE.employmentGross);
   const [relief, setRelief] = useState(EXAMPLE.relief);
 
+  const [prepaidBase, setPrepaidBase] = useState('0');
+  const [prepaidLeave, setPrepaidLeave] = useState('0');
+
   const [partnerBase, setPartnerBase] = useState('0');
   const [partnerLeave, setPartnerLeave] = useState('0');
   const [ownLeave, setOwnLeave] = useState('0');
@@ -198,6 +201,8 @@ export const ElterngeldOptimizer: React.FC = () => {
       applicantIncomeLeaveYear: Math.max(0, parseAmount(ownLeave)),
       deductionsBaseYear: 0,
       deductionsLeaveYear: 0,
+      taxPrepaidBaseYear: Math.max(0, parseAmount(prepaidBase)),
+      taxPrepaidLeaveYear: Math.max(0, parseAmount(prepaidLeave)),
       futureReliefRate: Math.min(1, Math.max(0, parseAmount(relief) / 100)),
       children: Math.max(0, parseAmount(children)),
       maternity: {
@@ -248,6 +253,8 @@ export const ElterngeldOptimizer: React.FC = () => {
     churchTaxPercent,
     partnerBase,
     partnerLeave,
+    prepaidBase,
+    prepaidLeave,
     ownLeave,
     pflichtKV,
     pflichtRV,
@@ -345,6 +352,14 @@ export const ElterngeldOptimizer: React.FC = () => {
               </Field>
               <Field id="eg-partner-leave" label="Partner income" hint="leave yr">
                 <NumberInput id="eg-partner-leave" value={partnerLeave} onChange={setPartnerLeave} step={500} min={0} unit="€" />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="eg-prepaid-base" label="Tax already paid" hint="Lohnsteuer + Vorauszahlungen, assessment yr">
+                <NumberInput id="eg-prepaid-base" value={prepaidBase} onChange={setPrepaidBase} step={500} min={0} unit="€" />
+              </Field>
+              <Field id="eg-prepaid-leave" label="Tax already paid" hint="leave yr">
+                <NumberInput id="eg-prepaid-leave" value={prepaidLeave} onChange={setPrepaidLeave} step={500} min={0} unit="€" />
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-3">
