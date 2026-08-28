@@ -12,4 +12,4 @@ docker run -d -p 6805:6805 --name tools-frontend tools-frontend
 sleep 3
 curl -I http://localhost:6805/
 ```
-Health check and headers are similar to the example; see `docker/nginx.conf` and `docker/security-headers.conf` for details.
+Health check and headers are similar to the example; see `docker/nginx.conf` and `scripts/generate-csp.mjs` for details.

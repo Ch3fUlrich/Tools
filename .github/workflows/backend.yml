@@ -10,6 +10,10 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+# Least-privilege default: no job here needs to write to the repository.
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Test & Lint

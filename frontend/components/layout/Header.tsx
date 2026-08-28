@@ -172,6 +172,14 @@ export default function Header() {
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">💪</span>
               <span className="nav-label truncate">Training</span>
             </Link>
+            <Link
+              href="/tools/elterngeld"
+              className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`}
+              aria-label="Elterngeld Optimizer"
+            >
+              <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🍼</span>
+              <span className="nav-label truncate">Elterngeld</span>
+            </Link>
           </nav>
         </div>
 
@@ -213,6 +221,9 @@ export default function Header() {
                 </Link>
                 <Link href="/tools/training" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
                   <span className="mr-3">💪</span>Training Tracker
+                </Link>
+                <Link href="/tools/elterngeld" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
+                  <span className="mr-3">🍼</span>Elterngeld Optimizer
                 </Link>
                 <div style={{margin:'0.5rem 0', borderTop:'1px solid var(--card-border)'}}></div>
                 <Link href="/auth" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>

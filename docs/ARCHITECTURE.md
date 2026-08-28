@@ -260,7 +260,7 @@ Tools/
 │   ├── frontend.Dockerfile           Multi-stage: Node 24 Alpine builder → nginx-unprivileged runtime
 │   ├── backend.Dockerfile            Multi-stage: Rust builder (musl) → distroless/static runtime
 │   ├── nginx.conf                    Nginx config template (PORT env var substitution)
-│   ├── security-headers.conf         CSP, HSTS, X-Frame-Options, etc.
+│   ├── security-headers.generated.conf  CSP (build-generated), X-Frame-Options, etc.
 │   ├── docker-entrypoint.sh          Validates PORT, substitutes nginx template, execs nginx
 │   └── healthcheck/healthcheck.go    Tiny Go binary for backend container healthcheck
 │

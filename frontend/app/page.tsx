@@ -72,6 +72,15 @@ export default function Home() {
       emoji: '🧭',
       animationDelay: '500ms',
     },
+    {
+      title: 'Elterngeld Optimizer',
+      href: '/tools/elterngeld',
+      description: 'Weigh a higher declared profit and its income tax against the higher German Elterngeld it buys.',
+      gradient: 'linear-gradient(135deg, #fbbf24 0%, #f97316 100%)',
+      glowColor: 'rgba(251,191,36,0.25)',
+      emoji: '🍼',
+      animationDelay: '600ms',
+    },
   ];
 
   const filtered = tools.filter(t =>

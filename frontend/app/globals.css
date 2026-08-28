@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+/* Inter is self-hosted at build time via next/font in app/layout.tsx (--font-inter).
+   Never re-add an external @import: it leaks visitor IPs to a third party and
+   breaks the strict Content-Security-Policy in docker/security-headers.conf. */
 
 /* Tailwind v4: explicitly declare source paths so all TSX/JSX utility classes are generated */
 @source "../app";
@@ -12,7 +14,7 @@
 /* Enhanced base styles with modern design tokens */
 :root, html, body {
   /* Include a generic fallback to satisfy stylelint and ensure predictable rendering */
-  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Ensure consistent box-sizing and width so theme toggles don't affect layout metrics */
@@ -163,9 +165,17 @@ html, body, #__next {
 
 /* Modern Layout Containers */
 .site-container {
-  width: max-content;
-  min-width: 100%;
-  max-width: none;
+  /*
+   * Fit the viewport by default. This used to be `width: max-content`, which made the
+   * whole layout chain content-sized: any child wider than the screen dragged the entire
+   * page with it, so every page had a horizontal scrollbar. The `max-w-*` utilities that
+   * were meant to cap it are never emitted (Tailwind v4 does not generate them here).
+   * The max-content behaviour is still available below — but only once a card has actually
+   * been resized, which is the one case where growing the page is what the user asked for.
+   */
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   margin-left: auto;
   margin-right: auto;
   padding: 2rem 1.5rem;
@@ -175,7 +185,27 @@ html, body, #__next {
 }
 
 .site-container:has(.resizable-card[data-has-explicit-size="true"]) {
+  width: max-content;
   min-width: 0;
+  max-width: none;
+}
+
+/*
+ * With the container definite, a plain percentage is enough to stop a wide child
+ * (a table, a chart, a block of equations) from widening the page. Those children
+ * carry their own `overflow-x: auto`, so they scroll inside their own box instead.
+ *
+ * `.tool-page-main` needs its own entry: `ToolPage` renders its <main> inside a
+ * `.min-h-screen` wrapper, so `.site-container > main` never matches it. It carries
+ * Tailwind `w-fit` (`width: fit-content`), and `fit-content` resolves to
+ * `max(min-content, available)` — so a child with a large min-content (the blood
+ * level intake table sets `min-width: 760px`) pushed <main> past the viewport. The
+ * `max-w-7xl` that was meant to cap it is never emitted by Tailwind v4 here.
+ */
+.site-container > main,
+.tool-page-main,
+.tool-page-frame {
+  max-width: 100%;
 }
 
 .tool-page-main:has(.resizable-card[data-has-explicit-size="true"]),

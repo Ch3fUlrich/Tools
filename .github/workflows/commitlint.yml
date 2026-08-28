@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+# Least-privilege default: no job here needs to write to the repository.
+permissions:
+  contents: read
+
 jobs:
   commitlint:
     name: Validate commit messages (Conventional Commits)

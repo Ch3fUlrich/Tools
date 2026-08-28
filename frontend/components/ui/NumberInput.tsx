@@ -51,7 +51,27 @@ export default function NumberInput({ id, value, onChange, step = 1, min = 0, pl
         </button>
       </div>
 
-      {unit && <span className="absolute right-20 top-3 text-sm text-gray-500 dark:text-gray-400">{unit}</span>}
+      {/*
+        Positioned inline on purpose: Tailwind v4 does not emit `absolute`/`right-20`/
+        `top-3` in this project, so the unit fell out of the wrapper's positioning
+        context and rendered as a stray line under the field. `.number-input` is
+        `position: relative` (globals.css), so this anchors to the field itself.
+      */}
+      {unit && (
+        <span
+          className="text-sm"
+          style={{
+            position: 'absolute',
+            right: '3rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'var(--muted)',
+            pointerEvents: 'none',
+          }}
+        >
+          {unit}
+        </span>
+      )}
     </div>
   );
 }
