@@ -4,6 +4,8 @@ import TimelineBuilder from '@/components/tools/TimelineBuilder';
 export default function TimelineBuilderPage() {
   return (
     <ToolPage
+      titleKey="tools.timeline.title"
+      descriptionKey="tools.timeline.description"
       title="Timeline Builder"
       description="Create, edit, import, and export visual timelines with draggable stages, markers, and range blocks."
       emoji="🧭"

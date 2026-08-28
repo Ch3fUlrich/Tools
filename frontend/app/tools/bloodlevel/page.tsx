@@ -8,6 +8,8 @@ export const metadata = {
 export default function BloodLevelPage() {
   return (
     <ToolPage
+      titleKey="tools.bloodLevel.title"
+      descriptionKey="tools.bloodLevel.description"
       title="Blood Level Calculator"
       description="Calculate substance elimination and blood levels over time using pharmacokinetic models."
       emoji="🧪"

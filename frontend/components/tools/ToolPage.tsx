@@ -1,7 +1,15 @@
+"use client";
+
 import React from 'react';
+import { useTranslation } from '@/components/i18n/LanguageProvider';
+import type { MessageKey } from '@/lib/i18n/messages';
 
 type Props = {
   title: string;
+  /** Catalogue key for the title; wins over `title` when the language changes. */
+  titleKey?: MessageKey;
+  /** Catalogue key for the description. */
+  descriptionKey?: MessageKey;
   description?: string;
   /** Emoji shown inside the gradient icon box, e.g. "🏋️" */
   emoji?: string;
@@ -24,6 +32,8 @@ type Props = {
  */
 export default function ToolPage({
   title,
+  titleKey,
+  descriptionKey,
   description,
   emoji,
   gradientFrom = 'from-purple-500',
@@ -31,6 +41,10 @@ export default function ToolPage({
   maxWidthClassName = 'max-w-7xl',
   children,
 }: Props) {
+  const { t } = useTranslation();
+  const heading = titleKey ? t(titleKey) : title;
+  const subtitle = descriptionKey ? t(descriptionKey) : description;
+
   return (
     <div className="min-h-screen" style={{background:'var(--bg)'}}>
       <main id="main-content" className={`tool-page-main ${maxWidthClassName} w-fit min-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16`}>
@@ -40,20 +54,20 @@ export default function ToolPage({
             <div className="flex items-center justify-center gap-4 mb-4">
               {emoji && (
                 <div className={`p-3 bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-2xl`} style={{boxShadow:'0 8px 32px -8px rgba(124,58,237,0.35)'}}>
-                  <span className="text-3xl" role="img" aria-label={title}>{emoji}</span>
+                  <span className="text-3xl" role="img" aria-label={heading}>{emoji}</span>
                 </div>
               )}
               <h1 className="text-3xl sm:text-4xl font-bold" style={{background:'var(--gradient-primary)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>
-                {title}
+                {heading}
               </h1>
             </div>
-            {description && (
+            {subtitle && (
               // maxWidth is set inline on purpose: Tailwind v4 does not always emit
               // `max-w-2xl` here, and without a cap the description's max-content width
               // drives the whole `w-fit` frame — a long description then makes the page
               // wider than the viewport.
               <p className="text-lg max-w-2xl mx-auto" style={{color:'var(--muted)', maxWidth:'42rem'}}>
-                {description}
+                {subtitle}
               </p>
             )}
           </div>

@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import LanguageToggle from '@/components/layout/LanguageToggle';
 import { useAuth } from '@/components/auth/AuthContext';
 
 export default function UserControls() {
@@ -10,6 +11,7 @@ export default function UserControls() {
 
   return (
     <div className="flex items-center gap-3">
+      <LanguageToggle />
       <ThemeToggle />
 
       {/* Right-side controls: when signed in show profile button; otherwise show sign-in */}

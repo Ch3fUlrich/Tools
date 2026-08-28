@@ -5,6 +5,7 @@ import Link from 'next/link';
 import React, { useEffect, useRef } from 'react';
 import UserControls from '@/components/layout/UserControls';
 import { useAuth } from '@/components/auth/AuthContext';
+import { useTranslation } from '@/components/i18n/LanguageProvider';
 
 export default function Header() {
   const siteRef = useRef<HTMLDivElement | null>(null);
@@ -14,6 +15,7 @@ export default function Header() {
   const rightRef = useRef<HTMLDivElement | null>(null);
   const dropdownRef = useRef<HTMLDetailsElement | null>(null);
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation();
 
   const closeDropdown = () => dropdownRef.current?.removeAttribute('open');
 
@@ -130,7 +132,7 @@ export default function Header() {
               aria-label="Dice"
             >
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🎲</span>
-              <span className="nav-label truncate">Dice</span>
+              <span className="nav-label truncate">{t('nav.dice')}</span>
             </Link>
             <Link 
               href="/tools/fat-loss" 
@@ -138,7 +140,7 @@ export default function Header() {
               aria-label="Fat"
             >
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🏋️</span>
-              <span className="nav-label truncate">Fat</span>
+              <span className="nav-label truncate">{t('nav.fatLoss')}</span>
             </Link>
             <Link 
               href="/tools/n26" 
@@ -146,7 +148,7 @@ export default function Header() {
               aria-label="N26"
             >
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🏦</span>
-              <span className="nav-label truncate">N26</span>
+              <span className="nav-label truncate">{t('nav.n26')}</span>
             </Link>
             <Link 
               href="/tools/bloodlevel" 
@@ -154,7 +156,7 @@ export default function Header() {
               aria-label="Blood Level"
             >
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🧪</span>
-              <span className="nav-label truncate">Blood Level</span>
+              <span className="nav-label truncate">{t('nav.bloodLevel')}</span>
             </Link>
             <Link
               href="/tools/timeline"
@@ -162,7 +164,7 @@ export default function Header() {
               aria-label="Timeline Builder"
             >
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🧭</span>
-              <span className="nav-label truncate">Timeline</span>
+              <span className="nav-label truncate">{t('nav.timeline')}</span>
             </Link>
             <Link
               href="/tools/training"
@@ -170,7 +172,7 @@ export default function Header() {
               aria-label="Training Tracker"
             >
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">💪</span>
-              <span className="nav-label truncate">Training</span>
+              <span className="nav-label truncate">{t('nav.training')}</span>
             </Link>
             <Link
               href="/tools/elterngeld"
@@ -178,7 +180,7 @@ export default function Header() {
               aria-label="Elterngeld Optimizer"
             >
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🍼</span>
-              <span className="nav-label truncate">Elterngeld</span>
+              <span className="nav-label truncate">{t('nav.elterngeld')}</span>
             </Link>
           </nav>
         </div>
@@ -194,7 +196,7 @@ export default function Header() {
                 className="list-none rounded-lg transition-colors duration-200 cursor-pointer"
                 style={{padding:'0.5rem 0.75rem', display:'block'}}
                 aria-haspopup="true"
-                aria-label="Open tools menu"
+                aria-label={t('common.openMenu')}
               >
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:20,height:20,color:'var(--fg)'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -202,33 +204,33 @@ export default function Header() {
               </summary>
               <div className="popup-panel animate-scale-in" style={{position:'absolute', right:0, top:'calc(100% + 0.5rem)', width:240, padding:'0.5rem', zIndex:100}}>
                 <div className="uppercase tracking-wider" style={{padding:'0.5rem 0.75rem', fontSize:'0.75rem', fontWeight:700, color:'var(--muted)'}}>
-                  Tools
+                  {t('common.tools')}
                 </div>
                 <Link href="/tools/dice" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
-                  <span className="mr-3">🎲</span>Dice Roller
+                  <span className="mr-3">🎲</span>{t('tools.dice.title')}
                 </Link>
                 <Link href="/tools/fat-loss" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
-                  <span className="mr-3">🏋️</span>Fat Loss Calculator
+                  <span className="mr-3">🏋️</span>{t('tools.fatLoss.title')}
                 </Link>
                 <Link href="/tools/n26" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
-                  <span className="mr-3">🏦</span>N26 Transaction Analyzer
+                  <span className="mr-3">🏦</span>{t('tools.n26.title')}
                 </Link>
                 <Link href="/tools/bloodlevel" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
-                  <span className="mr-3">🧪</span>Blood Level Calculator
+                  <span className="mr-3">🧪</span>{t('tools.bloodLevel.title')}
                 </Link>
                 <Link href="/tools/timeline" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
-                  <span className="mr-3">🧭</span>Timeline Builder
+                  <span className="mr-3">🧭</span>{t('tools.timeline.title')}
                 </Link>
                 <Link href="/tools/training" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
-                  <span className="mr-3">💪</span>Training Tracker
+                  <span className="mr-3">💪</span>{t('tools.training.title')}
                 </Link>
                 <Link href="/tools/elterngeld" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
-                  <span className="mr-3">🍼</span>Elterngeld Optimizer
+                  <span className="mr-3">🍼</span>{t('tools.elterngeld.title')}
                 </Link>
                 <div style={{margin:'0.5rem 0', borderTop:'1px solid var(--card-border)'}}></div>
                 <Link href="/auth" onClick={closeDropdown} className="btn-ghost block w-full text-left no-underline rounded-lg transition-colors duration-200" style={{padding:'0.625rem 0.75rem', fontSize:'0.875rem', color:'var(--fg)'}}>
                   <span className="mr-3">{isAuthenticated ? '👤' : '🔐'}</span>
-                  {isAuthenticated ? 'Profile' : 'Sign In'}
+                  {isAuthenticated ? t('common.profile') : t('common.signIn')}
                 </Link>
               </div>
             </details>

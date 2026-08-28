@@ -3,12 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth, UserProfile } from '@/components/auth';
+import { useTranslation } from '@/components/i18n/LanguageProvider';
 
 export default function Home() {
   useEffect(() => {
     document.title = 'Tools Collection';
   }, []);
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -19,63 +21,63 @@ export default function Home() {
 
   const tools = [
     {
-      title: 'Fat Loss Calculator',
+      title: t('tools.fatLoss.title'),
       href: '/tools/fat-loss',
-      description: 'Calculate the percentage of fat vs muscle loss based on your calorie deficit and weight loss.',
+      description: t('tools.fatLoss.description'),
       gradient: 'linear-gradient(135deg, #34d399 0%, #059669 100%)',
       glowColor: 'rgba(52,211,153,0.25)',
       emoji: '🏋️',
       animationDelay: '0ms',
     },
     {
-      title: 'N26 Transaction Analyzer',
+      title: t('tools.n26.title'),
       href: '/tools/n26',
-      description: 'Analyze your N26 bank transactions, view spending patterns, and get insights into your financial data.',
+      description: t('tools.n26.description'),
       gradient: 'linear-gradient(135deg, #60a5fa 0%, #0284c7 100%)',
       glowColor: 'rgba(96,165,250,0.25)',
       emoji: '🏦',
       animationDelay: '100ms',
     },
     {
-      title: 'Dice Roller',
+      title: t('tools.dice.title'),
       href: '/tools/dice',
-      description: 'Roll dice with various options including advantage/disadvantage and custom dice types.',
+      description: t('tools.dice.description'),
       gradient: 'linear-gradient(135deg, #a78bfa 0%, #ec4899 100%)',
       glowColor: 'rgba(167,139,250,0.25)',
       emoji: '🎲',
       animationDelay: '200ms',
     },
     {
-      title: 'Blood Level Calculator',
+      title: t('tools.bloodLevel.title'),
       href: '/tools/bloodlevel',
-      description: 'Calculate substance elimination and blood levels over time using pharmacokinetic models.',
+      description: t('tools.bloodLevel.description'),
       gradient: 'linear-gradient(135deg, #f87171 0%, #db2777 100%)',
       glowColor: 'rgba(248,113,113,0.25)',
       emoji: '🧪',
       animationDelay: '300ms',
     },
     {
-      title: 'Training Tracker',
+      title: t('tools.training.title'),
       href: '/tools/training',
-      description: 'Track workouts with physics-based energy calculation and muscle activation heat maps.',
+      description: t('tools.training.description'),
       gradient: 'linear-gradient(135deg, #f97316 0%, #dc2626 100%)',
       glowColor: 'rgba(249,115,22,0.25)',
       emoji: '💪',
       animationDelay: '400ms',
     },
     {
-      title: 'Timeline Builder',
+      title: t('tools.timeline.title'),
       href: '/tools/timeline',
-      description: 'Create editable visual timelines with stages, markers, range blocks, presets, and export options.',
+      description: t('tools.timeline.description'),
       gradient: 'linear-gradient(135deg, #22d3ee 0%, #14b8a6 100%)',
       glowColor: 'rgba(34,211,238,0.25)',
       emoji: '🧭',
       animationDelay: '500ms',
     },
     {
-      title: 'Elterngeld Optimizer',
+      title: t('tools.elterngeld.title'),
       href: '/tools/elterngeld',
-      description: 'Weigh a higher declared profit and its income tax against the higher German Elterngeld it buys.',
+      description: t('tools.elterngeld.shortDescription'),
       gradient: 'linear-gradient(135deg, #fbbf24 0%, #f97316 100%)',
       glowColor: 'rgba(251,191,36,0.25)',
       emoji: '🍼',
@@ -96,10 +98,10 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div className="animate-fade-in-up">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold" style={{background:'var(--gradient-primary)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>
-                Tools Collection
+                {t('common.appName')}
               </h1>
               <p className="mt-2 text-sm sm:text-base" style={{color:'var(--muted)'}}>
-                A collection of useful tools for everyday tasks
+                {t('common.tagline')}
               </p>
             </div>
 
@@ -118,8 +120,8 @@ export default function Home() {
             <div className="relative flex-1 max-w-2xl">
               <input
                 type="search"
-                aria-label="Search tools"
-                placeholder="Search tools by name or description..."
+                aria-label={t('common.searchLabel')}
+                placeholder={t('common.searchPlaceholder')}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 style={{paddingRight:'3rem'}}

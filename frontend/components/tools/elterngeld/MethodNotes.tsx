@@ -8,6 +8,7 @@ import {
   type HouseholdProfile,
   type ScenarioResult,
 } from '@/lib/local/elterngeld';
+import { useTranslation } from '@/components/i18n/LanguageProvider';
 import { eur, eur2, percent } from './format';
 
 interface Props {
@@ -70,6 +71,7 @@ function Note({ children }: { children: React.ReactNode }) {
  * caller's own numbers substituted in, so the result can be checked by hand.
  */
 export default function MethodNotes({ low, high, household, basisMonths }: Props) {
+  const { t } = useTranslation();
   const n = high.netto;
   const socialPercent = `${(n.socialRate * 100).toFixed(0)} %`;
   const extraTax = high.baseYearTax.total - low.baseYearTax.total;
@@ -78,12 +80,10 @@ export default function MethodNotes({ low, high, household, basisMonths }: Props
   return (
     <div>
       <Note>
-        Elterngeld for a self-employed parent is derived from the profit of the{' '}
-        <strong style={{ color: 'var(--fg)' }}>last completed tax year before the birth</strong> (§ 2b Abs. 2 BEEG), not
-        from the months right before it. That single year is what the write-off decision turns on.
+        {t('eg.intro')}
       </Note>
 
-      <Step title="1 · From profit to Elterngeld-Netto (§§ 2c–2f BEEG)" open>
+      <Step title={t('eg.step1')} open>
         <Equation>{`monthly gross     = Gewinn / 12
                   = ${eur2(high.annualProfit)} / 12 = ${eur2(n.monthlyGross)}
 
@@ -100,7 +100,7 @@ Elterngeld-Netto  = ${eur2(n.monthlyGross)} − ${eur2(n.monthlySocialContributi
                   = ${eur2(n.monthlyNetto)}`}</Equation>
       </Step>
 
-      <Step title="2 · The replacement rate (§ 2 Abs. 2 BEEG)">
+      <Step title={t('eg.step2')}>
         <Equation>{`netto < 1.000 €  →  67 % + 0,1 pp per full 2 € below 1.000 €, up to 100 %
 1.000–1.200 €    →  67 %
 netto > 1.200 €  →  67 % − 0,1 pp per full 2 € above 1.200 €, down to 65 %
@@ -109,12 +109,11 @@ netto > 1.200 €  →  67 % − 0,1 pp per full 2 € above 1.200 €, down to 
 lower profit:  netto ${eur2(low.netto.monthlyNetto)}  →  ${percent(low.amount.rate)}
 higher profit: netto ${eur2(high.netto.monthlyNetto)}  →  ${percent(high.amount.rate)}`}</Equation>
         <Note>
-          This is why the gain flattens out. Past €1.240 of Elterngeld-Netto every additional euro is replaced at only
-          65 %, and past {eur(BEMESSUNG_CAP)} (§ 2 Abs. 1 Satz 3 BEEG) it is not replaced at all.
+          {t('eg.step2Note', { cap: eur(BEMESSUNG_CAP) })}
         </Note>
       </Step>
 
-      <Step title="3 · The monthly amount (§ 2, § 2a, § 4a BEEG)">
+      <Step title={t('eg.step3')}>
         <Equation>{`Basiselterngeld = clamp(rate × min(netto, ${eur(BEMESSUNG_CAP)}) − net income during leave,
                         ${eur(BASIS_MIN)}, ${eur(BASIS_MAX)})
                 + Geschwisterbonus (10 %, at least 75 €)
@@ -127,7 +126,7 @@ higher profit:  ${percent(high.amount.rate)} × ${eur2(high.amount.cappedNetto)}
       </Step>
 
       {high.maternity && (
-        <Step title="4 · Mutterschaftsgeld and the § 3 BEEG credit">
+        <Step title={t('eg.step4')}>
           <Equation>{`daily rate = 70 % × contributory income / 360
            = 70 % × ${eur2(Math.min(high.annualProfit, 69_750))} / 360 = ${eur2(high.maternity.dailyRate)}
 
@@ -138,21 +137,15 @@ Elterngeld credited away = ${eur2(high.maternity.elterngeldCredited)}   (§ 3 Ab
 extra contributions      = ${eur2(high.maternity.extraContributionTotal)}
 net gain from electing   = ${eur2(high.maternity.netGain)}`}</Equation>
           <Note>
-            The asymmetry is what makes this worth doing. § 3 Abs. 1 BEEG only credits maternity benefits
-            &ldquo;ab dem Tag der Geburt&rdquo;, so the six weeks paid <strong style={{ color: 'var(--fg)' }}>before</strong>{' '}
-            the birth fall outside every Lebensmonat and are kept on top of the Elterngeld. The weeks after the birth
-            merely replace Elterngeld euro for euro — and because the credit can only push Elterngeld down to zero,
-            never below, anything above it is kept too. There is no 300 € exemption here: § 3 Abs. 2 BEEG excludes it
-            where Mutterschaftsleistungen are credited.
+            {t('eg.step4Note')}
           </Note>
           <Note>
-            Since the benefit scales with the declared profit, electing Krankengeld makes the case for the higher profit
-            stronger, not weaker.
+            {t('eg.step4Note2')}
           </Note>
         </Step>
       )}
 
-      <Step title="5 · The cost side — and why it is smaller than it looks">
+      <Step title={t('eg.step5')}>
         <Equation>{`extra income tax = tax(zvE_higher) − tax(zvE_lower)
                  = ${eur2(high.baseYearTax.total)} − ${eur2(low.baseYearTax.total)} = ${eur2(extraTax)}
 
@@ -163,22 +156,14 @@ ${
 }`}</Equation>
         <Note>
           {household.profitDeltaKind === 'timing' ? (
-            <>
-              Depreciation elections are a <strong style={{ color: 'var(--fg)' }}>timing</strong> difference, not a
-              permanent one. Skipping a write-off this year does not destroy it — it lands in a later year instead. If
-              that later year falls inside parental leave, when the marginal rate is low, the deduction is worth less
-              then, which argues further for taking the profit now. The &ldquo;later relief&rdquo; input prices this in.
-            </>
+            t('eg.step5NoteTiming')
           ) : (
-            <>
-              You entered this as genuine extra earnings, so the additional profit is real money in hand and is counted
-              as such in the bottom line.
-            </>
+            t('eg.step5NoteCash')
           )}
         </Note>
       </Step>
 
-      <Step title="6 · Progressionsvorbehalt (§ 32b EStG)">
+      <Step title={t('eg.step6')}>
         <Equation>{`special rate = tax(zvE + benefits) / (zvE + benefits)
 tax due      = special rate × zvE        ← the benefits themselves stay tax-free
 
@@ -187,13 +172,11 @@ benefits = Elterngeld (Abs. 1 Nr. 1 Buchst. j) + Mutterschaftsgeld (Buchst. c)
 
 higher profit: ${eur2(high.leaveYearTaxWithoutProgression.total)} → ${eur2(high.leaveYearTax.total)}  (costs ${eur2(high.progressionCost)})`}</Equation>
         <Note>
-          Both Elterngeld and Mutterschaftsgeld are tax-free, but they lift the rate applied to every other euro the
-          household earns in the leave year. With no other income in that year it costs nothing — which is exactly why a
-          partner&rsquo;s salary matters here, and why the joint-or-separate question above is worth checking.
+          {t('eg.step6Note')}
         </Note>
       </Step>
 
-      <Step title="7 · The bottom line">
+      <Step title={t('eg.step7')}>
         <Equation>{`net position = base-year income after tax
              + Elterngeld after the § 3 BEEG credit + Mutterschaftsgeld
              − extra health-insurance contributions
@@ -204,8 +187,12 @@ lower profit:  ${eur2(low.netPosition)}
 higher profit: ${eur2(high.netPosition)}
 difference:    ${eur2(high.netPosition - low.netPosition)}`}</Equation>
         <Note>
-          The higher profit buys {eur2(extraElterngeld)} of extra Elterngeld for {eur2(extraTax)} of extra income tax
-          {high.maternity ? `, plus ${eur2(high.maternity.netGain - (low.maternity?.netGain ?? 0))} more from the Mutterschaftsgeld` : ''}.
+          {t('eg.step7Note', { benefit: eur2(extraElterngeld), tax: eur2(extraTax) })}
+          {high.maternity
+            ? t('eg.step7NoteMaternity', {
+                amount: eur2(high.maternity.netGain - (low.maternity?.netGain ?? 0)),
+              })
+            : ''}
         </Note>
       </Step>
     </div>
