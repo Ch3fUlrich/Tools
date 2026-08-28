@@ -39,6 +39,13 @@ All variables have sensible defaults for local development. Override via environ
 | `POSTGRES_DB` | `tools` | Postgres database name |
 | `POSTGRES_PORT` | `5432` | Host port mapped to Postgres |
 | `NGINX_PORT` | `8080` | Frontend host port |
+| `FRONTEND_URL` | `http://localhost:8080/` | Where the OIDC callback redirects the browser after login |
+| `OIDC_ISSUER` | *(unset)* | Authelia issuer URL, e.g. `https://auth.example.com` |
+| `OIDC_CLIENT_ID` | *(unset)* | OIDC client id registered with the provider |
+| `OIDC_CLIENT_SECRET` | *(unset)* | OIDC client secret (plaintext; the provider stores the hash) |
+| `OIDC_REDIRECT_URI` | *(unset)* | Must match the provider's registered redirect exactly |
+| `OIDC_PROVIDER_NAME` | `Authelia` | Name shown on the sign-in button |
+| `LOCAL_AUTH_ENABLED` | `false` | Email + password sign-in. Off by default: Authelia is the only login method |
 
 **Example `.env` for local overrides:**
 ```env

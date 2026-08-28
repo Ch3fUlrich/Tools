@@ -121,6 +121,7 @@ Unauthenticated users can still use most tools. Dice history falls back to Redis
 |-------|---------|
 | `users` | User accounts (id, email, argon2 hash, display_name, created_at) |
 | `oauth_accounts` | OIDC/OAuth linked accounts (provider, subject, user_id) |
+| `elterngeld_inputs` | Saved optimizer scenarios, one owner each (`user_id`, `name`, JSONB `payload`) |
 | `dice_rolls` | Dice roll history (user_id nullable, payload jsonb, created_at) |
 | `substances` | Reference data for blood level calculator |
 
