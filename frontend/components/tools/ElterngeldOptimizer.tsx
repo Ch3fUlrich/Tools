@@ -23,10 +23,16 @@ import ScenarioTable from './elterngeld/ScenarioTable';
 import Sources from './elterngeld/Sources';
 import TradeoffChart from './elterngeld/TradeoffChart';
 import { eur, eur2, eurSigned, parseAmount } from './elterngeld/format';
+import SavedScenarios from './elterngeld/SavedScenarios';
+import type { ElterngeldSnapshot } from './elterngeld/scenarioState';
 
 /**
- * Everything is computed in the browser. No profit, income or tax figure is ever
- * sent to a server — there is deliberately no API call in this tool.
+ * Every figure is computed in the browser: no profit, income or tax number is sent anywhere
+ * to produce a result, and there is deliberately no API call on the calculation path.
+ *
+ * The one exception is explicit and user-driven — pressing "Save inputs" stores the form
+ * fields (never a computed result) against the signed-in account, so they can be reloaded
+ * later. See {@link SavedScenarios}.
  */
 
 const labelStyle: React.CSSProperties = {
@@ -188,6 +194,72 @@ export const ElterngeldOptimizer: React.FC = () => {
     setPflichtAV(false);
     setBasisMonths('12');
     setPlusMonths('0');
+  };
+
+  /** The form as it stands, in the shape {@link SavedScenarios} persists. */
+  const snapshot: ElterngeldSnapshot = {
+    filing,
+    profitDeltaKind,
+    baseYear,
+    leaveYear,
+    profitLow,
+    profitHigh,
+    employmentGross,
+    relief,
+    prepaidBase,
+    prepaidLeave,
+    partnerBase,
+    partnerLeave,
+    ownLeave,
+    pflichtKV,
+    pflichtRV,
+    pflichtAV,
+    childless,
+    children,
+    maternityEnabled,
+    weeksBefore,
+    weeksAfter,
+    extraContribution,
+    basisMonths,
+    plusMonths,
+    duringLeave,
+    multiples,
+    siblingBonus,
+  };
+
+  /**
+   * Apply a loaded scenario. Only the fields the payload actually carried are set — an
+   * older save that predates a field leaves that field at its current value rather than
+   * blanking it.
+   */
+  const applySnapshot = (fields: Partial<ElterngeldSnapshot>) => {
+    if (fields.filing !== undefined) setFiling(fields.filing);
+    if (fields.profitDeltaKind !== undefined) setProfitDeltaKind(fields.profitDeltaKind);
+    if (fields.baseYear !== undefined) setBaseYear(fields.baseYear);
+    if (fields.leaveYear !== undefined) setLeaveYear(fields.leaveYear);
+    if (fields.profitLow !== undefined) setProfitLow(fields.profitLow);
+    if (fields.profitHigh !== undefined) setProfitHigh(fields.profitHigh);
+    if (fields.employmentGross !== undefined) setEmploymentGross(fields.employmentGross);
+    if (fields.relief !== undefined) setRelief(fields.relief);
+    if (fields.prepaidBase !== undefined) setPrepaidBase(fields.prepaidBase);
+    if (fields.prepaidLeave !== undefined) setPrepaidLeave(fields.prepaidLeave);
+    if (fields.partnerBase !== undefined) setPartnerBase(fields.partnerBase);
+    if (fields.partnerLeave !== undefined) setPartnerLeave(fields.partnerLeave);
+    if (fields.ownLeave !== undefined) setOwnLeave(fields.ownLeave);
+    if (fields.pflichtKV !== undefined) setPflichtKV(fields.pflichtKV);
+    if (fields.pflichtRV !== undefined) setPflichtRV(fields.pflichtRV);
+    if (fields.pflichtAV !== undefined) setPflichtAV(fields.pflichtAV);
+    if (fields.childless !== undefined) setChildless(fields.childless);
+    if (fields.children !== undefined) setChildren(fields.children);
+    if (fields.maternityEnabled !== undefined) setMaternityEnabled(fields.maternityEnabled);
+    if (fields.weeksBefore !== undefined) setWeeksBefore(fields.weeksBefore);
+    if (fields.weeksAfter !== undefined) setWeeksAfter(fields.weeksAfter);
+    if (fields.extraContribution !== undefined) setExtraContribution(fields.extraContribution);
+    if (fields.basisMonths !== undefined) setBasisMonths(fields.basisMonths);
+    if (fields.plusMonths !== undefined) setPlusMonths(fields.plusMonths);
+    if (fields.duringLeave !== undefined) setDuringLeave(fields.duringLeave);
+    if (fields.multiples !== undefined) setMultiples(fields.multiples);
+    if (fields.siblingBonus !== undefined) setSiblingBonus(fields.siblingBonus);
   };
 
   const model = useMemo(() => {
@@ -490,6 +562,14 @@ export const ElterngeldOptimizer: React.FC = () => {
                 </Field>
               </>
             )}
+          </CardSection>
+
+          <CardSection
+            title={t('eg.savedTitle')}
+            gradient="from-violet-500 to-purple-600"
+            delay="300ms"
+          >
+            <SavedScenarios snapshot={snapshot} onLoad={applySnapshot} />
           </CardSection>
         </div>
 

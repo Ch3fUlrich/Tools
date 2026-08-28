@@ -14,6 +14,16 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://frontend:3000}
       - DATABASE_URL=${DATABASE_URL:?set DATABASE_URL in .env - refusing to start on a default}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000/}
+      # Point these at an OIDC provider to exercise the Authelia login path locally.
+      - OIDC_ISSUER=${OIDC_ISSUER:-}
+      - OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-}
+      - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET:-}
+      - OIDC_REDIRECT_URI=${OIDC_REDIRECT_URI:-}
+      - OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME:-Authelia}
+      # Development convenience: keep the email + password forms usable locally. Production
+      # leaves this unset so Authelia is the only way in.
+      - LOCAL_AUTH_ENABLED=${LOCAL_AUTH_ENABLED:-true}
     depends_on:
       postgres:
         condition: service_healthy

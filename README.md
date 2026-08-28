@@ -235,13 +235,19 @@ POST /api/tools/dice/roll                — roll dice (CSPRNG)
 POST /api/tools/dice/save                — save roll to history
 GET  /api/tools/dice/history             — retrieve roll history
 POST /api/tools/n26-analyzer             — analyze N26 transactions
-POST /api/auth/register                  — create account
-POST /api/auth/login                     — login (sets sid cookie)
+GET  /api/auth/config                    — which sign-in methods this deployment accepts
+POST /api/auth/register                  — create account (403 unless LOCAL_AUTH_ENABLED)
+POST /api/auth/login                     — login (403 unless LOCAL_AUTH_ENABLED; sets sid cookie)
 POST /api/auth/logout                    — logout (clears sid cookie)
 GET  /api/auth/me                        — get current user profile
 PUT  /api/auth/profile                   — update display name
 GET  /api/auth/oidc/start                — begin OIDC login
-GET  /api/auth/oidc/callback             — OIDC OAuth2 callback
+GET  /api/auth/oidc/callback             — OIDC OAuth2 callback (provisions the local user)
+
+Elterngeld optimizer (all require a session):
+GET    /api/tools/elterngeld/inputs      — list your saved scenarios
+POST   /api/tools/elterngeld/inputs      — save/overwrite a scenario by name
+DELETE /api/tools/elterngeld/inputs/{id} — delete one of your scenarios
 
 Training Tracker (all require a session):
 GET/POST/DELETE  /api/tools/training/measurements[/latest|/{id}]

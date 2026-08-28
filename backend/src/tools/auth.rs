@@ -144,6 +144,18 @@ pub fn validate_credentials(email: &str, password: &str) -> Result<(), Registrat
     Ok(())
 }
 
+/// Whether email + password sign-up and sign-in are accepted.
+///
+/// Authelia (OIDC) is the only login method the deployment offers, so this defaults to
+/// **off**: a fresh backend refuses `/api/auth/register` and `/api/auth/login` and users
+/// arrive exclusively through `/api/auth/oidc/start`. Set `LOCAL_AUTH_ENABLED=true` to get
+/// the old behaviour back for local development or a break-glass login.
+pub fn local_auth_enabled() -> bool {
+    std::env::var("LOCAL_AUTH_ENABLED")
+        .map(|v| matches!(v.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+        .unwrap_or(false)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -199,6 +211,24 @@ mod tests {
         // make the server burn CPU on demand.
         let huge = "x".repeat(MAX_PASSWORD_BYTES + 1);
         assert_eq!(validate_credentials("a@b.co", &huge), Err(RegistrationError::PasswordTooLong));
+    }
+
+    #[test]
+    fn local_auth_is_off_unless_explicitly_switched_on() {
+        // The deployment offers Authelia only. An unset variable must not be read as
+        // "allow passwords" — that would silently reopen the endpoint on every host that
+        // simply forgot to set it.
+        temp_env::with_var_unset("LOCAL_AUTH_ENABLED", || assert!(!local_auth_enabled()));
+        for off in ["false", "0", "no", "off", "", "maybe"] {
+            temp_env::with_var("LOCAL_AUTH_ENABLED", Some(off), || {
+                assert!(!local_auth_enabled(), "{off:?} should not enable local auth");
+            });
+        }
+        for on in ["true", "1", "yes", "on", "TRUE", " True "] {
+            temp_env::with_var("LOCAL_AUTH_ENABLED", Some(on), || {
+                assert!(local_auth_enabled(), "{on:?} should enable local auth");
+            });
+        }
     }
 
     #[tokio::test]

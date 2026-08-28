@@ -307,6 +307,32 @@ impl SessionStore {
         Ok(())
     }
 
+    /// Park the PKCE code verifier for an in-flight login, keyed by the same `state`.
+    ///
+    /// Deliberately a separate key from the nonce rather than a combined value: the nonce
+    /// entry is load-bearing for an already-tested flow, and a second key adds PKCE without
+    /// changing that value's shape (which would strand every login already in flight).
+    pub async fn store_oidc_pkce(
+        &mut self,
+        state: &str,
+        verifier: &str,
+        ttl_secs: usize,
+    ) -> Result<(), redis::RedisError> {
+        let key = format!("{}:oidc:pkce:{}", self.namespace, state);
+        self.set_ex_retry(key, verifier.to_string(), ttl_secs as u64).await?;
+        Ok(())
+    }
+
+    /// Consume the PKCE verifier for `state`. Single-use, like the nonce.
+    pub async fn take_oidc_pkce(
+        &mut self,
+        state: &str,
+    ) -> Result<Option<String>, redis::RedisError> {
+        let key = format!("{}:oidc:pkce:{}", self.namespace, state);
+        let result: Option<String> = self.get_and_del_retry(key).await?;
+        Ok(result)
+    }
+
     pub async fn take_oidc_nonce(
         &mut self,
         state: &str,

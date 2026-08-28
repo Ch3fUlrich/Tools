@@ -142,6 +142,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
+/**
+ * The auth context if there is one, otherwise `null`.
+ *
+ * {@link useAuth} throws when a provider is missing, which is the right default for screens
+ * that cannot work without a session. Components that merely *offer* something extra to
+ * signed-in users need to keep rendering when mounted outside the provider, so they use
+ * this and treat `null` as "signed out".
+ */
+export function useOptionalAuth(): AuthContextType | null {
+  return useContext(AuthContext) ?? null;
+}
+
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
