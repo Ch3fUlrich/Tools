@@ -122,6 +122,7 @@ export const en = {
     siblingBonus: 'Geschwisterbonus applies',
     siblingBonusAria: 'Sibling bonus applies',
 
+    savedTitle: 'Saved scenarios',
     childrenSection: 'Children & Mutterschaftsgeld',
     children: 'Children',
     childrenHint: 'for Kindergeld / Kinderfreibetrag',
@@ -371,6 +372,7 @@ export const de: Translated<typeof en> = {
     siblingBonus: 'Geschwisterbonus trifft zu',
     siblingBonusAria: 'Geschwisterbonus trifft zu',
 
+    savedTitle: 'Gespeicherte Szenarien',
     childrenSection: 'Kinder & Mutterschaftsgeld',
     children: 'Kinder',
     childrenHint: 'für Kindergeld / Kinderfreibetrag',
