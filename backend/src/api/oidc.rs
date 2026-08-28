@@ -7,7 +7,7 @@ use openidconnect::core::{CoreClient, CoreProviderMetadata};
 use openidconnect::reqwest::{redirect, Client, ClientBuilder};
 use openidconnect::{
     AuthenticationFlow, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
-    PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, TokenResponse,
+    PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, Scope, TokenResponse,
 };
 use rand::RngCore;
 use serde::Deserialize;
@@ -252,12 +252,20 @@ pub async fn start(
         let _ = guard.store_oidc_pkce(&state, pkce_verifier.secret(), 600).await;
     }
 
+    // Ask for the claims provisioning actually needs. Without `email` the ID token carries
+    // only `sub`, so every Authelia user would land in the database as `<sub>@oauth` and
+    // could never be matched to an existing account by address. `profile` supplies
+    // name/preferred_username for the display name; `groups` is what Authelia uses for
+    // authorisation and is cheap to carry now rather than re-consenting later.
     let auth_req = client
         .authorize_url(
             AuthenticationFlow::<openidconnect::core::CoreResponseType>::AuthorizationCode,
             move || CsrfToken::new(state),
             move || Nonce::new(nonce),
         )
+        .add_scope(Scope::new("profile".to_string()))
+        .add_scope(Scope::new("email".to_string()))
+        .add_scope(Scope::new("groups".to_string()))
         .set_pkce_challenge(pkce_challenge);
     let (url_val, _, _) = auth_req.url();
     let url = url_val.to_string();
