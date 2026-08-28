@@ -17,6 +17,13 @@ jobs:
     name: Full Docker stack smoke test
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    # docker-compose.yml deliberately refuses to start on a default database password, so
+    # the smoke test has to supply its own. These are throwaway credentials for a container
+    # that lives for the length of one job on an ephemeral runner and is never published —
+    # stating them here is the point, so nobody mistakes them for a shared secret.
+    env:
+      POSTGRES_PASSWORD: ci-smoke-test-only
+      DATABASE_URL: postgres://tools:ci-smoke-test-only@postgres:5432/tools
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
