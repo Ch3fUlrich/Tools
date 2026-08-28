@@ -7,7 +7,7 @@ use openidconnect::core::{CoreClient, CoreProviderMetadata};
 use openidconnect::reqwest::{redirect, Client, ClientBuilder};
 use openidconnect::{
     AuthenticationFlow, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
-    RedirectUrl, TokenResponse,
+    PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, TokenResponse,
 };
 use rand::RngCore;
 use serde::Deserialize;
@@ -240,16 +240,25 @@ pub async fn start(
     rand::rng().fill_bytes(&mut nonce_bytes);
     let nonce = URL_SAFE_NO_PAD.encode(nonce_bytes);
 
+    // PKCE (RFC 7636). This is a confidential client, so the secret already binds the code
+    // exchange — the challenge closes the remaining window where an intercepted redirect
+    // could be replayed before the browser reaches the callback. Authelia is configured with
+    // `require_pkce: true`, so the challenge is mandatory, not decorative.
+    let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
+
     if let Some(store_arc) = store {
         let mut guard = store_arc.lock().await;
         let _ = guard.store_oidc_state(&state, &nonce, 600).await;
+        let _ = guard.store_oidc_pkce(&state, pkce_verifier.secret(), 600).await;
     }
 
-    let auth_req = client.authorize_url(
-        AuthenticationFlow::<openidconnect::core::CoreResponseType>::AuthorizationCode,
-        move || CsrfToken::new(state),
-        move || Nonce::new(nonce),
-    );
+    let auth_req = client
+        .authorize_url(
+            AuthenticationFlow::<openidconnect::core::CoreResponseType>::AuthorizationCode,
+            move || CsrfToken::new(state),
+            move || Nonce::new(nonce),
+        )
+        .set_pkce_challenge(pkce_challenge);
     let (url_val, _, _) = auth_req.url();
     let url = url_val.to_string();
     axum::http::Response::builder()
@@ -353,7 +362,18 @@ pub async fn callback(
     )
     .set_redirect_uri(redirect_uri);
 
-    // Exchange code for token
+    // Recover the PKCE verifier parked by `start`. Absent means this login did not start
+    // here (or the 10-minute window lapsed); the exchange is then attempted without it and
+    // the provider rejects it, which is the correct outcome rather than something to paper
+    // over locally.
+    let pkce_verifier = match (&store, &q.state) {
+        (Some(store_arc), Some(state)) => {
+            let mut guard = store_arc.lock().await;
+            guard.take_oidc_pkce(state).await.ok().flatten()
+        }
+        _ => None,
+    };
+
     let token_request = match client.exchange_code(AuthorizationCode::new(q.code.clone())) {
         Ok(req) => req,
         Err(e) => {
@@ -362,6 +382,10 @@ pub async fn callback(
                 format!("OIDC token request setup failed: {e}"),
             )
         }
+    };
+    let token_request = match pkce_verifier {
+        Some(v) => token_request.set_pkce_verifier(PkceCodeVerifier::new(v)),
+        None => token_request,
     };
 
     let token_response = match token_request.request_async(&http_client).await {

@@ -40,10 +40,7 @@ pub fn build_app(
             "/api/tools/elterngeld/inputs",
             get(crate::api::elterngeld::list_scenarios).post(crate::api::elterngeld::save_scenario),
         )
-        .route(
-            "/api/tools/elterngeld/inputs/{id}",
-            delete(crate::api::elterngeld::delete_scenario),
-        )
+        .route("/api/tools/elterngeld/inputs/{id}", delete(crate::api::elterngeld::delete_scenario))
         .route("/api/auth/config", get(crate::api::auth::auth_config))
         .route("/api/auth/register", post(crate::api::auth::register))
         .route("/api/auth/login", post(crate::api::auth::login))

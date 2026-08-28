@@ -47,10 +47,7 @@ pub fn normalize_name(name: &str) -> String {
 ///
 /// Counts *characters* for the name (a 80-emoji name is as wide as 80 letters, but four
 /// times the bytes) and *bytes* for the payload (what actually occupies the row).
-pub fn validate_scenario(
-    name: &str,
-    payload: &serde_json::Value,
-) -> Result<String, ScenarioError> {
+pub fn validate_scenario(name: &str, payload: &serde_json::Value) -> Result<String, ScenarioError> {
     let name = normalize_name(name);
     if name.is_empty() {
         return Err(ScenarioError::NameMissing);
@@ -98,19 +95,13 @@ mod tests {
 
     #[test]
     fn rejects_a_blank_name() {
-        assert_eq!(
-            validate_scenario("   ", &json!({})).unwrap_err(),
-            ScenarioError::NameMissing
-        );
+        assert_eq!(validate_scenario("   ", &json!({})).unwrap_err(), ScenarioError::NameMissing);
     }
 
     #[test]
     fn rejects_an_overlong_name() {
         let long = "x".repeat(MAX_NAME_CHARS + 1);
-        assert_eq!(
-            validate_scenario(&long, &json!({})).unwrap_err(),
-            ScenarioError::NameTooLong
-        );
+        assert_eq!(validate_scenario(&long, &json!({})).unwrap_err(), ScenarioError::NameTooLong);
     }
 
     #[test]
@@ -135,10 +126,7 @@ mod tests {
     #[test]
     fn rejects_an_oversized_payload() {
         let big = json!({ "blob": "y".repeat(MAX_PAYLOAD_BYTES) });
-        assert_eq!(
-            validate_scenario("n", &big).unwrap_err(),
-            ScenarioError::PayloadTooLarge
-        );
+        assert_eq!(validate_scenario("n", &big).unwrap_err(), ScenarioError::PayloadTooLarge);
     }
 
     #[test]

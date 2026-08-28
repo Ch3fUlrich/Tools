@@ -80,12 +80,8 @@ async fn scenarios_round_trip_and_overwrite_by_name() {
         .await;
     assert_eq!(updated.status_code(), 200, "second save updates");
 
-    let listed: serde_json::Value = h
-        .server
-        .get("/api/tools/elterngeld/inputs")
-        .add_header("cookie", &h.alice)
-        .await
-        .json();
+    let listed: serde_json::Value =
+        h.server.get("/api/tools/elterngeld/inputs").add_header("cookie", &h.alice).await.json();
     let mine: Vec<_> = listed["scenarios"]
         .as_array()
         .expect("scenarios array")
