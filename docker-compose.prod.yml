@@ -27,7 +27,10 @@ services:
     tmpfs:
       - /tmp:noexec,nosuid,nodev,size=10m
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${NGINX_PORT:-8080}/"]
+      # 127.0.0.1, not localhost: busybox wget resolves localhost to [::1] first and
+      # nginx's `listen ${PORT};` binds IPv4 only, so the probe got "connection
+      # refused" and the container sat unhealthy while serving traffic fine.
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:${NGINX_PORT:-8080}/"]
       interval: 30s
       timeout: 3s
       retries: 3
