@@ -98,7 +98,7 @@ export const FatLossVisualization: React.FC<FatLossVisualizationProps> = ({
 
             {/* SVG scatter plot */}
             <div className="flex-1 relative rounded-lg overflow-hidden" style={{ height: 240, border: '1px solid var(--card-border)', background: 'var(--input-bg)' }}>
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <svg aria-hidden="true" className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                 {/* Grid lines */}
                 {[0, 25, 50, 75, 100].map(v => (
                   <React.Fragment key={v}>

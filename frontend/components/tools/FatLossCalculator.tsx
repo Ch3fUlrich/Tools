@@ -113,6 +113,7 @@ export const FatLossCalculator: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
+                aria-busy={loading}
                 className="btn-primary flex-1 h-12 text-base font-semibold shadow-soft-lg hover:shadow-soft-xl transition-all duration-300 disabled:cursor-not-allowed"
               >
                 {loading ? (
@@ -135,7 +136,7 @@ export const FatLossCalculator: React.FC = () => {
                   style={{height:44, padding:'0 0.75rem', display:'inline-flex', alignItems:'center', gap:'0.375rem', flexShrink:0}}
                   title="How it works"
                 >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:16,height:16,minWidth:16}}>
+                  <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:16,height:16,minWidth:16}}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </button>
@@ -234,7 +235,7 @@ export const FatLossCalculator: React.FC = () => {
           {result && !result.is_valid && (
             <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg animate-fade-in-up">
               <div className="flex items-center">
-                <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
                 <p className="text-sm text-yellow-800 dark:text-yellow-300 font-medium">

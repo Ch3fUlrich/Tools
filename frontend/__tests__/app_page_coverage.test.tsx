@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => '/'}));
 
 import Home from '@/app/page';
 import { TestWrapper } from '@/lib/test-utils';

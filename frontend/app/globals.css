@@ -1521,3 +1521,32 @@ input[type="number"] {
     border: 1px solid #000;
   }
 }
+
+/*
+ * Respect a reduced-motion preference.
+ *
+ * The app leans on entry animations (`animate-fade-in-up`, `animate-scale-in`,
+ * staggered `animationDelay`) and on transitions for hovers and theme changes. For
+ * users who ask the OS for reduced motion, those are not decoration — they can
+ * trigger nausea or migraine. Collapse them to something effectively instant rather
+ * than removing them outright: `0.01ms` still fires animation events, so anything
+ * that waits on `animationend` keeps working.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * The header is sticky, so an in-page anchor would otherwise land underneath it.
+ */
+:target,
+#main-content {
+  scroll-margin-top: 5rem;
+}

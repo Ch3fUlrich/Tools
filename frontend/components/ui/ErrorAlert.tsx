@@ -6,7 +6,12 @@ interface Props {
 
 export default function ErrorAlert({ error }: Props) {
   return (
-    <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg animate-fade-in-up">
+    <div
+      // Errors appear after an async action, so they must be announced rather than
+      // silently painted. `alert` is assertive, which is right for a failed action.
+      role="alert"
+      aria-live="assertive"
+      className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg animate-fade-in-up">
       <div className="flex items-center">
         <svg
           width="20"

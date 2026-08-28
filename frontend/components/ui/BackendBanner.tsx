@@ -51,7 +51,7 @@ export default function BackendBanner() {
           aria-label="Dismiss"
           style={{background:'none', border:'none', cursor:'pointer', padding:'0.25rem', color:'var(--warning)', flexShrink:0, opacity:0.8}}
         >
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:14,height:14}}>
+          <svg aria-hidden="true" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:14,height:14}}>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>

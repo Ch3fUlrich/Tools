@@ -42,7 +42,7 @@ export function LoginForm({ onSuccess, onSwitchMode, onClose }: AuthFormProps) {
           title="Close"
           style={{position:'absolute', top:'1rem', right:'1rem', zIndex:10}}
         >
-          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:18,height:18}}>
+          <svg aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:18,height:18}}>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -66,12 +66,13 @@ export function LoginForm({ onSuccess, onSwitchMode, onClose }: AuthFormProps) {
             </label>
             <div style={{position:'relative'}}>
               <div style={{position:'absolute', inset:'0 auto 0 0', paddingLeft:'0.75rem', display:'flex', alignItems:'center', pointerEvents:'none'}}>
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:18,height:18,color:'var(--muted)'}}>
+                <svg aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:18,height:18,color:'var(--muted)'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                 </svg>
               </div>
               <input
                 type="email"
+                autoComplete="username"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -89,12 +90,13 @@ export function LoginForm({ onSuccess, onSwitchMode, onClose }: AuthFormProps) {
             </label>
             <div style={{position:'relative'}}>
               <div style={{position:'absolute', inset:'0 auto 0 0', paddingLeft:'0.75rem', display:'flex', alignItems:'center', pointerEvents:'none'}}>
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:18,height:18,color:'var(--muted)'}}>
+                <svg aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:18,height:18,color:'var(--muted)'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
               <input
                 type="password"
+                autoComplete="current-password"
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -109,7 +111,7 @@ export function LoginForm({ onSuccess, onSwitchMode, onClose }: AuthFormProps) {
 
         {error && (
           <div style={{background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:'0.75rem', padding:'0.75rem 1rem', display:'flex', alignItems:'center', gap:'0.5rem'}}>
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:16,height:16,color:'var(--error)',flexShrink:0}}>
+            <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:16,height:16,color:'var(--error)',flexShrink:0}}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span style={{fontSize:'0.875rem', color:'var(--error)'}}>{error}</span>
@@ -120,7 +122,7 @@ export function LoginForm({ onSuccess, onSwitchMode, onClose }: AuthFormProps) {
           <label className="modern-checkbox" style={{fontSize:'0.875rem', color:'var(--muted)'}}>
             <input type="checkbox" name="remember" />
             <span className="box" aria-hidden>
-              <svg fill="currentColor" viewBox="0 0 20 20">
+              <svg aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </span>
@@ -137,7 +139,7 @@ export function LoginForm({ onSuccess, onSwitchMode, onClose }: AuthFormProps) {
         >
           {isLoading ? (
             <span style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'0.5rem'}}>
-              <svg style={{width:18,height:18,animation:'spin 0.8s linear infinite'}} viewBox="0 0 24 24" fill="none">
+              <svg aria-hidden="true" style={{width:18,height:18,animation:'spin 0.8s linear infinite'}} viewBox="0 0 24 24" fill="none">
                 <circle style={{opacity:0.25}} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path style={{opacity:0.75}} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
@@ -161,7 +163,7 @@ export function LoginForm({ onSuccess, onSwitchMode, onClose }: AuthFormProps) {
         type="button"
         style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'0.625rem', fontSize:'0.9375rem', fontWeight:600}}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" style={{width:20,height:20,flexShrink:0}}>
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" style={{width:20,height:20,flexShrink:0}}>
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>

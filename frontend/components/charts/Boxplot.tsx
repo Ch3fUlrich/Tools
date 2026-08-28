@@ -25,6 +25,8 @@ export const Boxplot: React.FC<{ values: number[]; className?: string }> = ({ va
 
   return (
     <svg
+      role="img"
+      aria-label="Box plot of roll distribution"
       data-testid="boxplot"
       className={`${className ?? ''} text-current text-gray-900 dark:text-white`}
       viewBox="0 0 100 24"

@@ -15,7 +15,7 @@ test('auth index exports expected symbols', async () => {
 // Tests for OIDC callback page
 // Mock router and useAuth prior to importing the module under test
 const pushMock = vi.fn();
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }), usePathname: () => '/'}));
 
 const loginMock = vi.fn();
 vi.mock('@/components/auth/AuthContext', () => ({

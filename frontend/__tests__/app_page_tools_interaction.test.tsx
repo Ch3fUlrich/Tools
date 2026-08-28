@@ -4,7 +4,7 @@ import { render, screen, within } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 
 // Mock next/router
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => '/'}));
 
 // Mock auth to be unauthenticated; include ProtectedRoute to allow protected branch rendering
 vi.mock('@/components/auth', () => ({

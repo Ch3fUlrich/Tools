@@ -5,7 +5,7 @@ import { describe, test, expect, vi } from 'vitest';
 
 // Mock router to capture push
 const push = vi.fn();
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push }), usePathname: () => '/'}));
 // Mock useAuth
 vi.mock('@/components/auth', () => ({ useAuth: () => ({ login: vi.fn() }) }));
 

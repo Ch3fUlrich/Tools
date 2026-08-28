@@ -14,6 +14,8 @@ export const Histogram: React.FC<{ values: number[]; grayValues?: Set<number>; c
 
   return (
     <svg
+      role="img"
+      aria-label="Histogram of roll frequencies"
       data-testid="histogram"
       className={`${className ?? ''} text-current text-gray-900 dark:text-white`}
       viewBox="0 0 100 36"

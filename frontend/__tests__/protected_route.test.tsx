@@ -1,6 +1,6 @@
 // Mock router before importing modules so they're wired correctly
 let mockPush = vi.fn();
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }), usePathname: () => '/'}));
 
 // Provide a mutable mock object for AuthContext's useAuth
 const authState = { isAuthenticated: false, isLoading: false } as any;

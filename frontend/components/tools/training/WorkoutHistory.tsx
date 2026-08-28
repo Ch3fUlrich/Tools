@@ -94,7 +94,7 @@ export default function WorkoutHistory({ sessions }: WorkoutHistoryProps) {
                 )}
               </div>
             </div>
-            <svg
+            <svg aria-hidden="true"
               className={`w-4 h-4 text-slate-400 flex-shrink-0 transition-transform ${expandedId === session.id ? 'rotate-180' : ''}`}
               fill="none" stroke="currentColor" viewBox="0 0 24 24"
             >

@@ -27,7 +27,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div style={{
+    <main id="main-content" style={{
       minHeight: '100vh',
       background: 'var(--bg)',
       display: 'flex',
@@ -36,6 +36,12 @@ export default function AuthPage() {
       padding: '1.5rem 1rem',
     }}>
       <div style={{width: '100%', maxWidth: '26rem'}}>
+        {/*
+          The page had no h1 and no main landmark, so screen-reader users landed in an
+          unnamed region. The forms already render their own visible heading, so this one
+          is visually hidden rather than duplicated on screen.
+        */}
+        <h1 className="sr-only">{mode === 'login' ? 'Sign in' : 'Create an account'}</h1>
         {/* Auth card */}
         <div style={{
           background: 'var(--bg-secondary)',
@@ -64,12 +70,13 @@ export default function AuthPage() {
 
         {/* Terms */}
         <p style={{marginTop: '1rem', textAlign: 'center', fontSize: '0.8125rem', color: 'var(--muted)'}}>
-          By signing in, you agree to our{' '}
-          <a href="#" style={{color: 'var(--accent)', fontWeight: 500}}>Terms of Service</a>
-          {' '}and{' '}
-          <a href="#" style={{color: 'var(--accent)', fontWeight: 500}}>Privacy Policy</a>
+          {/*
+            These were `href="#"` links: announced as links, focusable, and they scroll to
+            the top when clicked. Until real documents exist they are plain text.
+          */}
+          By signing in, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>
-    </div>
+    </main>
   );
 }

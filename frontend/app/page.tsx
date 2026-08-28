@@ -130,7 +130,7 @@ export default function Home() {
               {/* Search icon — right side, vertically centered */}
               {!query && (
                 <div style={{position:'absolute', inset:'0 0.875rem 0 auto', display:'flex', alignItems:'center', pointerEvents:'none'}}>
-                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:20,height:20,color:'var(--muted)',flexShrink:0}}>
+                  <svg aria-hidden="true" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:20,height:20,color:'var(--muted)',flexShrink:0}}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -142,7 +142,7 @@ export default function Home() {
                   aria-label="Clear search"
                   style={{position:'absolute', inset:'0 0 0 auto', width:'3rem', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--muted)', background:'none', border:'none', cursor:'pointer'}}
                 >
-                  <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:18,height:18}}>
+                  <svg aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:18,height:18}}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -163,7 +163,7 @@ export default function Home() {
                   transition:'all 0.15s ease',
                 }}
               >
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:16,height:16}}>
+                <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:16,height:16}}>
                   <rect x="3" y="3" width="7" height="7" rx="1" strokeWidth={2} />
                   <rect x="14" y="3" width="7" height="7" rx="1" strokeWidth={2} />
                   <rect x="3" y="14" width="7" height="7" rx="1" strokeWidth={2} />
@@ -182,7 +182,7 @@ export default function Home() {
                   transition:'all 0.15s ease',
                 }}
               >
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:16,height:16}}>
+                <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:16,height:16}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
@@ -193,11 +193,11 @@ export default function Home() {
           {filtered.length === 0 ? (
             <div className="animate-fade-in-up" style={{textAlign:'center', padding:'4rem 0'}}>
               <div className="inline-flex items-center justify-center rounded-full mb-4" style={{width:64,height:64,background:'var(--input-bg)'}}>
-                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:32,height:32,color:'var(--muted)'}}>
+                <svg aria-hidden="true" width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:32,height:32,color:'var(--muted)'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 21a9 9 0 110-18 9 9 0 010 18z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2" style={{color:'var(--fg)'}}>No tools found</h3>
+              <h2 className="text-xl font-semibold mb-2" style={{color:'var(--fg)'}}>No tools found</h2>
               <p style={{color:'var(--muted)'}}>Try adjusting your search terms</p>
             </div>
           ) : viewMode === 'grid' ? (
@@ -225,9 +225,9 @@ export default function Home() {
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-lg lg:text-xl font-bold mb-3 transition-colors duration-300" style={{color:'var(--fg)'}}>
+                    <h2 className="text-lg lg:text-xl font-bold mb-3 transition-colors duration-300" style={{color:'var(--fg)'}}>
                       {tool.title}
-                    </h3>
+                    </h2>
 
                     {/* Description */}
                     <p className="text-sm lg:text-base leading-relaxed line-clamp-3" style={{color:'var(--muted)'}}>
@@ -270,16 +270,16 @@ export default function Home() {
 
                   {/* Text */}
                   <div className="relative z-10 flex-1 min-w-0">
-                    <h3 className="text-base font-bold mb-1 transition-colors duration-300" style={{color:'var(--fg)'}}>
+                    <h2 className="text-base font-bold mb-1 transition-colors duration-300" style={{color:'var(--fg)'}}>
                       {tool.title}
-                    </h3>
+                    </h2>
                     <p className="text-sm leading-relaxed" style={{color:'var(--muted)', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' as const}}>
                       {tool.description}
                     </p>
                   </div>
 
                   {/* Arrow */}
-                  <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200" style={{width:18,height:18,color:'var(--muted)'}}>
+                  <svg aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200" style={{width:18,height:18,color:'var(--muted)'}}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
 
