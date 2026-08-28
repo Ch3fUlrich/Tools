@@ -7,7 +7,16 @@ Follow these instructions precisely — they represent the team's agreed convent
 
 ## Project Overview
 
-A monorepo containing a **Next.js frontend** and a **Rust/Axum backend** that serves several utility tools (Fat Loss Calculator, Dice Roller, Blood Level Calculator, N26 Transaction Analyzer). The frontend is statically exported and talks to the backend REST API.
+A monorepo containing a **Next.js frontend** and a **Rust/Axum backend** serving seven tools:
+Fat Loss Calculator, Dice Roller, Blood Level Calculator, N26 Transaction Analyzer, Timeline
+Builder, Training Tracker and Elterngeld Optimizer. The frontend is statically exported and
+talks to the backend REST API, falling back to `lib/local/` when it is unreachable.
+
+Available in English and German (`lib/i18n`, hand-rolled, switched from the header).
+
+**Two tools are deliberately backend-free.** The Elterngeld Optimizer and the offline path of
+the Blood Level Calculator handle tax and health data, so they compute in the browser and have
+no endpoint. Do not add one.
 
 ---
 
@@ -22,7 +31,10 @@ A monorepo containing a **Next.js frontend** and a **Rust/Axum backend** that se
 │   │       ├── dice/
 │   │       ├── fat-loss/
 │   │       ├── bloodlevel/
-│   │       └── n26/
+│   │       ├── n26/
+│   │       ├── timeline/
+│   │       ├── training/
+│   │       └── elterngeld/
 │   ├── components/
 │   │   ├── auth/          # Auth context, forms, guards
 │   │   ├── charts/        # Recharts wrappers (LineChart, Boxplot, Histogram)
@@ -34,8 +46,11 @@ A monorepo containing a **Next.js frontend** and a **Rust/Axum backend** that se
 │   │   ├── api/client.ts  # All backend API calls — single source of truth
 │   │   ├── animations.ts  # Reusable Tailwind animation class strings
 │   │   ├── theme.ts       # Theme persistence (localStorage + system preference)
+│   │   ├── i18n/          # Language helpers + EN/DE catalogues (key-checked at build time)
+│   │   ├── local/         # Browser-side computation; mirrors backend/src/tools/
 │   │   ├── test-utils.tsx # TestWrapper for rendering with providers
 │   │   └── types/dice.ts  # Shared TypeScript types
+│   ├── __mocks__/         # next/font stub — a build-time transform Vitest cannot run
 │   ├── __tests__/         # All Vitest test files
 │   ├── app/globals.css    # CSS custom properties, Tailwind @layer, component classes
 │   └── vitest.setup.ts    # Global test setup (mocks, localStorage, fetch)
@@ -48,6 +63,9 @@ A monorepo containing a **Next.js frontend** and a **Rust/Axum backend** that se
 │   ├── migrations/        # SQL migrations (date-prefixed)
 │   └── tests/             # Rust integration tests
 ├── .github/workflows/     # CI/CD (frontend.yml, backend.yml, ci.yml, …)
+├── scripts/generate-csp.mjs  # Build-time CSP (postbuild); hashes Next's inline scripts
+├── .mcp.json              # Project-scoped MCP servers — see the MCP section below
+├── SECURITY.md            # Reporting policy, controls in place, known gaps
 ├── docker-compose.yml     # Full-stack dev environment
 └── CLAUDE.md              # This file
 ```
@@ -138,7 +156,7 @@ pnpm --filter frontend run dev            # local dev server (Turbopack)
 > checked in CI. Install once with
 > `winget install -e --id BrechtSanders.WinLibs.POSIX.MSVCRT`
 > (MSVCRT, not UCRT — it has to match the `gnu` target's runtime). The installer adds its
-> `mingw64in` to the user PATH, so **open a new shell** afterwards.
+> `mingw64/bin` to the user PATH, so **open a new shell** afterwards.
 
 ```bash
 cd backend
@@ -308,7 +326,7 @@ Enforced by commitlint — the CI will reject non-conforming messages.
 | `automerge-dependabot.yml` | Dependabot PRs | Auto-merge + auto-approve |
 | `gh-pages.yml` | Push to main | Build and deploy static site to GitHub Pages |
 | `release.yml` | After CI succeeds on main | Semantic-release → GitHub Release (no branch push) |
-| `publish-on-ci-success.yml` | Version tags (`v*.*.*`) | Build & push Docker images to GHCR |
+| `publish-on-ci-success.yml` | GitHub Release published | Build & push Docker images to GHCR (tags made with GITHUB_TOKEN do not fire `push`) |
 | `commitlint.yml` | PRs | Validate conventional commit messages |
 
 Codecov token is optional — `fail_ci_if_error: false` is set so missing token doesn't block CI.

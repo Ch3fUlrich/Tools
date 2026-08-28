@@ -95,6 +95,43 @@ PostgreSQL / Redis
 
 ---
 
+## Offline computation (`lib/local/`)
+
+Every tool has a browser-side implementation in `frontend/lib/local/`, and
+`lib/api/client.ts` falls back to it when the backend is unreachable. That is what makes the
+GitHub Pages build work at all.
+
+Two rules follow from this:
+
+1. **`lib/local/*` mirrors `backend/src/tools/*.rs`.** If you change a formula or a constant
+   on one side, change it on the other, or an online user and an offline user get different
+   answers with nothing to signal it. `__tests__/local_compute.test.ts` pins the blood level
+   substance list in order for exactly this reason.
+2. **Two tools are deliberately local-only.** The Elterngeld optimizer and the blood level
+   calculator handle income, tax and health data, so they have no endpoint and no Rust
+   counterpart to drift from — `lib/local/elterngeld.ts` is the whole implementation. Do not
+   "complete" the pattern by adding a backend route for them.
+
+---
+
+## Internationalisation
+
+English and German, switched from the header and persisted in `localStorage`. Hand-rolled in
+`lib/i18n` — no dependency.
+
+The site is a static export, so a localized route tree would double the build output and
+break the flat `tools/<name>.html` layout the deployment relies on. Language is therefore a
+client concern: the provider renders `DEFAULT_LANGUAGE` first so hydration matches the
+pre-rendered HTML, then reads the stored preference in an effect. Never read `localStorage`
+during render.
+
+`en` is declared `as const`, and `de` is typed against a *widened* version of it. That keeps
+key-completeness checking — a missing or misspelled key is a build error — while allowing
+the strings themselves to differ. Typing `de: typeof en` instead demands identical strings
+and fails the build.
+
+---
+
 ## Authentication & Sessions
 
 ```
@@ -189,21 +226,30 @@ Tools/
 │   │       ├── dice/page.tsx          Dice roller tool page
 │   │       ├── fat-loss/page.tsx      Fat loss calculator tool page
 │   │       ├── bloodlevel/page.tsx    Blood level calculator tool page
-│   │       └── n26/page.tsx           N26 transaction analyzer tool page
+│   │       ├── n26/page.tsx           N26 transaction analyzer tool page
+│   │       ├── timeline/page.tsx      Timeline builder tool page
+│   │       ├── training/page.tsx      Training tracker tool page
+│   │       └── elterngeld/page.tsx    Elterngeld optimizer tool page
 │   │
 │   ├── components/
 │   │   ├── auth/                      Auth context, login/register forms, user profile, protected routes
 │   │   ├── charts/                    Recharts wrappers — LineChart, Boxplot, Histogram
+│   │   ├── i18n/LanguageProvider.tsx  Language context + useTranslation()
 │   │   ├── icons/                     SVG icon components (Dice, Die faces, Sun/Moon, etc.)
-│   │   ├── layout/                    Header, Footer, UserControls
+│   │   ├── layout/                    Header, Footer, UserControls, LanguageToggle
 │   │   ├── tools/
 │   │   │   ├── ToolPage.tsx           Page layout wrapper — owns the sole <h1>
 │   │   │   ├── DiceRoller.tsx         Dice roller with multi-config, modifiers, charts
 │   │   │   ├── DiceHistory.tsx        Roll history list with local/server sync indicator
 │   │   │   ├── FatLossCalculator.tsx  Calorie/weight input with body composition output
 │   │   │   ├── FatLossVisualization.tsx  Fat:muscle loss pie/bar charts
-│   │   │   ├── BloodLevelCalculator.tsx  Pharmacokinetic substance blood-level graph
-│   │   │   └── N26Analyzer.tsx        N26 bank JSON export analysis and categorization
+│   │   │   ├── BloodLevelCalculator.tsx  Pharmacokinetic blood-level curves (absorption + elimination)
+│   │   │   ├── N26Analyzer.tsx        N26 bank JSON export analysis and categorization
+│   │   │   ├── TimelineBuilder.tsx    Editable timeline figure (wraps the vanilla editor)
+│   │   │   ├── TrainingTracker.tsx    Workout logging, energy model, muscle heat map
+│   │   │   ├── training/              Training sub-panels (ActiveWorkout, ExerciseCatalog, …)
+│   │   │   ├── ElterngeldOptimizer.tsx   German Elterngeld vs income tax decision tool
+│   │   │   └── elterngeld/            ScenarioTable, FilingAdvice, TradeoffChart, MethodNotes, Sources
 │   │   └── ui/
 │   │       ├── Button.tsx             Typed button (primary, ghost, success, danger variants)
 │   │       ├── Card.tsx               Card container
@@ -223,10 +269,19 @@ Tools/
 │   │   ├── api/client.ts             Every backend API call — single source of truth
 │   │   ├── animations.ts             Reusable Tailwind animation class strings
 │   │   ├── theme.ts                  Theme persistence (localStorage + system preference)
+│   │   ├── i18n/                     Language helpers + the EN/DE message catalogues
+│   │   ├── local/                    Browser-side computation (see "Offline computation")
+│   │   │   ├── bloodLevel.ts         API adapter for the PK model
+│   │   │   ├── pharmacokinetics.ts   Bateman absorption + saturating (ethanol) elimination
+│   │   │   ├── substanceDatabase.ts  17 substances with per-route PK data and citations
+│   │   │   ├── germanTax.ts          § 32a EStG tariff, SolZ, § 32b Progressionsvorbehalt
+│   │   │   ├── elterngeld.ts         BEEG model — no backend counterpart, by design
+│   │   │   ├── dice.ts, fatLoss.ts, n26.ts, training*.ts
 │   │   ├── test-utils.tsx            TestWrapper for rendering components with providers
 │   │   └── types/dice.ts             Shared TypeScript types for dice API
 │   │
-│   ├── __tests__/                    All Vitest test files (142+ tests)
+│   ├── __mocks__/next-font-google.ts Stub — next/font is a build-time transform Vitest cannot run
+│   ├── __tests__/                    All Vitest test files
 │   ├── vitest.setup.ts               Global test setup — stubs fetch, localStorage, ResizeObserver
 │   └── next.config.ts                Static export config; GitHub Pages basePath support
 │
