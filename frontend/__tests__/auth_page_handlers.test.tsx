@@ -3,7 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), back: vi.fn() }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), back: vi.fn() }), usePathname: () => '/'}));
 
 // Mock LoginForm and RegisterForm to capture handlers
 vi.mock('@/components/auth', () => ({

@@ -2,6 +2,7 @@
 
 /* global HTMLDivElement, HTMLDetailsElement, getComputedStyle, Element, ResizeObserver, KeyboardEvent, MouseEvent, Node */
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import React, { useEffect, useRef } from 'react';
 import UserControls from '@/components/layout/UserControls';
 import { useAuth } from '@/components/auth/AuthContext';
@@ -16,6 +17,9 @@ export default function Header() {
   const dropdownRef = useRef<HTMLDetailsElement | null>(null);
   const { isAuthenticated } = useAuth();
   const { t } = useTranslation();
+  // Marks the current page for assistive tech; without it every nav item sounds
+  // identical no matter where you are.
+  const pathname = usePathname();
 
   const closeDropdown = () => dropdownRef.current?.removeAttribute('open');
 
@@ -126,7 +130,8 @@ export default function Header() {
           </Link>
 
           <nav ref={navRef} className="nav-responsive desktop-only flex-1 items-stretch gap-4 min-w-0 h-full">
-            <Link 
+            <Link
+              aria-current={pathname === "/tools/dice" ? "page" : undefined} 
               href="/tools/dice" 
               className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`} 
               aria-label="Dice"
@@ -134,7 +139,8 @@ export default function Header() {
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🎲</span>
               <span className="nav-label truncate">{t('nav.dice')}</span>
             </Link>
-            <Link 
+            <Link
+              aria-current={pathname === "/tools/fat-loss" ? "page" : undefined} 
               href="/tools/fat-loss" 
               className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`} 
               aria-label="Fat"
@@ -142,15 +148,17 @@ export default function Header() {
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🏋️</span>
               <span className="nav-label truncate">{t('nav.fatLoss')}</span>
             </Link>
-            <Link 
-              href="/tools/n26" 
-              className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`} 
+            <Link
+              aria-current={pathname === "/tools/n26" ? "page" : undefined}
+              href="/tools/n26"
+              className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`}
               aria-label="N26"
             >
               <span className="nav-emoji group-hover:animate-bounce-subtle transition-transform duration-300">🏦</span>
               <span className="nav-label truncate">{t('nav.n26')}</span>
             </Link>
-            <Link 
+            <Link
+              aria-current={pathname === "/tools/bloodlevel" ? "page" : undefined} 
               href="/tools/bloodlevel" 
               className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`} 
               aria-label="Blood Level"
@@ -159,6 +167,7 @@ export default function Header() {
               <span className="nav-label truncate">{t('nav.bloodLevel')}</span>
             </Link>
             <Link
+              aria-current={pathname === "/tools/timeline" ? "page" : undefined}
               href="/tools/timeline"
               className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`}
               aria-label="Timeline Builder"
@@ -167,6 +176,7 @@ export default function Header() {
               <span className="nav-label truncate">{t('nav.timeline')}</span>
             </Link>
             <Link
+              aria-current={pathname === "/tools/training" ? "page" : undefined}
               href="/tools/training"
               className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`}
               aria-label="Training Tracker"
@@ -175,6 +185,7 @@ export default function Header() {
               <span className="nav-label truncate">{t('nav.training')}</span>
             </Link>
             <Link
+              aria-current={pathname === "/tools/elterngeld" ? "page" : undefined}
               href="/tools/elterngeld"
               className={`nav-item inline-flex items-center justify-center flex-1 h-full px-4 btn-nav text-sm no-underline group`}
               aria-label="Elterngeld Optimizer"
@@ -198,7 +209,7 @@ export default function Header() {
                 aria-haspopup="true"
                 aria-label={t('common.openMenu')}
               >
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:20,height:20,color:'var(--fg)'}}>
+                <svg aria-hidden="true" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width:20,height:20,color:'var(--fg)'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </summary>

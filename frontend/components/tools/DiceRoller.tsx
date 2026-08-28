@@ -250,13 +250,14 @@ const onRoll = async () => {
             <div className="space-y-4">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
+                  <caption className="sr-only">Per-die results for this roll</caption>
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-600">
-                      <th className="text-left py-2 text-slate-700 dark:text-slate-300">Die Type</th>
-                      <th className="text-left py-2 text-slate-700 dark:text-slate-300">Count</th>
-                      <th className="text-left py-2 text-slate-700 dark:text-slate-300">Roll modifier</th>
-                      <th className="text-left py-2 text-slate-700 dark:text-slate-300">Reroll</th>
-                      <th className="text-left py-2 text-slate-700 dark:text-slate-300">Actions</th>
+                      <th scope="col" className="text-left py-2 text-slate-700 dark:text-slate-300">Die Type</th>
+                      <th scope="col" className="text-left py-2 text-slate-700 dark:text-slate-300">Count</th>
+                      <th scope="col" className="text-left py-2 text-slate-700 dark:text-slate-300">Roll modifier</th>
+                      <th scope="col" className="text-left py-2 text-slate-700 dark:text-slate-300">Reroll</th>
+                      <th scope="col" className="text-left py-2 text-slate-700 dark:text-slate-300">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -412,7 +413,7 @@ const onRoll = async () => {
               </div>
 
               {/* Roll Button */}
-              <Button variant="primary" onClick={onRoll} disabled={loading} className="mt-6 w-full text-base">
+              <Button variant="primary" onClick={onRoll} disabled={loading} aria-busy={loading} className="mt-6 w-full text-base">
                 {loading ? (
                   <div className="flex items-center justify-center">
                     <span className="spinner animate-spin mr-2 text-current" />
@@ -444,17 +445,18 @@ const onRoll = async () => {
               <h4 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>Dice Results</h4>
               <div className="overflow-x-auto mb-4">
                 <table className="w-full text-sm">
+                  <caption className="sr-only">Summary statistics across all rolls</caption>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
-                      <th className="text-left py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '15%' }}>Die</th>
-                      <th className="text-left py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)' }}>Values</th>
-                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Avg</th>
-                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Min</th>
-                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Max</th>
-                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Actual</th>
-                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Norm</th>
-                      <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '10%' }}>Reroll</th>
-                      <th className="text-right py-1.5 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Sum</th>
+                      <th scope="col" className="text-left py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '15%' }}>Die</th>
+                      <th scope="col" className="text-left py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)' }}>Values</th>
+                      <th scope="col" className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Avg</th>
+                      <th scope="col" className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Min</th>
+                      <th scope="col" className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Max</th>
+                      <th scope="col" className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Actual</th>
+                      <th scope="col" className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Norm</th>
+                      <th scope="col" className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '10%' }}>Reroll</th>
+                      <th scope="col" className="text-right py-1.5 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Sum</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -573,7 +575,7 @@ const onRoll = async () => {
                                     return (
                                       <div>
                                         <div className="text-xs mb-0.5 font-medium" style={{ color: 'var(--muted)' }}>Probability ({cfg.count}×D{cfg.sides})</div>
-                                        <svg viewBox="0 0 100 26" className="w-full h-8">
+                                        <svg aria-hidden="true" viewBox="0 0 100 26" className="w-full h-8">
                                           {vals.map(([s, w], idx) => {
                                             const h = Math.max(1, (w / maxW) * 18);
                                             const x = 5 + idx * barW;

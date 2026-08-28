@@ -1,5 +1,5 @@
 // Mock router before importing pages that call useRouter
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => '/'}));
 
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';

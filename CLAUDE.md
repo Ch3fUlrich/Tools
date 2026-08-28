@@ -130,6 +130,16 @@ pnpm --filter frontend run dev            # local dev server (Turbopack)
 ```
 
 ### Backend
+
+> **Windows: `dlltool.exe` is required.** The pinned toolchain is
+> `x86_64-pc-windows-gnu`, whose `windows-sys` build shells out to `dlltool`. Without it
+> every `cargo build`/`test`/`clippy` dies with
+> `error calling dlltool 'dlltool.exe': program not found` and the backend can only be
+> checked in CI. Install once with
+> `winget install -e --id BrechtSanders.WinLibs.POSIX.MSVCRT`
+> (MSVCRT, not UCRT — it has to match the `gnu` target's runtime). The installer adds its
+> `mingw64in` to the user PATH, so **open a new shell** afterwards.
+
 ```bash
 cd backend
 cargo test                                 # unit + integration tests

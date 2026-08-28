@@ -60,7 +60,7 @@ export default function RestTimer({
 
   return (
     <div className="flex flex-col items-center gap-4 inline-block">
-      <svg viewBox="0 0 120 120" width={160} height={160}>
+      <svg aria-hidden="true" viewBox="0 0 120 120" width={160} height={160}>
         {/* Background circle */}
         <circle
           cx={60}

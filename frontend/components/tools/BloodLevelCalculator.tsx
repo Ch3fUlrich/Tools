@@ -16,16 +16,6 @@ interface SubstanceIntake {
 }
 
 /**
- * Opened cold, the tool used to show an empty row and an empty chart, which says nothing
- * about what it does. These two seed a realistic curve straight away: a coffee two hours
- * ago and an ibuprofen an hour ago. Caffeine's 5.7 h half-life against ibuprofen's 2 h
- * makes the point of the whole tool visible in one glance — the short-half-life drug is
- * already falling away while the stimulant is barely down.
- *
- * Only applied when the loaded substance list actually contains both, so a backend (or a
- * test) serving a different catalogue still starts blank.
- */
-/**
  * Gastric emptying is what food actually delays, and that effect has largely passed about
  * two hours after a meal — so an intake logged within that window counts as fed. The column
  * takes minutes since eating; leaving it blank means fasted.
@@ -35,6 +25,16 @@ const FED_WINDOW_MINUTES = 120;
 const isFed = (minutesAfterMeal: number | null) =>
   minutesAfterMeal !== null && minutesAfterMeal >= 0 && minutesAfterMeal <= FED_WINDOW_MINUTES;
 
+/**
+ * Opened cold, the tool used to show an empty row and an empty chart, which says nothing
+ * about what it does. These two seed a realistic curve straight away: a coffee two hours
+ * ago and an ibuprofen an hour ago. Caffeine's 5.7 h half-life against ibuprofen's 2 h
+ * makes the point of the whole tool visible in one glance — the short-half-life drug is
+ * already falling away while the stimulant is barely down.
+ *
+ * Only applied when the loaded substance list actually contains both, so a backend (or a
+ * test) serving a different catalogue still starts blank.
+ */
 const EXAMPLE_INTAKES: {
   id: string;
   dosageMg: number;
@@ -173,20 +173,32 @@ const BloodLevelCalculator: React.FC = () => {
 
   return (
     <div className="bloodlevel-tool p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8">
+      {/* Announces async results; the chart alone tells a screen reader nothing. */}
+      <p role="status" aria-live="polite" className="sr-only">
+        {loading
+          ? 'Calculating blood levels…'
+          : bloodLevels.length > 0
+            ? `Blood level curves ready for ${new Set(bloodLevels.map((b) => b.substance)).size} substance(s).`
+            : ''}
+      </p>
       {/* Input Panel */}
       <CardSection title="Substance Intake" gradient="from-red-500 to-rose-600" delay="100ms">
 
         <div className="space-y-4">
           <div className="bloodlevel-intake-table">
             <table className="w-full text-sm rounded-lg" style={{ border: '1px solid var(--card-border)' }}>
+              <caption className="sr-only">
+                Substance intakes: one row per dose, with the route taken and how long after
+                a meal it was swallowed.
+              </caption>
               <thead>
                 <tr style={{ background: 'var(--input-bg)' }}>
-                  <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Substance</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Time</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Type</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Time After Meal</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Dosage (mg)</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Actions</th>
+                  <th scope="col" className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Substance</th>
+                  <th scope="col" className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Time</th>
+                  <th scope="col" className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Type</th>
+                  <th scope="col" className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Time After Meal</th>
+                  <th scope="col" className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Dosage (mg)</th>
+                  <th scope="col" className="px-3 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -220,7 +232,7 @@ const BloodLevelCalculator: React.FC = () => {
                     </td>
                     <td className="px-3 py-2" data-label="Type">
                       <select
-                        aria-label={`Intake type for intake ${index + 1}`}
+                        aria-label={`Route of administration for intake ${index + 1}`}
                         value={intake.intakeType}
                         onChange={(e) => updateIntake(index, { intakeType: e.target.value })}
                         className="form-input text-sm"
@@ -235,6 +247,7 @@ const BloodLevelCalculator: React.FC = () => {
                     <td className="px-3 py-2" data-label="After meal">
                       <NumberInput
                         id={`time-after-meal-${index}`}
+                        ariaLabel={`Minutes after a meal for intake ${index + 1}`}
                         value={intake.timeAfterMeal ? String(intake.timeAfterMeal) : ''}
                         onChange={(v) => updateIntake(index, { timeAfterMeal: v ? Number(v) : null })}
                         step={1}
@@ -246,6 +259,7 @@ const BloodLevelCalculator: React.FC = () => {
                     <td className="px-3 py-2" data-label="Dosage">
                       <NumberInput
                         id={`dosage-${index}`}
+                        ariaLabel={`Dose in milligrams for intake ${index + 1}`}
                         value={String(intake.dosageMg)}
                         onChange={(v) => updateIntake(index, { dosageMg: Number(v) })}
                         step={0.1}
@@ -283,6 +297,7 @@ const BloodLevelCalculator: React.FC = () => {
           <button
             onClick={() => calculateBloodLevels()}
             disabled={loading}
+            aria-busy={loading}
             className="btn-primary w-full text-base mt-2 h-12 font-semibold shadow-soft-lg hover:shadow-soft-xl transition-all duration-300 disabled:cursor-not-allowed"
           >
             {loading ? (

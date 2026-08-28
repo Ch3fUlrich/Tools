@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 
 // Mock next/router before importing the page
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => '/'}));
 
 // Mock the auth module to simulate an authenticated user and provide a simple UserProfile
 vi.mock('@/components/auth', () => ({

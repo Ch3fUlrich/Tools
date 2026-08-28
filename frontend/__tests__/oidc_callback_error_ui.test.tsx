@@ -5,7 +5,7 @@ import { describe, test, expect, vi } from 'vitest';
 
 // Mock router push to observe redirection (setTimeout will call it)
 const push = vi.fn();
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push }), usePathname: () => '/'}));
 
 // Mock AuthContext
 vi.mock('@/components/auth/AuthContext', () => ({

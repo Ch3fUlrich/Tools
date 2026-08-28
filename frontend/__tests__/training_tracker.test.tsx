@@ -42,8 +42,7 @@ vi.mock('@/components/auth', () => ({
 
 // ── Mock next/navigation ──────────────────────────────────────────────────────
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
-}));
+  useRouter: () => ({ push: vi.fn() }), usePathname: () => '/'}));
 
 import TrainingTracker from '@/components/tools/TrainingTracker';
 import BodyMeasurementsPanel from '@/components/tools/training/BodyMeasurementsPanel';

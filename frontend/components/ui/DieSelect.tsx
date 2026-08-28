@@ -45,7 +45,7 @@ export default function DieSelect({ options, value, onChange, className }: DieSe
       <button type="button" onClick={() => setOpen(!open)} className="form-input inline-flex items-center gap-2">
         <DieFaceIcon sides={selected?.sides || 6} />
         <span className="text-sm">{selected?.label}</span>
-        <svg className="ml-2 w-3 h-3 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.187l3.71-3.956a.75.75 0 111.08 1.04l-4.25 4.53a.75.75 0 01-1.08 0l-4.25-4.53a.75.75 0 01.02-1.06z"/></svg>
+        <svg aria-hidden="true" className="ml-2 w-3 h-3 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.187l3.71-3.956a.75.75 0 111.08 1.04l-4.25 4.53a.75.75 0 01-1.08 0l-4.25-4.53a.75.75 0 01.02-1.06z"/></svg>
       </button>
 
       {open && (

@@ -128,6 +128,7 @@ export default function ExerciseCatalog() {
               Equipment
             </label>
             <select
+              aria-label="Filter by equipment"
               value={equipmentFilter}
               onChange={(e) => setEquipmentFilter(e.target.value)}
               className="form-input w-full"

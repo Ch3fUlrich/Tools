@@ -54,6 +54,7 @@ export default function ActiveWorkout() {
               </label>
               <div className="flex gap-2">
                 <select
+                  aria-label="Training plan"
                   className="form-input flex-1"
                   value={selectedPlanId}
                   onChange={e => setSelectedPlanId(e.target.value)}
@@ -144,6 +145,7 @@ export default function ActiveWorkout() {
                   </div>
                   <div className="col-span-2">
                     <select
+                      aria-label="Rate of perceived exertion"
                       className="form-input text-sm py-1"
                       value={s.rpe}
                       onChange={e => updateSetField(group.exerciseId, idx, 'rpe', e.target.value)}
@@ -210,6 +212,7 @@ export default function ActiveWorkout() {
       {/* Add exercise */}
       <div className="flex gap-2">
         <select
+          aria-label="Exercise to add"
           className="form-input flex-1"
           value={addExerciseId}
           onChange={e => setAddExerciseId(e.target.value)}

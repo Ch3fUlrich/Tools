@@ -120,6 +120,11 @@ function buildPolicy(hashes, { frameAncestors }) {
     `connect-src ${connect.join(' ')}`,
     `frame-src 'self'`,
     `object-src 'none'`,
+    // Nothing here loads a worker, a plugin, or media. Denying them outright means an
+    // injected tag has nothing to fall back to when script-src blocks it.
+    `worker-src 'none'`,
+    `media-src 'none'`,
+    `manifest-src 'self'`,
     `base-uri 'self'`,
     `form-action 'self'`,
   ];
@@ -214,8 +219,15 @@ async function main() {
     '#',
     "# The sha256 sources are Next's inline flight-data scripts; they change on",
     '# every build, so this file must be regenerated alongside the export it serves.',
+    '# HSTS is only meaningful over TLS, and it is sticky: a browser that sees it will',
+    '# refuse plain HTTP for this host until it expires. Two years with preload is the',
+    '# usual production setting. If you terminate TLS upstream, keep it here; if you ever',
+    '# serve this image on plain HTTP for a real hostname, drop this line first.',
+    'add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;',
     'add_header X-Frame-Options "DENY" always;',
     'add_header X-Content-Type-Options "nosniff" always;',
+    '# Blocks the legacy Flash/Acrobat cross-domain policy lookup outright.',
+    'add_header X-Permitted-Cross-Domain-Policies "none" always;',
     'add_header Referrer-Policy "strict-origin-when-cross-origin" always;',
     'add_header Cross-Origin-Opener-Policy "same-origin" always;',
     'add_header Cross-Origin-Resource-Policy "same-origin" always;',

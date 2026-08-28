@@ -1,8 +1,7 @@
 // Mock router with a shared push mock so tests can assert it was called
 const push = vi.fn();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push }),
-}));
+  useRouter: () => ({ push }), usePathname: () => '/'}));
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';

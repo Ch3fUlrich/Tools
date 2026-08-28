@@ -39,7 +39,14 @@ export default function NumberInput({ id, value, onChange, step = 1, min = 0, pl
         placeholder={placeholder}
         min={min}
         step="any"
+        // `type=number` alone still gives some mobile browsers a full QWERTY keyboard;
+        // inputmode="decimal" is what actually summons the numeric pad.
+        inputMode="decimal"
+        enterKeyHint="done"
         aria-label={ariaLabel || undefined}
+        // The unit is rendered as a sibling, so screen readers would otherwise never
+        // reach it — announce it as the field's description instead.
+        aria-describedby={unit && id ? `${id}-unit` : undefined}
       />
 
       <div className="stepper-wrap">
@@ -59,6 +66,7 @@ export default function NumberInput({ id, value, onChange, step = 1, min = 0, pl
       */}
       {unit && (
         <span
+          id={id ? `${id}-unit` : undefined}
           className="text-sm"
           style={{
             position: 'absolute',

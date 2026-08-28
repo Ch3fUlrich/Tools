@@ -95,7 +95,7 @@ export const DiceHistory: React.FC<DiceHistoryProps> = ({ entries = [], source =
                 >
                   <span className="flex items-center gap-2">
                     {hasDetails && (
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ color: 'var(--muted)', transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}>
+                      <svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ color: 'var(--muted)', transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}>
                         <path d="M3 2l4 3-4 3V2z" />
                       </svg>
                     )}
@@ -112,17 +112,18 @@ export const DiceHistory: React.FC<DiceHistoryProps> = ({ entries = [], source =
                   <div className="px-3 pb-3 border-t" style={{ borderColor: 'var(--card-border)' }}>
                     <div className="overflow-x-auto mt-2">
                       <table className="w-full text-sm">
+                        <caption className="sr-only">Previous dice rolls</caption>
                         <thead>
                           <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
-                            <th className="text-left py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '15%' }}>Die</th>
-                            <th className="text-left py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)' }}>Values</th>
-                            <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Avg</th>
-                            <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Min</th>
-                            <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Max</th>
-                            <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Actual</th>
-                            <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Norm</th>
-                            <th className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '10%' }}>Reroll</th>
-                            <th className="text-right py-1.5 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Sum</th>
+                            <th scope="col" className="text-left py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '15%' }}>Die</th>
+                            <th scope="col" className="text-left py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)' }}>Values</th>
+                            <th scope="col" className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Avg</th>
+                            <th scope="col" className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Min</th>
+                            <th scope="col" className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '7%' }}>Max</th>
+                            <th scope="col" className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Actual</th>
+                            <th scope="col" className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Norm</th>
+                            <th scope="col" className="text-right py-1.5 pr-3 text-xs font-medium" style={{ color: 'var(--muted)', width: '10%' }}>Reroll</th>
+                            <th scope="col" className="text-right py-1.5 text-xs font-medium" style={{ color: 'var(--muted)', width: '8%' }}>Sum</th>
                           </tr>
                         </thead>
                         <tbody>

@@ -12,6 +12,8 @@ interface LineChartProps {
   className?: string;
   color?: string;
   title?: string;
+  /** Accessible name for the chart. Falls back to the visible title. */
+  ariaLabel?: string;
 }
 
 export const LineChart: React.FC<LineChartProps> = ({
@@ -20,7 +22,8 @@ export const LineChart: React.FC<LineChartProps> = ({
   height = 200,
   className = '',
   color = 'var(--accent)',
-  title
+  title,
+  ariaLabel,
 }) => {
   if (!data || data.length === 0) {
     return (
@@ -116,6 +119,8 @@ export const LineChart: React.FC<LineChartProps> = ({
         </h3>
       )}
   <svg
+    role="img"
+    aria-label={ariaLabel ?? title ?? 'Line chart'}
     width={width}
     height={height}
     viewBox={`0 0 ${width} ${height}`}

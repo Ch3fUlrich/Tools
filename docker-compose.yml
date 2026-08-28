@@ -8,11 +8,11 @@ services:
     container_name: tools-backend
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     environment:
       - RUST_LOG=info
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://frontend:3000}
-      - DATABASE_URL=${DATABASE_URL:-postgres://tools:pass@postgres:5432/tools}
+      - DATABASE_URL=${DATABASE_URL:?set DATABASE_URL in .env - refusing to start on a default}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
     depends_on:
       postgres:
@@ -46,7 +46,7 @@ services:
     container_name: tools-frontend
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     depends_on:
       backend:
         condition: service_started
@@ -82,10 +82,10 @@ services:
     image: postgres:16-alpine
     container_name: tools-postgres
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-tools}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pass}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env - refusing to start on a default}
       POSTGRES_DB: ${POSTGRES_DB:-tools}
     volumes:
       - postgres-data:/var/lib/postgresql/data
