@@ -363,6 +363,14 @@ export interface SubstanceIntakeRequest {
   substance: string;
   time: string;
   dosage_mg: number;
+  /**
+   * How the dose was taken: 'oral' | 'intravenous' | 'nasal' | 'inhaled' | 'sublingual'.
+   * Drives both bioavailability and how fast the dose is absorbed. Optional so older
+   * clients keep working; the server treats a missing value as oral.
+   */
+  route?: string;
+  /** Taken with or just after food, which delays absorption. Defaults to false. */
+  with_food?: boolean;
 }
 
 export interface ToleranceCalculationRequest {
