@@ -15,6 +15,21 @@ interface SubstanceIntake {
   dosageMg: number;
 }
 
+/**
+ * Opened cold, the tool used to show an empty row and an empty chart, which says nothing
+ * about what it does. These two seed a realistic curve straight away: a coffee two hours
+ * ago and an ibuprofen an hour ago. Caffeine's 5.7 h half-life against ibuprofen's 2 h
+ * makes the point of the whole tool visible in one glance — the short-half-life drug is
+ * already falling away while the stimulant is barely down.
+ *
+ * Only applied when the loaded substance list actually contains both, so a backend (or a
+ * test) serving a different catalogue still starts blank.
+ */
+const EXAMPLE_INTAKES: { id: string; dosageMg: number; hoursAgo: number }[] = [
+  { id: 'caffeine', dosageMg: 100, hoursAgo: 2 },
+  { id: 'ibuprofen', dosageMg: 400, hoursAgo: 1 },
+];
+
 const BloodLevelCalculator: React.FC = () => {
   const [intakes, setIntakes] = useState<SubstanceIntake[]>([
     {
@@ -36,12 +51,33 @@ const BloodLevelCalculator: React.FC = () => {
       try {
         const subs = await getToleranceSubstances();
         setSubstances(subs);
+
+        // Seed the worked example only when every substance it needs is available.
+        const seeded: (SubstanceIntake | null)[] = EXAMPLE_INTAKES.map((example) => {
+          const match = subs.find((s) => s.id === example.id);
+          return match
+            ? {
+                substance: match.name,
+                time: new Date(Date.now() - example.hoursAgo * 3_600_000).toISOString(),
+                intakeType: 'oral',
+                timeAfterMeal: null,
+                dosageMg: example.dosageMg,
+              }
+            : null;
+        });
+
+        if (seeded.every((s): s is SubstanceIntake => s !== null)) {
+          setIntakes(seeded);
+          await calculateBloodLevels(seeded);
+        }
       } catch (err) {
         /* eslint-disable-next-line no-console */
         console.error('Failed to load substances:', err);
       }
     };
     loadSubstances();
+    // Runs once on mount; calculateBloodLevels is stable enough for this single call.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Blood level points carry the substance id; show the display name when known.
@@ -70,11 +106,11 @@ const BloodLevelCalculator: React.FC = () => {
     setIntakes(newIntakes);
   };
 
-  const calculateBloodLevels = async () => {
+  const calculateBloodLevels = async (source?: SubstanceIntake[]) => {
     setLoading(true);
     setError(null);
 
-    const validIntakes = intakes.filter(
+    const validIntakes = (source ?? intakes).filter(
       (intake) => intake.substance && intake.substance.trim() !== '' && intake.dosageMg > 0,
     );
     // Guard against a silent empty result when nothing is filled in yet —
@@ -224,7 +260,7 @@ const BloodLevelCalculator: React.FC = () => {
           </button>
 
           <button
-            onClick={calculateBloodLevels}
+            onClick={() => calculateBloodLevels()}
             disabled={loading}
             className="btn-primary w-full text-base mt-2 h-12 font-semibold shadow-soft-lg hover:shadow-soft-xl transition-all duration-300 disabled:cursor-not-allowed"
           >
@@ -306,6 +342,47 @@ const BloodLevelCalculator: React.FC = () => {
             </div>
           </div>
         )}
+      </CardSection>
+
+      <CardSection title="How this is calculated" gradient="from-slate-400 to-slate-600" delay="300ms">
+        <p className="text-sm mb-3" style={{ color: 'var(--muted)' }}>
+          Each intake decays independently and the curve is their sum. For one substance:
+        </p>
+        <pre
+          style={{
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+            fontSize: '0.75rem',
+            lineHeight: 1.6,
+            background: 'var(--bg)',
+            border: '1px solid var(--card-border)',
+            borderRadius: '0.5rem',
+            padding: '0.75rem 0.875rem',
+            margin: '0 0 0.875rem',
+            overflowX: 'auto',
+            color: 'var(--fg-secondary)',
+            whiteSpace: 'pre',
+          }}
+        >{`amount(t) = Σ  dose_i × F × 0.5 ^ ((t − t_i) / t½)
+            i
+
+  F   bioavailability — the fraction that reaches the bloodstream
+  t½  elimination half-life: the time to clear half of what is present
+  t_i time of intake i; terms with t < t_i contribute nothing`}</pre>
+        <p className="text-sm" style={{ color: 'var(--muted)', margin: '0 0 0.5rem' }}>
+          This is a one-compartment model with first-order elimination. It assumes a dose
+          reaches the blood the moment it is taken, so it has no absorption phase and no
+          Tmax: right after an oral dose the real curve is still rising while this one is
+          already at its peak. Past roughly an hour the two agree closely, which is the part
+          that matters for stacking doses and for judging when a substance has washed out.
+        </p>
+        <p className="text-sm" style={{ color: 'var(--muted)', margin: 0 }}>
+          Half-lives are adult population averages, and individuals vary widely — caffeine
+          alone ranges from about 2 to 10 hours depending on CYP1A2 activity, smoking,
+          pregnancy and oral contraceptives. Ethanol is the one substance here that does not
+          obey this equation at all: it is cleared at a near-constant rate rather than by a
+          fixed half-life, so treat its curve as a rough shape only. Educational tool, not
+          medical or dosing advice.
+        </p>
       </CardSection>
     </div>
   );
