@@ -8,6 +8,27 @@
 | pnpm | latest | `corepack enable pnpm` |
 | Rust | stable (1.90.0+) | [Install](https://rustup.rs/); CI uses `dtolnay/rust-toolchain@stable` |
 | Docker | 24+ | For Postgres + Redis in dev |
+| MinGW-w64 | latest | **Windows only, but required** — see below |
+
+### Windows: install MinGW-w64 or cargo will not run
+
+`rust-toolchain.toml` pins `x86_64-pc-windows-gnu`, and the `windows-sys` crate's build
+script shells out to `dlltool`. Without it, every `cargo build`, `cargo test` and
+`cargo clippy` fails with:
+
+```
+error calling dlltool 'dlltool.exe': program not found
+```
+
+which leaves CI as the only place the backend can be checked — a slow way to find a typo.
+
+```powershell
+winget install -e --id BrechtSanders.WinLibs.POSIX.MSVCRT
+```
+
+**MSVCRT, not UCRT** — it has to match the `gnu` target's runtime. The installer puts its
+`mingw64/bin` on the user PATH, so open a new shell afterwards and confirm with
+`where dlltool`.
 
 **Pin Node 24 with nvm:**
 ```bash
@@ -325,3 +346,9 @@ Breaking changes: add `!` after scope (`feat(auth)!: change session format`) or 
 | `vi.resetAllMocks()` in `beforeEach` | Use `vi.clearAllMocks()` to preserve mock implementations |
 | Committing generated files | Never commit `*.log`, `.next/`, `out/`, `target/` |
 | Forgetting to commit `Cargo.lock` after dep changes | Run `cargo update` and commit the lock file |
+| Assuming a Tailwind utility works | Tailwind v4 does not emit many of them here (`max-w-*`, `p-6`, `text-lg`, `absolute`). Check the built CSS or use an inline style |
+| Changing a formula in `lib/local/` only | It mirrors `backend/src/tools/`. Change both, or online and offline users get different answers |
+| Adding a backend route for Elterngeld or blood level | Both are deliberately browser-only — they handle tax and health data |
+| Adding an external font or script `<link>`/`@import` | Breaks the strict CSP and leaks visitor IPs. Self-host via `next/font` |
+| Hand-editing `docker/security-headers.generated.conf` | It is rebuilt by `scripts/generate-csp.mjs` on every build |
+| Adding a UI string without a German translation | `lib/i18n/messages.ts` is key-checked at build time; a missing key fails the build |

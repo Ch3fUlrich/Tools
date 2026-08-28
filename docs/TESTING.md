@@ -47,6 +47,34 @@ describe('MyComponent', () => {
 });
 ```
 
+### Things that are pinned on purpose
+
+Some tests exist to stop a specific class of silent breakage. If one of these fails, read the
+comment before adjusting the expectation:
+
+- **`local_compute.test.ts`** pins the blood level substance list *in order*, because
+  `lib/local/bloodLevel.ts` and `backend/src/tools/bloodlevel.rs` must stay identical. If they
+  drift, the offline fallback quietly answers differently from the API.
+- **`elterngeld_engine.test.ts`** pins two published tax values —
+  `grundtarifTax(30_000, TARIFF_2025) === 4_303` and `…2026 === 4_217` — against the official
+  Grundtabelle. They are the check that the § 32a coefficients were transcribed correctly.
+- **`i18n.test.tsx`** asserts the English and German catalogues have the same keys, non-empty
+  values, wording that actually differs, and the same `{interpolation}` placeholders.
+- The **worked example** in the blood level tool only seeds when the loaded catalogue contains
+  both caffeine and ibuprofen. Existing tests mock a single fake substance and rely on still
+  starting blank — don't remove that guard.
+
+### Mocking `next/font`
+
+`next/font/google` is a build-time transform. Vitest never runs it, so the real module exports
+a placeholder and calling it throws `Inter is not a function`. `vitest.config.ts` aliases it to
+`frontend/__mocks__/next-font-google.ts`. Add an export there for any further font.
+
+Similarly, the `Header` uses `usePathname`, so any test that mocks `next/navigation` must
+include it in the factory or the whole file fails to load.
+
+---
+
 ## Backend (Rust)
 
 - Use `cargo test` to run backend tests.

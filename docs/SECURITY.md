@@ -1,5 +1,10 @@
 # Security Guidelines
 
+> **Reporting a vulnerability?** Use the root [SECURITY.md](../SECURITY.md) — that is the
+> policy GitHub surfaces, and it also records the controls currently in place and the known
+> gaps. This document is the internal guidance for people writing code here.
+
+
 ## Overview
 
 This document outlines the security practices and guidelines for the Tools project to ensure a secure, robust application.
