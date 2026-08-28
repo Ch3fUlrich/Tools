@@ -194,8 +194,16 @@ html, body, #__next {
  * With the container definite, a plain percentage is enough to stop a wide child
  * (a table, a chart, a block of equations) from widening the page. Those children
  * carry their own `overflow-x: auto`, so they scroll inside their own box instead.
+ *
+ * `.tool-page-main` needs its own entry: `ToolPage` renders its <main> inside a
+ * `.min-h-screen` wrapper, so `.site-container > main` never matches it. It carries
+ * Tailwind `w-fit` (`width: fit-content`), and `fit-content` resolves to
+ * `max(min-content, available)` — so a child with a large min-content (the blood
+ * level intake table sets `min-width: 760px`) pushed <main> past the viewport. The
+ * `max-w-7xl` that was meant to cap it is never emitted by Tailwind v4 here.
  */
 .site-container > main,
+.tool-page-main,
 .tool-page-frame {
   max-width: 100%;
 }
