@@ -159,10 +159,17 @@ Or clone and run the full stack with Docker Compose:
 ```bash
 git clone https://github.com/Ch3fUlrich/Tools.git
 cd Tools
+cp .env.example .env     # then edit POSTGRES_PASSWORD and DATABASE_URL
 docker compose up -d
 ```
 
 Open **http://localhost:8080** in your browser.
+
+> The `.env` step is not optional. `docker-compose.yml` refuses to start without
+> `POSTGRES_PASSWORD` and `DATABASE_URL` rather than quietly falling back to a placeholder
+> password, so you will get
+> `required variable DATABASE_URL is missing a value` if you skip it. Published ports are
+> bound to `127.0.0.1`, so nothing is reachable from your local network by default.
 
 ### Option B — Local development
 
