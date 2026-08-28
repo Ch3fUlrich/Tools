@@ -1,0 +1,89 @@
+{"type":"Project","data":{"slug":"tools","name":"Tools monorepo","path":"C:/Users/mauls/Documents/Code/Tools","summary":"Next.js 16 static-export frontend + Rust/Axum backend serving seven utility tools (Fat Loss, Dice Roller, Blood Level, N26 Analyzer, Training Tracker, Elterngeld Optimizer, Tax Help). The tax and pharmacokinetic tools compute entirely in the browser with no backend call; everything else goes through lib/api/client.ts. Deployed as a static site to GitHub Pages and as an nginx+distroless Docker image."}}
+{"type":"Component","data":{"slug":"tools-german-tax","name":"German income-tax core","kind":"module","location":"frontend/lib/local/germanTax.ts"}}
+{"type":"Component","data":{"slug":"tools-elterngeld","name":"Elterngeld / BEEG model","kind":"module","location":"frontend/lib/local/elterngeld.ts"}}
+{"type":"Component","data":{"slug":"tools-pharmacokinetics","name":"Pharmacokinetic engine","kind":"module","location":"frontend/lib/local/pharmacokinetics.ts"}}
+{"type":"Component","data":{"slug":"tools-substance-db","name":"Substance database","kind":"module","location":"frontend/lib/local/substanceDatabase.ts"}}
+{"type":"Component","data":{"slug":"tools-bloodlevel-rs","name":"Blood-level backend mirror","kind":"module","location":"backend/src/tools/bloodlevel.rs"}}
+{"type":"Component","data":{"slug":"tools-csp-generator","name":"Build-time CSP generator","kind":"script","location":"scripts/generate-csp.mjs"}}
+{"type":"Component","data":{"slug":"tools-auth","name":"Password auth + session cookies","kind":"module","location":"backend/src/tools/auth.rs"}}
+{"type":"Component","data":{"slug":"tools-api-client","name":"Frontend API client","kind":"module","location":"frontend/lib/api/client.ts"}}
+{"type":"Component","data":{"slug":"tools-toolpage","name":"ToolPage layout wrapper","kind":"component","location":"frontend/components/tools/ToolPage.tsx"}}
+{"type":"Component","data":{"slug":"tools-i18n","name":"EN/DE internationalisation","kind":"module","location":"frontend/lib/i18n/messages.ts"}}
+{"type":"Component","data":{"slug":"tools-globals-css","name":"Design tokens + component classes","kind":"stylesheet","location":"frontend/app/globals.css"}}
+{"edge":"PartOf","from":"tools-german-tax","to":"tools"}
+{"edge":"PartOf","from":"tools-elterngeld","to":"tools"}
+{"edge":"PartOf","from":"tools-pharmacokinetics","to":"tools"}
+{"edge":"PartOf","from":"tools-substance-db","to":"tools"}
+{"edge":"PartOf","from":"tools-bloodlevel-rs","to":"tools"}
+{"edge":"PartOf","from":"tools-csp-generator","to":"tools"}
+{"edge":"PartOf","from":"tools-auth","to":"tools"}
+{"edge":"PartOf","from":"tools-api-client","to":"tools"}
+{"edge":"PartOf","from":"tools-toolpage","to":"tools"}
+{"edge":"PartOf","from":"tools-i18n","to":"tools"}
+{"edge":"PartOf","from":"tools-globals-css","to":"tools"}
+{"edge":"DependsOn","from":"tools-elterngeld","to":"tools-german-tax"}
+{"edge":"DependsOn","from":"tools-pharmacokinetics","to":"tools-substance-db"}
+{"edge":"DependsOn","from":"tools-bloodlevel-rs","to":"tools-substance-db"}
+{"type":"Decision","data":{"slug":"tools-verify-tariff-by-zone-continuity","title":"The § 32a tariff was verified by zone continuity, not by third-party tables","rationale":"The EStG tariff is piecewise; a correct implementation is continuous to the cent at every zone boundary. Evaluating each zone's formula from both sides at the boundary is a self-contained proof that needs no external source. Two third-party tables consulted during the build were discontinuous by 132 EUR and 518 EUR at a boundary and were therefore wrong, not the implementation. Trust the continuity check over any published table."}}
+{"type":"Decision","data":{"slug":"tools-profit-delta-kind-is-decisive","title":"profitDeltaKind ('timing' vs 'cash') decides the whole Elterngeld recommendation","rationale":"Shifting profit out of the leave year is only worth it if the money is deferred rather than forgone. 'timing' means the profit still arrives later, so the deferred deduction has value and the comparison is about tax brackets and Progressionsvorbehalt. 'cash' means the profit is genuinely given up, so the lost income has to be subtracted outright. Getting this input wrong inverts the recommendation, so it is asked explicitly rather than inferred."}}
+{"type":"Decision","data":{"slug":"tools-net-position-accounting","title":"netPosition sums both years plus benefits minus extra contributions","rationale":"netPosition = baseYearNetIncome + leaveYearNetIncome + benefitsTotal - maternity.extraContributionTotal + deferredDeductionValue. Probing the original formula found three defects: leave-year income was missing entirely, Kindergeld was never credited, and a church-tax rate was still applied in § 2e. Fixing them changed the absolute figures but left the advantage at 2791.72 EUR, which confirmed the recommendation had been right for the wrong reasons."}}
+{"type":"Decision","data":{"slug":"tools-ka-from-published-tmax","title":"Absorption rate ka is solved from published Tmax by bisection","rationale":"Literature reports Tmax, not ka. For the one-compartment Bateman model, Tmax = ln(ka/ke)/(ka-ke) has no closed form for ka, so ka is recovered by bisection on that relation. This keeps every substance's parameters traceable to a citable Tmax rather than to a fitted constant nobody can check."}}
+{"type":"Decision","data":{"slug":"tools-ethanol-is-michaelis-menten","title":"Ethanol uses Michaelis-Menten elimination, not first-order","rationale":"Alcohol dehydrogenase saturates at ordinary drinking concentrations, so ethanol clears at a near-constant rate rather than a constant fraction per hour. It gets its own saturating integrator (midpoint RK2, dt 0.01 h) with Vmax 8.5 g/h per 70 kg and Km 80 mg/L. A first-order curve would badly overestimate how fast a high level falls."}}
+{"type":"Decision","data":{"slug":"tools-csp-hashes-next-inline-scripts","title":"The CSP hashes Next's inline flight scripts at build time","rationale":"Next's static export emits inline <script> blocks carrying the React flight payload. A strict script-src 'self' blocks them and breaks hydration silently (React error #412) — the page renders, then dies. scripts/generate-csp.mjs runs as postbuild, sha256-hashes each inline block, injects a per-page <meta> policy (the only way to get a policy onto GitHub Pages, which cannot set headers) and writes docker/security-headers.generated.conf for nginx. The hashes change every build, so the conf must be regenerated with the export it serves."}}
+{"type":"Decision","data":{"slug":"tools-dummy-hash-derived-not-hardcoded","title":"The Argon2 dummy hash is derived at runtime via LazyLock, never hardcoded","rationale":"Login must spend the same time on a missing user as on a wrong password, or response timing reveals which emails are registered. The fix hashes a dummy password on the miss path. A hardcoded PHC string looks equivalent but is worse than useless: if it fails to parse, PasswordHash::new errors, the verify is skipped, and the timing oracle is silently restored. Deriving it once through LazyLock cannot drift from the live Argon2 parameters. A test asserts it parses."}}
+{"type":"Decision","data":{"slug":"tools-compose-refuses-default-password","title":"docker-compose refuses to start rather than fall back to a default password","rationale":"POSTGRES_PASSWORD and DATABASE_URL use the ${VAR:?message} form, so an unset variable is a hard error instead of a placeholder credential that silently reaches production. The cost is that every consumer must supply values: CI does so through an explicit env: block in integration-tests.yml, and a fresh clone copies .env.example. Both are deliberate — the credentials are visible and intentional wherever they appear."}}
+{"type":"Decision","data":{"slug":"tools-church-tax-removed","title":"Church tax was removed from the tax model entirely","rationale":"Nobody in the modelled household pays Kirchensteuer, and an unused optional rate is a live source of wrong answers — it had already leaked into the § 2e Elterngeld calculation once. The type field, the churchTax() function and the kirchensteuer output were all deleted rather than defaulted to zero."}}
+{"type":"Decision","data":{"slug":"tools-omnigraph-project-scope","title":"omnigraph belongs in project scope, graphify in user scope","rationale":"An omnigraph bridge serves exactly one graph fixed by OMNIGRAPH_GRAPH_ID and no tool takes a graph argument, so a same-named user-scope entry silently shadows every repo's project-scope entry and answers about the wrong graph. graphify is cwd-relative, so one user-scope definition correctly serves every repo. This session made that exact mistake — adding a user-scope omnigraph pinned to 'memory' — before reverting to a project .mcp.json."}}
+{"type":"Decision","data":{"slug":"tools-2-of-17-branches-worth-keeping","title":"Of 17 stale remote branches, only one carried a real improvement","rationale":"A full review of the remote branches kept exactly one. Two branches labelled as performance work were actually pessimisations — the 'optimised' date parsing did more work per call than the code it replaced. Branch titles were not predictive of branch value; each had to be read."}}
+{"edge":"DecidedIn","from":"tools-verify-tariff-by-zone-continuity","to":"tools"}
+{"edge":"DecidedIn","from":"tools-profit-delta-kind-is-decisive","to":"tools"}
+{"edge":"DecidedIn","from":"tools-net-position-accounting","to":"tools"}
+{"edge":"DecidedIn","from":"tools-ka-from-published-tmax","to":"tools"}
+{"edge":"DecidedIn","from":"tools-ethanol-is-michaelis-menten","to":"tools"}
+{"edge":"DecidedIn","from":"tools-csp-hashes-next-inline-scripts","to":"tools"}
+{"edge":"DecidedIn","from":"tools-dummy-hash-derived-not-hardcoded","to":"tools"}
+{"edge":"DecidedIn","from":"tools-compose-refuses-default-password","to":"tools"}
+{"edge":"DecidedIn","from":"tools-church-tax-removed","to":"tools"}
+{"edge":"DecidedIn","from":"tools-omnigraph-project-scope","to":"tools"}
+{"edge":"DecidedIn","from":"tools-2-of-17-branches-worth-keeping","to":"tools"}
+{"edge":"Affects","from":"tools-verify-tariff-by-zone-continuity","to":"tools-german-tax"}
+{"edge":"Affects","from":"tools-profit-delta-kind-is-decisive","to":"tools-elterngeld"}
+{"edge":"Affects","from":"tools-net-position-accounting","to":"tools-elterngeld"}
+{"edge":"Affects","from":"tools-ka-from-published-tmax","to":"tools-pharmacokinetics"}
+{"edge":"Affects","from":"tools-ethanol-is-michaelis-menten","to":"tools-pharmacokinetics"}
+{"edge":"Affects","from":"tools-csp-hashes-next-inline-scripts","to":"tools-csp-generator"}
+{"edge":"Affects","from":"tools-dummy-hash-derived-not-hardcoded","to":"tools-auth"}
+{"edge":"Affects","from":"tools-church-tax-removed","to":"tools-german-tax"}
+{"type":"Rule","data":{"slug":"tools-never-assume-a-tailwind-utility-exists","statement":"Never assume a Tailwind utility is emitted in this project. Tailwind v4 here does not generate max-w-*, p-6, text-lg, absolute, right-20 and others. Verify against the built CSS or use an inline style. SVGs need both width/height attributes and an inline style, or they fall back to 300px wide.","severity":"must"}}
+{"type":"Rule","data":{"slug":"tools-never-width-max-content-on-page-container","statement":"Never set width: max-content on a page-level container. On .site-container it made every wide child widen the entire page and broke horizontal fit at every viewport. It is now width: 100% by default, with max-content confined to the :has(.resizable-card[data-has-explicit-size]) rule.","severity":"must"}}
+{"type":"Rule","data":{"slug":"tools-never-hand-edit-generated-csp-conf","statement":"Never hand-edit docker/security-headers.generated.conf. It is rewritten by scripts/generate-csp.mjs on every next build, and its script hashes only match the export built alongside it.","severity":"must"}}
+{"type":"Rule","data":{"slug":"tools-never-external-font-or-script-link","statement":"Never add an external @import or <link> for fonts or scripts. It breaks the strict CSP and leaks visitor IPs to a third party. Self-host through next/font.","severity":"must"}}
+{"type":"Rule","data":{"slug":"tools-regenerate-csp-when-inline-scripts-change","statement":"Regenerate the CSP whenever the export changes. node scripts/generate-csp.mjs --check fails when the conf is stale; wire it into any build that ships the Docker image.","severity":"should"}}
+{"type":"Rule","data":{"slug":"tools-node-24-required","statement":"Run frontend tests on Node.js 24 or newer. vitest 4 with vite 7 does not work on older runtimes.","severity":"must"}}
+{"type":"Rule","data":{"slug":"tools-windows-needs-dlltool","statement":"On Windows the backend needs dlltool.exe. The pinned toolchain is x86_64-pc-windows-gnu, whose windows-sys build shells out to it; without it every cargo build/test/clippy fails with 'error calling dlltool'. Install WinLibs MSVCRT (not UCRT — it must match the gnu target's runtime) and open a new shell.","severity":"must"}}
+{"type":"Rule","data":{"slug":"tools-no-drop-table-in-tests","statement":"Never DROP a table in test setup. Tests run in parallel against a shared database; use CREATE TABLE IF NOT EXISTS so setup is idempotent.","severity":"must"}}
+{"type":"Rule","data":{"slug":"tools-never-write-repo-knowledge-into-memory-graph","statement":"Never write a repo's knowledge into the shared 'memory' graph as a substitute for its own. Doing so is what once made an agent believe an intact graph had been wiped. If this repo's graph does not exist, stage the records and wait for an operator to create it.","severity":"must"}}
+{"edge":"ConstrainsProject","from":"tools-never-assume-a-tailwind-utility-exists","to":"tools"}
+{"edge":"ConstrainsProject","from":"tools-never-width-max-content-on-page-container","to":"tools"}
+{"edge":"ConstrainsProject","from":"tools-never-external-font-or-script-link","to":"tools"}
+{"edge":"ConstrainsProject","from":"tools-node-24-required","to":"tools"}
+{"edge":"ConstrainsProject","from":"tools-windows-needs-dlltool","to":"tools"}
+{"edge":"ConstrainsProject","from":"tools-no-drop-table-in-tests","to":"tools"}
+{"edge":"ConstrainsProject","from":"tools-never-write-repo-knowledge-into-memory-graph","to":"tools"}
+{"edge":"ConstrainsComponent","from":"tools-never-hand-edit-generated-csp-conf","to":"tools-csp-generator"}
+{"edge":"ConstrainsComponent","from":"tools-regenerate-csp-when-inline-scripts-change","to":"tools-csp-generator"}
+{"edge":"ConstrainsComponent","from":"tools-never-width-max-content-on-page-container","to":"tools-globals-css"}
+{"type":"Convention","data":{"slug":"tools-toolpage-owns-the-h1","name":"ToolPage owns the only <h1> on a tool page","example":"app/tools/my-tool/page.tsx wraps <MyTool /> in <ToolPage title description emoji gradientFrom gradientTo>. The tool component itself renders only content sections and must not add a heading of its own."}}
+{"type":"Convention","data":{"slug":"tools-all-fetch-through-api-client","name":"Every backend call goes through lib/api/client.ts","example":"Components never call fetch() directly. New endpoints are added to the client with a typed exported response, which is also what the tests mock."}}
+{"type":"Convention","data":{"slug":"tools-slate-not-gray","name":"Tool components use slate-* colours, never gray-*","example":"text-slate-600, not text-gray-600. Colour comes from the CSS variables in globals.css rather than Tailwind dark: classes."}}
+{"type":"Convention","data":{"slug":"tools-de-typed-against-en","name":"The German catalogue is typed against the English one","example":"de: Translated<typeof en> in lib/i18n. A key present in en and missing in de is a build error rather than a string that silently falls back at runtime."}}
+{"type":"Convention","data":{"slug":"tools-substance-parity-assertion","name":"The Rust substance table asserts parity with the TypeScript one","example":"Both are generated from the same source table, and backend/src/tools/bloodlevel.rs asserts its ids match the TS ids so the two implementations cannot drift apart unnoticed."}}
+{"edge":"AppliesTo","from":"tools-toolpage-owns-the-h1","to":"tools"}
+{"edge":"AppliesTo","from":"tools-all-fetch-through-api-client","to":"tools"}
+{"edge":"AppliesTo","from":"tools-slate-not-gray","to":"tools"}
+{"edge":"AppliesTo","from":"tools-de-typed-against-en","to":"tools"}
+{"edge":"AppliesTo","from":"tools-substance-parity-assertion","to":"tools"}
+{"type":"Task","data":{"slug":"tools-create-omnigraph-graph","title":"Create the 'tools' graph on the omnigraph cluster so these records can be loaded","state":"open"}}
+{"type":"Task","data":{"slug":"tools-review-remaining-stale-branches","title":"Decide whether to delete the 16 reviewed-and-rejected remote branches","state":"open"}}
+{"edge":"Tracks","from":"tools-create-omnigraph-graph","to":"tools"}
+{"edge":"Tracks","from":"tools-review-remaining-stale-branches","to":"tools"}
