@@ -20,7 +20,6 @@
 import {
   calculateTax,
   getTariff,
-  type ChurchTaxPercent,
   type FilingStatus,
   type TaxBreakdown,
   type TaxYear,
@@ -101,7 +100,6 @@ export interface ElterngeldProfile {
   /** Annual gross salary from employment in the Bemessungszeitraum (§ 2c BEEG). */
   annualEmploymentGross: number;
   insurance: InsuranceStatus;
-  churchTaxPercent: ChurchTaxPercent;
   /** Monthly Elterngeld-Netto still earned *during* the leave months (§ 2 Abs. 3 BEEG). */
   monthlyNetIncomeDuringLeave: number;
   /** Two children under 3, or three or more under 6 (§ 2a Abs. 1 BEEG). */
@@ -146,7 +144,6 @@ export interface MaternityProfile {
 
 export interface HouseholdProfile {
   filing: FilingStatus;
-  churchTaxPercent: ChurchTaxPercent;
   /** Whether the profit difference between scenarios is cash or merely timing. */
   profitDeltaKind: ProfitDeltaKind;
   /** Children eligible for Kindergeld / Kinderfreibetrag, excluding none. */
@@ -263,13 +260,9 @@ export function elterngeldNetto(profile: ElterngeldProfile): ElterngeldNettoBrea
   const taxSimulationBase = Math.max(0, annualBase - arbeitnehmerPauschbetrag - vp);
 
   // Steuerklasse IV means the Grundtarif is applied to the individual's own income.
-  // § 2e Abs. 4 BEEG fixes the Kirchensteuer at 8 % for this simulation regardless of
-  // the Land's actual 8/9 % rate, so a Bavarian and a Berlin claimant with the same
-  // profit get the same Elterngeld.
   const tax = calculateTax(taxSimulationBase, {
     tariff: getTariff(profile.baseYear),
     filing: 'single',
-    churchTaxPercent: profile.churchTaxPercent > 0 ? 8 : 0,
   });
 
   const monthlyTax = tax.total / 12;
@@ -472,17 +465,15 @@ export function compareFilingStatus(params: {
   partnerIncome: number;
   progressionIncome: number;
   taxYear: TaxYear;
-  churchTaxPercent: ChurchTaxPercent;
   children: number;
 }): FilingComparison {
-  const { applicantIncome, partnerIncome, progressionIncome, taxYear, churchTaxPercent, children } =
+  const { applicantIncome, partnerIncome, progressionIncome, taxYear, children } =
     params;
   const tariff = getTariff(taxYear);
 
   const joint = calculateTax(Math.max(0, applicantIncome) + Math.max(0, partnerIncome), {
     tariff,
     filing: 'married',
-    churchTaxPercent,
     progressionIncome,
     children,
     childAllowanceShare: 1,
@@ -492,7 +483,6 @@ export function compareFilingStatus(params: {
   const separateApplicant = calculateTax(Math.max(0, applicantIncome), {
     tariff,
     filing: 'single',
-    churchTaxPercent,
     progressionIncome,
     children,
     childAllowanceShare: 0.5,
@@ -500,7 +490,6 @@ export function compareFilingStatus(params: {
   const separatePartner = calculateTax(Math.max(0, partnerIncome), {
     tariff,
     filing: 'single',
-    churchTaxPercent,
     progressionIncome: 0,
     children,
     childAllowanceShare: 0.5,
@@ -596,7 +585,6 @@ export function evaluateScenario(
   const baseYearTax = calculateTax(baseYearZvE, {
     tariff: baseTariff,
     filing: household.filing,
-    churchTaxPercent: household.churchTaxPercent,
     children: household.children,
   });
 
@@ -624,7 +612,6 @@ export function evaluateScenario(
   const leaveTaxOptions = {
     tariff: leaveTariff,
     filing: household.filing,
-    churchTaxPercent: household.churchTaxPercent,
     children: household.children,
   };
   const leaveYearTaxWithoutProgression = calculateTax(leaveYearZvE, leaveTaxOptions);
@@ -641,7 +628,6 @@ export function evaluateScenario(
     partnerIncome: household.partnerIncomeLeaveYear,
     progressionIncome: benefitsTotal,
     taxYear: household.leaveYear,
-    churchTaxPercent: household.churchTaxPercent,
     children: household.children,
   });
 

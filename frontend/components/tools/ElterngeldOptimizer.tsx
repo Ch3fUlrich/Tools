@@ -16,7 +16,7 @@ import {
   type HouseholdProfile,
   type ProfitDeltaKind,
 } from '@/lib/local/elterngeld';
-import type { ChurchTaxPercent, FilingStatus, TaxYear } from '@/lib/local/germanTax';
+import type { FilingStatus, TaxYear } from '@/lib/local/germanTax';
 import FilingAdvice from './elterngeld/FilingAdvice';
 import MethodNotes from './elterngeld/MethodNotes';
 import ScenarioTable from './elterngeld/ScenarioTable';
@@ -144,7 +144,6 @@ export const ElterngeldOptimizer: React.FC = () => {
   const { t } = useTranslation();
   const [filing, setFiling] = useState<FilingStatus>('married');
   const [profitDeltaKind, setProfitDeltaKind] = useState<ProfitDeltaKind>('timing');
-  const [churchTaxPercent, setChurchTaxPercent] = useState<ChurchTaxPercent>(0);
   const [baseYear, setBaseYear] = useState<TaxYear>(2026);
   const [leaveYear, setLeaveYear] = useState<TaxYear>(2026);
 
@@ -207,7 +206,6 @@ export const ElterngeldOptimizer: React.FC = () => {
       annualProfit: a,
       annualEmploymentGross: Math.max(0, parseAmount(valueOr(employmentGross, EXAMPLE.employmentGross))),
       insurance: { pflichtKV, pflichtRV, pflichtAV, childless },
-      churchTaxPercent,
       monthlyNetIncomeDuringLeave: Math.max(0, parseAmount(valueOr(duringLeave, EXAMPLE.duringLeave))),
       siblingBonus,
       multipleBirthExtraChildren: Math.max(0, parseAmount(valueOr(multiples, EXAMPLE.multiples))),
@@ -218,7 +216,6 @@ export const ElterngeldOptimizer: React.FC = () => {
     const household: HouseholdProfile = {
       filing,
       profitDeltaKind,
-      churchTaxPercent,
       leaveYear,
       partnerIncomeBaseYear: Math.max(0, parseAmount(valueOr(partnerBase, EXAMPLE.partnerBase))),
       partnerIncomeLeaveYear: Math.max(0, parseAmount(valueOr(partnerLeave, EXAMPLE.partnerLeave))),
@@ -275,7 +272,6 @@ export const ElterngeldOptimizer: React.FC = () => {
     leaveYear,
     filing,
     profitDeltaKind,
-    churchTaxPercent,
     partnerBase,
     partnerLeave,
     prepaidBase,
@@ -348,18 +344,6 @@ export const ElterngeldOptimizer: React.FC = () => {
               ]}
             />
             <div className="grid grid-cols-2 gap-3 mt-4">
-              <Field id="eg-church" label={t('eg.churchTax')}>
-                <select
-                  id="eg-church"
-                  className="form-input h-12"
-                  value={churchTaxPercent}
-                  onChange={(e) => setChurchTaxPercent(Number(e.target.value) as ChurchTaxPercent)}
-                >
-                  <option value={0}>None</option>
-                  <option value={8}>8 % (BY/BW)</option>
-                  <option value={9}>9 %</option>
-                </select>
-              </Field>
               <Field id="eg-base-year" label={t('eg.baseYear')} hint={t('eg.baseYearHint')}>
                 <select
                   id="eg-base-year"

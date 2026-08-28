@@ -1,5 +1,8 @@
 // German income-tax primitives (§ 32a EStG, SolZG 1995, § 32b EStG).
 //
+// Kirchensteuer is deliberately not modelled — this household pays none, and carrying an
+// always-zero term through every signature only invited the § 2e Abs. 4 bug it once hid.
+//
 // Pure functions, no I/O. Every constant is sourced from the statute so the
 // Elterngeld model in `elterngeld.ts` can be audited line by line.
 
@@ -7,9 +10,6 @@ export type TaxYear = 2025 | 2026;
 
 /** Einzelveranlagung vs. Zusammenveranlagung (Ehegattensplitting, § 32a Abs. 5 EStG). */
 export type FilingStatus = 'single' | 'married';
-
-/** Kirchensteuersatz in percent: 0 = no church, 8 = BY/BW, 9 = rest. */
-export type ChurchTaxPercent = 0 | 8 | 9;
 
 /**
  * Piecewise-polynomial income tax tariff of § 32a Abs. 1 EStG.
@@ -181,11 +181,6 @@ export function solidaritySurcharge(
   return Math.min(0.055 * assessedIncomeTax, 0.119 * (assessedIncomeTax - freigrenze));
 }
 
-/** Kirchensteuer as a percentage of the assessed income tax. */
-export function churchTax(assessedIncomeTax: number, percent: ChurchTaxPercent): number {
-  return assessedIncomeTax * (percent / 100);
-}
-
 export interface TaxBreakdown {
   /** Taxable income the tariff was applied to. */
   zvE: number;
@@ -193,7 +188,6 @@ export interface TaxBreakdown {
   effectiveRate: number;
   einkommensteuer: number;
   solidaritaetszuschlag: number;
-  kirchensteuer: number;
   total: number;
   /** Kinderfreibetrag actually deducted — 0 when Kindergeld was the better option. */
   kinderfreibetragUsed: number;
@@ -204,7 +198,6 @@ export interface TaxBreakdown {
 export interface TaxOptions {
   tariff: TaxTariff;
   filing: FilingStatus;
-  churchTaxPercent: ChurchTaxPercent;
   /**
    * Tax-free income subject to Progressionsvorbehalt (§ 32b EStG) — e.g. Elterngeld
    * (Abs. 1 Nr. 1 Buchst. j) or Mutterschaftsgeld (Buchst. c). Raises the rate applied
@@ -242,14 +235,13 @@ function assess(base: number, tariff: TaxTariff, filing: FilingStatus, progressi
  *
  * § 31 EStG Günstigerprüfung: the Kinderfreibetrag is only deducted when it beats
  * the Kindergeld; if it is applied, the Kindergeld is added back to the tax.
- * § 51a Abs. 2a EStG: Solidaritätszuschlag and Kirchensteuer are *always* computed
- * on the tax after deducting the Kinderfreibeträge, whichever way that check falls.
+ * § 51a Abs. 2a EStG: the Solidaritätszuschlag is *always* computed on the tax after
+ * deducting the Kinderfreibeträge, whichever way that check falls.
  */
 export function calculateTax(zvE: number, options: TaxOptions): TaxBreakdown {
   const {
     tariff,
     filing,
-    churchTaxPercent,
     progressionIncome = 0,
     children = 0,
     childAllowanceShare = 1,
@@ -284,15 +276,13 @@ export function calculateTax(zvE: number, options: TaxOptions): TaxBreakdown {
   }
 
   const solidaritaetszuschlag = solidaritySurcharge(surchargeBase, tariff, filing);
-  const kirchensteuer = churchTax(surchargeBase, churchTaxPercent);
 
   return {
     zvE: base,
     effectiveRate,
     einkommensteuer,
     solidaritaetszuschlag,
-    kirchensteuer,
-    total: einkommensteuer + solidaritaetszuschlag + kirchensteuer,
+    total: einkommensteuer + solidaritaetszuschlag,
     kinderfreibetragUsed,
     kindergeld,
   };
