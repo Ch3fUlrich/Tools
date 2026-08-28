@@ -119,7 +119,7 @@ describe('Auth components', () => {
 
     await waitFor(() => expect(loginUser).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByText('Continue with Google'));
+    fireEvent.click(screen.getByRole('button', { name: /Continue with/i }));
     expect(startOIDCLogin).toHaveBeenCalled();
   });
 });

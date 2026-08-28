@@ -38,6 +38,123 @@ fn error_response(status: StatusCode, msg: impl Into<String>) -> axum::http::Res
     axum::http::Response::builder().status(status).body(msg.into()).unwrap_or_default()
 }
 
+/// The parts of an Authelia ID token we persist locally.
+pub struct OidcIdentity {
+    pub subject: String,
+    pub email: Option<String>,
+    pub display_name: Option<String>,
+}
+
+impl OidcIdentity {
+    /// Email to store when the provider sent none. `users.email` is `NOT NULL UNIQUE`, and
+    /// the subject is stable and unique per provider, so this keeps the row insertable
+    /// without inventing an address that could collide with a real one.
+    fn email_or_placeholder(&self) -> String {
+        self.email.clone().unwrap_or_else(|| format!("{}@oauth", self.subject))
+    }
+}
+
+/// Find, link, or create the local user behind an Authelia identity.
+///
+/// Authelia is the only login method, so this is the *only* path that fills `users` — it has
+/// to cover every case rather than just the happy one:
+///
+/// 1. the `(provider, subject)` pair is already linked — reuse that user, and refresh the
+///    profile fields Authelia is authoritative for, so a changed email or display name
+///    propagates on the next login;
+/// 2. not linked, but a local user already owns the same email — link the identity to that
+///    user. Inserting instead would hit the `UNIQUE` index on `lower(email)` and fail the
+///    whole login with a 500, permanently locking out anyone who had a local account first;
+/// 3. neither — insert the user and its `oauth_accounts` link together.
+async fn provision_oidc_user(
+    pool: &PgPool,
+    provider: &str,
+    identity: &OidcIdentity,
+) -> Result<sqlx::types::Uuid, String> {
+    let linked = sqlx::query(
+        "SELECT user_id FROM oauth_accounts WHERE provider = $1 AND provider_subject = $2",
+    )
+    .bind(provider)
+    .bind(&identity.subject)
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| format!("DB error looking up linked account: {e}"))?;
+
+    if let Some(rec) = linked {
+        let id: sqlx::types::Uuid =
+            rec.try_get("user_id").map_err(|e| format!("DB returned malformed user_id: {e}"))?;
+        refresh_profile(pool, id, identity).await?;
+        return Ok(id);
+    }
+
+    let existing = match identity.email.as_deref() {
+        Some(em) if !em.trim().is_empty() => {
+            sqlx::query("SELECT id FROM users WHERE lower(email) = lower($1)")
+                .bind(em)
+                .fetch_optional(pool)
+                .await
+                .map_err(|e| format!("DB error looking up user by email: {e}"))?
+        }
+        _ => None,
+    };
+
+    let user_id: sqlx::types::Uuid = if let Some(rec) = existing {
+        let id: sqlx::types::Uuid =
+            rec.try_get("id").map_err(|e| format!("DB returned malformed id: {e}"))?;
+        refresh_profile(pool, id, identity).await?;
+        id
+    } else {
+        // `password_hash` stays NULL: there is no local password to set, and NULL says
+        // "this account cannot be signed into locally" far better than an empty string,
+        // which `verify_password` would otherwise have to reject by accident.
+        let rec = sqlx::query(
+            "INSERT INTO users (email, password_hash, display_name) VALUES ($1, NULL, $2) RETURNING id",
+        )
+        .bind(identity.email_or_placeholder())
+        .bind(identity.display_name.as_deref())
+        .fetch_one(pool)
+        .await
+        .map_err(|e| format!("DB error creating user: {e}"))?;
+
+        rec.try_get("id").map_err(|e| format!("DB returned malformed id: {e}"))?
+    };
+
+    // ON CONFLICT keeps two logins racing on a first sign-in from failing one of them with
+    // a UNIQUE violation on (provider, provider_subject).
+    sqlx::query(
+        "INSERT INTO oauth_accounts (user_id, provider, provider_subject, metadata) VALUES ($1, $2, $3, $4) ON CONFLICT (provider, provider_subject) DO NOTHING",
+    )
+    .bind(user_id)
+    .bind(provider)
+    .bind(&identity.subject)
+    .bind(serde_json::json!({"email": identity.email, "name": identity.display_name}))
+    .execute(pool)
+    .await
+    .map_err(|e| format!("DB error linking account: {e}"))?;
+
+    Ok(user_id)
+}
+
+/// Push the claims Authelia owns onto an existing row, leaving locally-set values alone when
+/// the provider sent nothing — `COALESCE` on the parameter means "only overwrite when the
+/// token actually carried a value".
+async fn refresh_profile(
+    pool: &PgPool,
+    user_id: sqlx::types::Uuid,
+    identity: &OidcIdentity,
+) -> Result<(), String> {
+    sqlx::query(
+        "UPDATE users SET email = COALESCE($2, email), display_name = COALESCE($3, display_name), updated_at = now() WHERE id = $1",
+    )
+    .bind(user_id)
+    .bind(identity.email.as_deref())
+    .bind(identity.display_name.as_deref())
+    .execute(pool)
+    .await
+    .map_err(|e| format!("DB error refreshing profile: {e}"))?;
+    Ok(())
+}
+
 pub async fn start(
     Query(_q): Query<OidcStartQuery>,
     Extension(store): Extension<Option<Arc<Mutex<SessionStore>>>>,
@@ -279,65 +396,25 @@ pub async fn callback(
         (None, None)
     };
 
-    // Obtain subject and optional email from ID token claims
+    // Obtain the claims we persist. `preferred_username` is what Authelia sends as the
+    // human-readable handle; `name` is the fuller display name, so prefer it when present.
     let subject = claims.as_ref().map(|c| c.subject().to_string()).unwrap_or_default();
     let email = claims.as_ref().and_then(|c| c.email().map(|e| e.to_string()));
+    let display_name = claims.as_ref().and_then(|c| {
+        c.name()
+            .and_then(|n| n.get(None).map(|v| v.to_string()))
+            .or_else(|| c.preferred_username().map(|u| u.to_string()))
+    });
 
     if subject.is_empty() {
         return error_response(StatusCode::BAD_REQUEST, "missing subject in id token");
     }
 
-    // Find oauth_account by provider + subject
     let provider = issuer; // use issuer as provider name
-    let row = sqlx::query(
-        "SELECT user_id FROM oauth_accounts WHERE provider = $1 AND provider_subject = $2",
-    )
-    .bind(&provider)
-    .bind(&subject)
-    .fetch_optional(&*pool)
-    .await;
-
-    let user_id = match row {
-        Ok(Some(rec)) => rec.try_get::<sqlx::types::Uuid, _>("user_id").ok(),
-        Ok(None) => None,
-        Err(e) => {
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, format!("DB error: {e}"))
-        }
-    };
-
-    let uid = if let Some(uid) = user_id {
-        uid
-    } else {
-        // create new user
-        let em = email.clone().unwrap_or_else(|| format!("{}@oauth", &subject));
-        let rec = match sqlx::query("INSERT INTO users (email, password_hash, display_name) VALUES ($1, $2, $3) RETURNING id")
-            .bind(&em)
-            .bind("")
-            .bind(None::<String>)
-            .fetch_one(&*pool)
-            .await
-        {
-            Ok(r) => r,
-            Err(e) => return error_response(StatusCode::INTERNAL_SERVER_ERROR, format!("DB error creating user: {e}")),
-        };
-        let id: sqlx::types::Uuid = match rec.try_get("id") {
-            Ok(u) => u,
-            Err(e) => {
-                return error_response(
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    format!("DB returned malformed id: {e}"),
-                )
-            }
-        };
-        // insert oauth_account
-        let _ = sqlx::query("INSERT INTO oauth_accounts (user_id, provider, provider_subject, metadata) VALUES ($1, $2, $3, $4)")
-            .bind(id)
-            .bind(&provider)
-            .bind(&subject)
-            .bind(serde_json::json!({"email": email}))
-            .execute(&*pool)
-            .await;
-        id
+    let identity = OidcIdentity { subject, email, display_name };
+    let uid = match provision_oidc_user(&pool, &provider, &identity).await {
+        Ok(uid) => uid,
+        Err(e) => return error_response(StatusCode::INTERNAL_SERVER_ERROR, e),
     };
 
     // Validate state/nonce if we stored them during start

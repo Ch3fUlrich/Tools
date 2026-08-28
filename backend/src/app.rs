@@ -36,6 +36,15 @@ pub fn build_app(
         .route("/api/tools/dice/roll", post(crate::api::dice::roll))
         .route("/api/tools/dice/save", post(crate::api::dice_history::save))
         .route("/api/tools/dice/history", get(crate::api::dice_history::history))
+        .route(
+            "/api/tools/elterngeld/inputs",
+            get(crate::api::elterngeld::list_scenarios).post(crate::api::elterngeld::save_scenario),
+        )
+        .route(
+            "/api/tools/elterngeld/inputs/{id}",
+            delete(crate::api::elterngeld::delete_scenario),
+        )
+        .route("/api/auth/config", get(crate::api::auth::auth_config))
         .route("/api/auth/register", post(crate::api::auth::register))
         .route("/api/auth/login", post(crate::api::auth::login))
         .route("/api/auth/logout", post(crate::api::auth::logout))

@@ -20,7 +20,8 @@ describe('AuthModal and RegisterForm', () => {
     render(<AuthModal isOpen={true} onClose={onClose} defaultMode="login" />);
 
   // LoginForm has a Sign In button; assert it exists
-  expect(screen.getByRole('button', { name: /Sign In/i })).toBeTruthy();
+  // Anchored: the panel also carries a "Sign in with Authelia" button.
+  expect(screen.getByRole('button', { name: /^Sign In$/i })).toBeTruthy();
 
   // Switch to register via the modal's "Sign up" button
   const switchButton = screen.getByRole('button', { name: /Sign up/i });
@@ -104,7 +105,7 @@ describe('AuthModal and RegisterForm', () => {
     expect(await screen.findByText(/Password must be at least 8 characters long/i)).toBeInTheDocument();
 
     // Click OIDC button
-    const oidcButton = screen.getByRole('button', { name: /Continue with Google/i });
+    const oidcButton = screen.getByRole('button', { name: /Continue with/i });
     fireEvent.click(oidcButton);
     expect(startSpy).toHaveBeenCalled();
 

@@ -5,7 +5,12 @@ use std::env;
 use std::sync::Arc;
 
 #[tokio::test]
+#[serial_test::serial]
 async fn test_login_missing_id_error() {
+    // Local email+password sign-in is off by default now that Authelia is the only login
+    // method, so the handler would answer 403 long before reaching the branch under test.
+    // `#[serial]` keeps the process-wide variable from leaking into a parallel test.
+    std::env::set_var("LOCAL_AUTH_ENABLED", "true");
     let db_url = match env::var("TEST_DATABASE_URL") {
         Ok(v) => v,
         Err(_) => {
@@ -95,4 +100,5 @@ async fn test_login_missing_id_error() {
     assert_eq!(resp_json["error"], "internal");
 
     setup_pool.execute(&*format!("DROP SCHEMA {} CASCADE", schema_name)).await.unwrap();
+    std::env::remove_var("LOCAL_AUTH_ENABLED");
 }

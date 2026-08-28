@@ -38,6 +38,33 @@ fn secure_cookie_flag() -> &'static str {
     }
 }
 
+/// Sent whenever a local-auth endpoint is called while Authelia is the only login method.
+const LOCAL_AUTH_DISABLED: &str =
+    "email + password sign-in is disabled; sign in with Authelia instead";
+
+/// Public description of which sign-in methods this deployment actually accepts.
+///
+/// The frontend is a static export, so it cannot read the backend's environment at build
+/// time; it asks here instead and renders the matching buttons. Deliberately unauthenticated
+/// and free of secrets — it only says *which* methods exist, never any credential.
+pub async fn auth_config() -> impl IntoResponse {
+    let oidc_enabled = ["OIDC_ISSUER", "OIDC_CLIENT_ID", "OIDC_REDIRECT_URI"]
+        .iter()
+        .all(|k| std::env::var(k).is_ok_and(|v| !v.trim().is_empty()));
+
+    (
+        StatusCode::OK,
+        AxumJson(json!({
+            "localAuthEnabled": auth_tools::local_auth_enabled(),
+            "oidcEnabled": oidc_enabled,
+            "oidcProviderName": std::env::var("OIDC_PROVIDER_NAME")
+                .ok()
+                .filter(|v| !v.trim().is_empty())
+                .unwrap_or_else(|| "Authelia".to_string()),
+        })),
+    )
+}
+
 #[derive(Deserialize)]
 pub struct RegisterRequest {
     pub email: String,
@@ -49,6 +76,10 @@ pub async fn register(
     Extension(pool): Extension<Arc<PgPool>>,
     Json(payload): Json<RegisterRequest>,
 ) -> impl IntoResponse {
+    if !auth_tools::local_auth_enabled() {
+        return (StatusCode::FORBIDDEN, AxumJson(json!({ "error": LOCAL_AUTH_DISABLED })));
+    }
+
     // Reject bad input with a reason. Previously every failure - malformed address, short
     // password, duplicate email - came back as a blanket 500.
     if let Err(invalid) = auth_tools::validate_credentials(&payload.email, &payload.password) {
@@ -82,6 +113,17 @@ pub async fn login(
     Extension(store_opt): Extension<Option<Arc<tokio::sync::Mutex<SessionStore>>>>,
     Json(payload): Json<LoginRequest>,
 ) -> Response<String> {
+    if !auth_tools::local_auth_enabled() {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header(header::CONTENT_TYPE, "application/json")
+            .body(
+                serde_json::to_string(&json!({ "error": LOCAL_AUTH_DISABLED }))
+                    .unwrap_or_else(|_| "{\"error\":\"local login is disabled\"}".to_string()),
+            )
+            .unwrap_or_default();
+    }
+
     let unauthorized = || {
         Response::builder()
             .status(StatusCode::UNAUTHORIZED)

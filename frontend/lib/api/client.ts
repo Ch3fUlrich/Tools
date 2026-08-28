@@ -345,6 +345,78 @@ export async function handleOIDCCallback(request: OIDCCallbackRequest): Promise<
   return jsonPost<OIDCCallbackResponse>('/api/auth/oidc/callback', request, 'OIDC callback failed');
 }
 
+export interface AuthConfig {
+  /** Whether email + password sign-in is accepted at all. */
+  localAuthEnabled: boolean;
+  /** Whether an OIDC provider is configured well enough to redirect to. */
+  oidcEnabled: boolean;
+  /** Name to put on the sign-in button, e.g. "Authelia". */
+  oidcProviderName: string;
+}
+
+/**
+ * Which sign-in methods this deployment offers.
+ *
+ * The frontend is a static export, so it cannot read the backend's environment at build
+ * time — it asks at runtime instead. Callers should treat a failure as "show everything":
+ * being unable to reach this endpoint is no reason to hide the only way in.
+ */
+export async function getAuthConfig(): Promise<AuthConfig> {
+  return apiRequest<AuthConfig>(
+    `${API_BASE_URL}/api/auth/config`,
+    { credentials: 'include' },
+    'Failed to load auth config',
+  );
+}
+
+// ─── Elterngeld saved scenarios ──────────────────────────────────────────────
+
+/**
+ * One saved input set. `payload` is the tool's own form state — the backend stores it
+ * verbatim and never interprets it, so the shape is owned here and versioned so older
+ * saves stay readable.
+ */
+export interface ElterngeldScenario {
+  id: string;
+  name: string;
+  payload: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function listElterngeldScenarios(): Promise<ElterngeldScenario[]> {
+  const res = await authGet<{ scenarios: ElterngeldScenario[] }>(
+    '/api/tools/elterngeld/inputs',
+    'Failed to load saved scenarios',
+  );
+  return res.scenarios ?? [];
+}
+
+export interface SaveElterngeldScenarioResponse {
+  id: string;
+  name: string;
+  updatedAt: string;
+}
+
+/** Save a scenario. Reusing a name overwrites that scenario rather than adding a copy. */
+export async function saveElterngeldScenario(
+  name: string,
+  payload: Record<string, unknown>,
+): Promise<SaveElterngeldScenarioResponse> {
+  return jsonPost<SaveElterngeldScenarioResponse>(
+    '/api/tools/elterngeld/inputs',
+    { name, payload },
+    'Failed to save scenario',
+  );
+}
+
+export async function deleteElterngeldScenario(id: string): Promise<void> {
+  return authDelete<void>(
+    `/api/tools/elterngeld/inputs/${encodeURIComponent(id)}`,
+    'Failed to delete scenario',
+  );
+}
+
 // ─── Blood Level / Tolerance ─────────────────────────────────────────────────
 
 export interface Substance {

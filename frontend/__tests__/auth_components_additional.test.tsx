@@ -54,7 +54,7 @@ describe('LoginForm', () => {
     render(<LoginForm onSuccess={onSuccess} />);
     await userEvent.type(screen.getByLabelText('Email Address'), 'a@b.com');
     await userEvent.type(screen.getByLabelText('Password'), 'password');
-    fireEvent.submit(screen.getByRole('button', { name: /Sign In/i }).closest('form')!);
+    fireEvent.submit(screen.getByRole('button', { name: /^Sign In$/i }).closest('form')!);
     await waitFor(() => expect(spy).toHaveBeenCalled());
     expect(onSuccess).toHaveBeenCalled();
   });
@@ -64,7 +64,7 @@ describe('LoginForm', () => {
     render(<LoginForm />);
     await userEvent.type(screen.getByLabelText('Email Address'), 'a@b.com');
     await userEvent.type(screen.getByLabelText('Password'), 'password');
-    fireEvent.submit(screen.getByRole('button', { name: /Sign In/i }).closest('form')!);
+    fireEvent.submit(screen.getByRole('button', { name: /^Sign In$/i }).closest('form')!);
     expect(await screen.findByText(/bad creds/i)).toBeInTheDocument();
   });
 });
