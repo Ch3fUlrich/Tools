@@ -94,6 +94,35 @@ Guard — `omnigraph` must **not** appear in the output:
 python -c "import json,pathlib;print(sorted((json.loads((pathlib.Path.home()/'.claude.json').read_text()).get('mcpServers') or {})))"
 ```
 
+### Two servers — the other trap
+
+There are **two** omnigraph servers holding **different graphs** behind **different tokens**:
+
+| | URL | Notes |
+|---|---|---|
+| Local dev stack | `http://localhost:8080` | Docker container `omnigraph-server`. Token is the one in `agent-skills/infra/mcp-servers/.env.shared`. |
+| Central | `https://omnigraph.ohje.ooguy.com` | The one the user means by "the remote". Takes a **different** token, not present on every workstation. |
+
+Every API call answers about whichever you are pointed at, and says nothing about which
+that is. So **a 404 from the wrong server is indistinguishable from a graph that does not
+exist.** That is not hypothetical: on 2026-08-28 an agent verified against localhost three
+ways (`graphs_list`, `snapshot`, a real `load`), reported "the `tools` graph does not exist
+on the remote", and was wrong — it had never looked at the remote.
+
+`OMNIGRAPH_BASE_URL` is therefore **required** in `.mcp.json`, with no `:-` default. Unset
+fails the bridge loudly rather than quietly answering about localhost.
+
+Before stating anything about what a graph contains or whether it exists:
+
+```bash
+bash scripts/omnigraph-preflight.sh
+```
+
+It prints the server, names it LOCAL or CENTRAL, lists the graphs, and says whether this
+repo's graph is present — and on a 404 it tells you to check the other server before
+concluding anything. Say **"localhost"** or **"the central server"** in reports, never a
+bare "the remote".
+
 ### Failure modes
 
 | Symptom | Cause | Fix |
@@ -102,7 +131,9 @@ python -c "import json,pathlib;print(sorted((json.loads((pathlib.Path.home()/'.c
 | Graph answers describe **another repo**, or `0 rows` | user-scope `omnigraph` shadowing this repo's | remove it from `~/.claude.json` (guard above) |
 | `missing bearer token` | `OMNIGRAPH_TOKEN` unset | export it; it is also recoverable from `~/.claude.json.bak-omnigraph-npx` |
 | `fetch failed` | omnigraph-server not running | it is a Docker container, `omnigraph-server` on `127.0.0.1:8080` — check `docker ps`, probe `curl -H "Authorization: Bearer $OMNIGRAPH_TOKEN" localhost:8080/healthz` (note: `/healthz`, **not** `/health`) |
-| `404` on every graph call | that graph does not exist | creating one is an **operator** action (`omnigraph cluster apply`); the API has no `POST /graphs`. As of 2026-08-28 there is no `tools` graph yet |
+| `404` on every graph call | **either** you are on the wrong server **or** that graph does not exist | run `scripts/omnigraph-preflight.sh` first. Only after confirming the server is right: creating a graph is an **operator** action (`omnigraph cluster apply`); the API has no `POST /graphs`, only `GET` |
+| `invalid bearer token` / `401` | local token used against the central server (or vice versa) | the two servers take different tokens; `.env.shared` holds the **local** one |
+| Bridge fails to start, `OMNIGRAPH_BASE_URL` empty | it is required on purpose — no default | export it explicitly; see **Two servers** above |
 | Graphify MCP returns nothing | `graphify-out/graph.json` not built | `graphify update .` (the output dir is gitignored) |
 
 ### Do not conclude a server is uninstalled from a `PATH` check
