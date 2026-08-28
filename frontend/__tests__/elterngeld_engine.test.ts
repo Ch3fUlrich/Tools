@@ -33,7 +33,6 @@ const baseProfile: ElterngeldProfile = {
   annualProfit: 13_421.69,
   annualEmploymentGross: 0,
   insurance: { pflichtKV: false, pflichtRV: true, pflichtAV: false, childless: false },
-  churchTaxPercent: 0,
   monthlyNetIncomeDuringLeave: 0,
   siblingBonus: false,
   multipleBirthExtraChildren: 0,
@@ -44,7 +43,6 @@ const baseProfile: ElterngeldProfile = {
 const baseHousehold: HouseholdProfile = {
   filing: 'single',
   profitDeltaKind: 'timing',
-  churchTaxPercent: 0,
   leaveYear: 2026,
   partnerIncomeBaseYear: 0,
   partnerIncomeLeaveYear: 0,
@@ -119,7 +117,7 @@ describe('Solidaritätszuschlag', () => {
 });
 
 describe('Progressionsvorbehalt (§ 32b EStG)', () => {
-  const options = { tariff: TARIFF_2026, filing: 'single' as const, churchTaxPercent: 0 as const };
+  const options = { tariff: TARIFF_2026, filing: 'single' as const };
 
   it('raises the tax on the remaining income without taxing the benefit', () => {
     const without = calculateTax(20_000, options);
@@ -440,7 +438,7 @@ describe('Mutterschaftsgeld (§ 24i SGB V) and the § 3 BEEG credit', () => {
 });
 
 describe('children — Kindergeld vs Kinderfreibetrag (§ 31 EStG)', () => {
-  const options = { tariff: TARIFF_2026, filing: 'married' as const, churchTaxPercent: 0 as const };
+  const options = { tariff: TARIFF_2026, filing: 'married' as const };
 
   it('keeps the Kindergeld at a modest income, where it beats the Freibetrag', () => {
     const result = calculateTax(50_000, { ...options, children: 2 });
@@ -456,11 +454,13 @@ describe('children — Kindergeld vs Kinderfreibetrag (§ 31 EStG)', () => {
     expect(result.einkommensteuer).toBeLessThan(calculateTax(250_000, options).einkommensteuer);
   });
 
-  it('always uses the Kinderfreibetrag base for SolZ and Kirchensteuer (§ 51a EStG)', () => {
-    const withKids = calculateTax(120_000, { ...options, children: 2, churchTaxPercent: 9 });
-    const withoutKids = calculateTax(120_000, { ...options, churchTaxPercent: 9 });
-    // Even where Kindergeld wins for income tax, the surcharges drop.
-    expect(withKids.kirchensteuer).toBeLessThan(withoutKids.kirchensteuer);
+  it('computes the SolZ on the Kinderfreibetrag base (§ 51a EStG)', () => {
+    // The surcharge only bites above its Freigrenze, so this needs a high income.
+    const withKids = calculateTax(250_000, { ...options, children: 2 });
+    const withoutKids = calculateTax(250_000, options);
+
+    expect(withoutKids.solidaritaetszuschlag).toBeGreaterThan(0);
+    expect(withKids.solidaritaetszuschlag).toBeLessThan(withoutKids.solidaritaetszuschlag);
   });
 
   it('splits the Kinderfreibetrag in half under a separate assessment', () => {
@@ -476,7 +476,6 @@ describe('Zusammenveranlagung vs Einzelveranlagung', () => {
     partnerIncome: 50_000,
     progressionIncome: 18_000,
     taxYear: 2026 as const,
-    churchTaxPercent: 0 as const,
     children: 2,
   };
 
@@ -576,20 +575,6 @@ describe('net position accounting', () => {
       taxPrepaidBaseYear: 6_500,
     }).scenarios[0];
     expect(s.baseYearSettlement).toBeCloseTo(6_500 - s.baseYearTax.total, 6);
-  });
-});
-
-describe('§ 2e Abs. 4 BEEG church tax', () => {
-  it('uses the statutory flat 8 % regardless of the household rate', () => {
-    const at8 = elterngeldNetto({ ...baseProfile, annualProfit: 40_000, churchTaxPercent: 8 });
-    const at9 = elterngeldNetto({ ...baseProfile, annualProfit: 40_000, churchTaxPercent: 9 });
-    expect(at9.monthlyNetto).toBeCloseTo(at8.monthlyNetto, 10);
-  });
-
-  it('still charges nothing for someone who is not a church member', () => {
-    const none = elterngeldNetto({ ...baseProfile, annualProfit: 40_000, churchTaxPercent: 0 });
-    const at8 = elterngeldNetto({ ...baseProfile, annualProfit: 40_000, churchTaxPercent: 8 });
-    expect(none.monthlyNetto).toBeGreaterThan(at8.monthlyNetto);
   });
 });
 

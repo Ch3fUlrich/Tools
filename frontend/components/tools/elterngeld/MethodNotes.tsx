@@ -92,7 +92,7 @@ social deductions = monthly gross × ${socialPercent}
                      counted only where insurance is compulsory)
                   = ${eur2(n.monthlySocialContributions)}
 
-tax deductions    = (ESt + SolZ + KiSt) / 12
+tax deductions    = (ESt + SolZ) / 12
                     (§ 2e, Steuerklasse IV, after Vorsorgepauschale ${eur2(n.vorsorgepauschale)})
                   = ${eur2(n.monthlyTax)}
 

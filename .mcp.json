@@ -1,0 +1,46 @@
+{
+  "$comment": [
+    "Project-scoped MCP servers for THIS repo. Pins `omnigraph` to the `tools` graph.",
+    "",
+    "ONE omnigraph server per repo: a bridge serves exactly one graph, chosen by",
+    "OMNIGRAPH_GRAPH_ID, and no tool takes a graph argument. Never point this at the shared",
+    "`memory` graph — that writes this repo's data into everyone else's memory.",
+    "",
+    "PRECEDENCE — the trap: a same-named server in ~/.claude.json (user scope) SILENTLY WINS",
+    "over this file. Nothing errors; the bridge just answers about the wrong graph. Check with",
+    "  python -c \"import json,pathlib;print(sorted((json.loads((pathlib.Path.home()/'.claude.json').read_text()).get('mcpServers') or {})))\"",
+    "`omnigraph` must NOT appear there. `graphify` SHOULD — it is a single cwd-relative",
+    "user-scope entry that serves whichever repo you launch from, so it takes no per-repo",
+    "entry and has nothing to be shadowed by. Do not 'fix' graphify out of user scope.",
+    "",
+    "APPROVAL: a tracked .mcp.json cannot approve itself. Each machine must list the server in",
+    ".claude/settings.local.json -> enabledMcpjsonServers, or the tool is absent with no prompt",
+    "and no error. `.claude/` is gitignored, so this is per-machine setup.",
+    "",
+    "ENV (never hardcode the token here — this file is tracked):",
+    "  OMNIGRAPH_TOKEN unset   -> empty bearer -> 'missing bearer token'",
+    "  server not running      -> 'fetch failed'. It lives in Docker as `omnigraph-server`",
+    "                             on 127.0.0.1:8080 (see docker ps).",
+    "  graph does not exist    -> 404. Creating one is an operator action",
+    "                             (`omnigraph cluster apply`), not an agent tool: the API has",
+    "                             no POST /graphs. As of 2026-08-28 the `tools` graph does not",
+    "                             exist yet, so these calls 404 until it is created. That loud",
+    "                             failure is deliberate — far better than silently reading or",
+    "                             writing the wrong graph.",
+    "",
+    "Transport is npx because this workstation has Node. Hosts without it (e.g. coding.vm) use",
+    "the docker bridge instead. Full rules: ../agent-skills/CLAUDE.md and",
+    "../agent-skills/skills/mcp-servers-setup/SKILL.md."
+  ],
+  "mcpServers": {
+    "omnigraph": {
+      "command": "npx",
+      "args": ["-y", "@modernrelay/omnigraph-mcp"],
+      "env": {
+        "OMNIGRAPH_BASE_URL": "${OMNIGRAPH_BASE_URL:-http://localhost:8080}",
+        "OMNIGRAPH_TOKEN": "${OMNIGRAPH_TOKEN}",
+        "OMNIGRAPH_GRAPH_ID": "tools"
+      }
+    }
+  }
+}

@@ -116,9 +116,48 @@ describe('local dice rolling', () => {
 });
 
 describe('local blood level calculation', () => {
-  it('exposes the same five substances as the backend', () => {
-    const subs = getSubstancesLocal();
-    expect(subs.map((s) => s.id)).toEqual(['caffeine', 'nicotine', 'alcohol', 'ibuprofen', 'paracetamol']);
+  it('exposes the same catalogue as the backend, in the same order', () => {
+    // Mirrors get_substances() in backend/src/tools/bloodlevel.rs. If the two drift, the
+    // offline fallback silently answers differently from the API — so pin the list.
+    expect(getSubstancesLocal().map((s) => s.id)).toEqual([
+      'caffeine',
+      'nicotine',
+      'alcohol',
+      'ibuprofen',
+      'paracetamol',
+      'theobromine',
+      'naproxen',
+      'aspirin',
+      'diphenhydramine',
+      'cetirizine',
+      'loratadine',
+      'melatonin',
+      'pseudoephedrine',
+      'amoxicillin',
+      'metformin',
+      'omeprazole',
+      'sertraline',
+    ]);
+  });
+
+  it('gives every substance a usable half-life and bioavailability', () => {
+    for (const s of getSubstancesLocal()) {
+      // A non-positive half-life would make the decay term collapse to zero.
+      expect(s.halfLifeHours).toBeGreaterThan(0);
+      expect(s.halfLifeHours).toBeLessThan(100);
+      expect(s.bioavailabilityPercent).toBeGreaterThan(0);
+      expect(s.bioavailabilityPercent).toBeLessThanOrEqual(100);
+      expect(s.commonDosageMg).toBeGreaterThan(0);
+      expect(s.maxDailyDoseMg).toBeGreaterThanOrEqual(s.commonDosageMg as number);
+    }
+  });
+
+  it('carries the two substances the tool seeds its worked example with', () => {
+    const byId = new Map(getSubstancesLocal().map((s) => [s.id, s]));
+    expect(byId.get('caffeine')?.halfLifeHours).toBe(5.7);
+    expect(byId.get('ibuprofen')?.halfLifeHours).toBe(2);
+    // The contrast between the two is the point of the example.
+    expect(byId.get('caffeine')!.halfLifeHours).toBeGreaterThan(byId.get('ibuprofen')!.halfLifeHours);
   });
 
   it('applies bioavailability and half-life decay', () => {

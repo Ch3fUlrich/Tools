@@ -54,6 +54,52 @@ A monorepo containing a **Next.js frontend** and a **Rust/Axum backend** that se
 
 ---
 
+## MCP Servers — read this before concluding a server is "missing"
+
+Adapted from `../agent-skills/CLAUDE.md`, which is the authoritative source. Every failure
+mode below is **silent**: nothing errors, you just get the wrong answer or no tool at all.
+
+### Scope precedence — the trap
+
+A same-named server in `~/.claude.json` (**user scope**) silently **overrides** this repo's
+`.mcp.json` (project scope). The bridge still answers — about the wrong graph.
+
+| Server | Correct scope | Why |
+|---|---|---|
+| `omnigraph` | **project** (`.mcp.json`), one per repo | A bridge serves exactly one graph, fixed by `OMNIGRAPH_GRAPH_ID`; no tool takes a graph argument. A user-scope entry pinned to `memory` hides every repo's graph. |
+| `graphify` | **user** (`~/.claude.json`), exactly one | It is cwd-relative, so a single definition serves whichever repo you launch from. It takes no per-repo entry, so nothing can shadow it — do not "fix" it out of user scope. |
+| `serena`, `context7` | user | Not graph-scoped. |
+
+Guard — `omnigraph` must **not** appear in the output:
+
+```bash
+python -c "import json,pathlib;print(sorted((json.loads((pathlib.Path.home()/'.claude.json').read_text()).get('mcpServers') or {})))"
+```
+
+### Failure modes
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Tool **absent entirely** — no prompt, no error | project server in `.mcp.json` never approved | add it to `.claude/settings.local.json` → `enabledMcpjsonServers` (a tracked `.mcp.json` cannot approve itself; `.claude/` is gitignored, so this is per-machine) |
+| Graph answers describe **another repo**, or `0 rows` | user-scope `omnigraph` shadowing this repo's | remove it from `~/.claude.json` (guard above) |
+| `missing bearer token` | `OMNIGRAPH_TOKEN` unset | export it; it is also recoverable from `~/.claude.json.bak-omnigraph-npx` |
+| `fetch failed` | omnigraph-server not running | it is a Docker container, `omnigraph-server` on `127.0.0.1:8080` — check `docker ps`, probe `curl -H "Authorization: Bearer $OMNIGRAPH_TOKEN" localhost:8080/healthz` (note: `/healthz`, **not** `/health`) |
+| `404` on every graph call | that graph does not exist | creating one is an **operator** action (`omnigraph cluster apply`); the API has no `POST /graphs`. As of 2026-08-28 there is no `tools` graph yet |
+| Graphify MCP returns nothing | `graphify-out/graph.json` not built | `graphify update .` (the output dir is gitignored) |
+
+### Do not conclude a server is uninstalled from a `PATH` check
+
+`omnigraph` is neither a CLI nor a global npm/uv package, so `command -v`, `npm ls -g` and
+`uv tool list` all come back empty **by construction** — that proves nothing. It runs as a
+Docker container plus an `npx @modernrelay/omnigraph-mcp` bridge. Check `docker ps` and
+`~/.claude.json*` backups before saying it is absent.
+
+### MCP servers only connect at session start
+
+Editing `~/.claude.json` or `.mcp.json` mid-session has no effect. **Restart Claude Code.**
+
+---
+
 ## Development Setup
 
 ### Prerequisites
