@@ -41,7 +41,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "fake-indexeddb": "^6.0.0",
-    "happy-dom": "^20.11.6",
+    "happy-dom": "^20.11.12",
     "jsdom": "^29.1.1",
     "prettier": "^3.9.6",
     "stylelint": "^17.14.1",
