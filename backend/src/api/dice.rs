@@ -86,7 +86,7 @@ pub async fn roll(
         // fallback in-memory limiter
         let ip = "unknown".to_string();
         {
-            let mut map = RATE_LIMIT.lock().unwrap();
+            let mut map = RATE_LIMIT.lock().unwrap_or_else(|e| e.into_inner());
             let entry = map.entry(ip).or_insert((0, std::time::Instant::now()));
             let elapsed = entry.1.elapsed();
             if elapsed.as_secs() > 60 {
