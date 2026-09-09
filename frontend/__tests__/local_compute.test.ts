@@ -1,5 +1,5 @@
 import { calculateFatLossLocal } from '../lib/local/fatLoss';
-import { rollDiceLocal, saveDiceRollLocal } from '../lib/local/dice';
+import { rollDiceLocal, saveDiceRollLocal, getDiceHistoryLocal } from '../lib/local/dice';
 import { getSubstancesLocal, calculateToleranceLocal } from '../lib/local/bloodLevel';
 import { analyzeN26DataLocal } from '../lib/local/n26';
 
@@ -73,10 +73,35 @@ describe('local dice rolling', () => {
   });
 
   it('per-set disadvantage picks the lower total', () => {
-    const _res = rollDiceLocal({
+    const res = rollDiceLocal({
       die: { type: 'd6' },
-      count: 2,
+      count: 4,
       advantage: 'dis',
+      advantageMode: 'per-set',
+    });
+    expect(res.rolls[0].used).toHaveLength(4);
+  });
+
+  it('enforces backend validation limits with the same messages', () => {
+    expect(() => rollDiceLocal({ die: { type: 'd6' }, count: 0 })).toThrow('count must be > 0');
+    expect(() => rollDiceLocal({ die: { type: 'd6' }, count: 1000 })).toThrow('count exceeds max allowed');
+    expect(() => rollDiceLocal({ die: { type: 'd99' as never }, count: 1 })).toThrow('unknown die type');
+    expect(() => rollDiceLocal({ die: { type: 'custom', sides: 20000 }, count: 1 })).toThrow('sides exceeds max allowed');
+    expect(() => rollDiceLocal({ die: { type: 'd6' }, count: 1, rolls: 101 })).toThrow('too many independent rolls requested');
+  });
+
+  it('saves dice roll to local history and retrieves it', () => {
+    const payload = { die: { type: 'd6' }, count: 2 };
+    saveDiceRollLocal(payload);
+    const history = getDiceHistoryLocal();
+    expect(history.length).toBeGreaterThan(0);
+    expect(history[0].payload).toEqual(payload);
+  });
+
+  it('ignores storage errors gracefully when saving', () => {
+    // Mock localStorage to throw an error
+    const setItemSpy = vi.spyOn(globalThis.Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError');
     });
 
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -86,6 +111,7 @@ describe('local dice rolling', () => {
     }).not.toThrow();
 
     consoleErrorSpy.mockRestore();
+    setItemSpy.mockRestore();
   });
 });
 
