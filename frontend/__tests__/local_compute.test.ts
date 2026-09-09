@@ -357,3 +357,30 @@ describe('local N26 analysis', () => {
     expect(res.transactions[0].comment).toBe('Fallback Shop: 25');
   });
 });
+
+import { computeVolumeLocal } from '../lib/local/training';
+
+describe('local training compute', () => {
+  describe('computeVolumeLocal', () => {
+    it('returns 0 for empty sets', () => {
+      expect(computeVolumeLocal([])).toBe(0);
+    });
+
+    it('computes correct volume for multiple sets', () => {
+      const sets = [
+        { weightKg: 100, reps: 5 },
+        { weightKg: 100, reps: 5 },
+        { weightKg: 120, reps: 3 }
+      ];
+      expect(computeVolumeLocal(sets)).toBe(1360);
+    });
+
+    it('handles zero weight or reps correctly', () => {
+      const sets = [
+        { weightKg: 100, reps: 0 },
+        { weightKg: 0, reps: 5 }
+      ];
+      expect(computeVolumeLocal(sets)).toBe(0);
+    });
+  });
+});
