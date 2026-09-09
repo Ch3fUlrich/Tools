@@ -1,4 +1,5 @@
 import { calculateFatLossLocal } from '../lib/local/fatLoss';
+import { computeRepEnergy, defaultTempo } from '../lib/local/training';
 import { rollDiceLocal, saveDiceRollLocal, getDiceHistoryLocal } from '../lib/local/dice';
 import { getSubstancesLocal, calculateToleranceLocal } from '../lib/local/bloodLevel';
 import { analyzeN26DataLocal } from '../lib/local/n26';
@@ -355,5 +356,58 @@ describe('local N26 analysis', () => {
     expect(res.category_totals.cardTransactions).toBeCloseTo(-25);
     expect(res.overall_total).toBeCloseTo(-25);
     expect(res.transactions[0].comment).toBe('Fallback Shop: 25');
+  });
+});
+
+describe('local training energy computation', () => {
+  it('returns zeroes when total load or displacement is non-positive', () => {
+    const tempo = defaultTempo();
+    const zeroLoad = computeRepEnergy(0, 1.0, tempo);
+    expect(zeroLoad.totalJoules).toBe(0);
+    expect(zeroLoad.potentialJoules).toBe(0);
+    expect(zeroLoad.kineticJoules).toBe(0);
+    expect(zeroLoad.isometricJoules).toBe(0);
+
+    const negativeDisplacement = computeRepEnergy(100, -1.0, tempo);
+    expect(negativeDisplacement.totalJoules).toBe(0);
+  });
+
+  it('calculates potential energy based on displacement, load, and efficiency', () => {
+    // tempo zeroes to isolate potential energy
+    const tempo = { concentricS: 0, eccentricS: 0, pauseBottomS: 0, pauseTopS: 0 };
+    const res = computeRepEnergy(100, 1.0, tempo);
+    // concentricWork = 100 * 9.81 * 1.0 = 981
+    // eConcentric = 981 / 0.25 = 3924
+    // eEccentric = 981 * 0.50 / 0.25 = 1962
+    // potentialJoules = 3924 + 1962 = 5886
+    expect(res.potentialJoules).toBeCloseTo(5886, 1);
+    expect(res.kineticJoules).toBe(0);
+    expect(res.isometricJoules).toBe(0);
+    expect(res.totalJoules).toBeCloseTo(5886, 1);
+  });
+
+  it('calculates kinetic energy when tempo times are non-zero', () => {
+    const tempo = { concentricS: 1.0, eccentricS: 2.0, pauseBottomS: 0, pauseTopS: 0 };
+    const res = computeRepEnergy(100, 1.0, tempo);
+    // vCon = 1.0 / 1.0 = 1.0 m/s
+    // vEcc = 1.0 / 2.0 = 0.5 m/s
+    // keCon = 0.5 * 100 * 1.0^2 / 0.25 = 200
+    // keEcc = 0.5 * 100 * 0.5^2 * 0.50 / 0.25 = 25
+    // kineticJoules = 200 + 25 = 225
+    expect(res.kineticJoules).toBeCloseTo(225, 1);
+    expect(res.isometricJoules).toBe(0);
+  });
+
+  it('calculates isometric energy when pauses are non-zero', () => {
+    const tempo = { concentricS: 0, eccentricS: 0, pauseBottomS: 2.0, pauseTopS: 1.0 };
+    const res = computeRepEnergy(100, 0.0, tempo); // zero displacement to isolate isometric?
+    // Wait, displacement = 0 returns 0 for everything early return. Let's use 1.0 displacement.
+    // If we use 1.0 displacement, we get potential energy too.
+    const res2 = computeRepEnergy(100, 1.0, tempo);
+    // forceN = 100 * 9.81 = 981
+    // isoBottom = 981 * 0.003 * 2.0 / 0.25 = 23.544
+    // isoTop = 981 * 0.003 * 1.0 / 0.25 = 11.772
+    // isometricJoules = 35.316
+    expect(res2.isometricJoules).toBeCloseTo(35.316, 2);
   });
 });
