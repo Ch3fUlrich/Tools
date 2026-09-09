@@ -400,14 +400,11 @@ describe('local training energy computation', () => {
 
   it('calculates isometric energy when pauses are non-zero', () => {
     const tempo = { concentricS: 0, eccentricS: 0, pauseBottomS: 2.0, pauseTopS: 1.0 };
-    const res = computeRepEnergy(100, 0.0, tempo); // zero displacement to isolate isometric?
-    // Wait, displacement = 0 returns 0 for everything early return. Let's use 1.0 displacement.
-    // If we use 1.0 displacement, we get potential energy too.
-    const res2 = computeRepEnergy(100, 1.0, tempo);
+    const res = computeRepEnergy(100, 1.0, tempo);
     // forceN = 100 * 9.81 = 981
     // isoBottom = 981 * 0.003 * 2.0 / 0.25 = 23.544
     // isoTop = 981 * 0.003 * 1.0 / 0.25 = 11.772
     // isometricJoules = 35.316
-    expect(res2.isometricJoules).toBeCloseTo(35.316, 2);
+    expect(res.isometricJoules).toBeCloseTo(35.316, 2);
   });
 });
