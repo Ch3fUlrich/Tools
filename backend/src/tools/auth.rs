@@ -248,4 +248,70 @@ mod tests {
         assert!(verify_password(&hash, "correct horse battery").await.unwrap());
         assert!(!verify_password(&hash, "wrong horse battery").await.unwrap());
     }
+
+    #[test]
+    fn trims_surrounding_whitespace() {
+        // Email leading/trailing spaces should be ignored
+        assert!(validate_credentials("  a@b.co  ", "correct horse battery").is_ok());
+        // Password minimum length check should trim spaces
+        assert_eq!(
+            validate_credentials("a@b.co", "  short  "),
+            Err(RegistrationError::PasswordTooShort)
+        );
+    }
+
+    #[test]
+    fn test_validate_credentials_exhaustively() {
+        let valid_password = "correct horse battery";
+
+        // Happy path
+        assert_eq!(validate_credentials("test@example.com", valid_password), Ok(()));
+
+        // EmailMissing
+        assert_eq!(validate_credentials("", valid_password), Err(RegistrationError::EmailMissing));
+        assert_eq!(
+            validate_credentials("   ", valid_password),
+            Err(RegistrationError::EmailMissing)
+        );
+
+        // EmailTooLong
+        let long_email = format!("{}@example.com", "a".repeat(MAX_EMAIL_BYTES));
+        assert_eq!(
+            validate_credentials(&long_email, valid_password),
+            Err(RegistrationError::EmailTooLong)
+        );
+
+        // EmailMalformed
+        let malformed_cases = [
+            "nodomain",
+            "no@domain",
+            "@example.com",
+            "two@at@example.com",
+            "space in@example.com",
+            "trailing@example.",
+            "user@.example.com",
+            "user@example.com.",
+        ];
+        for email in malformed_cases {
+            assert_eq!(
+                validate_credentials(email, valid_password),
+                Err(RegistrationError::EmailMalformed),
+                "expected malformed for {}",
+                email
+            );
+        }
+
+        // PasswordTooShort
+        assert_eq!(
+            validate_credentials("test@example.com", "short"),
+            Err(RegistrationError::PasswordTooShort)
+        );
+
+        // PasswordTooLong
+        let long_password = "x".repeat(MAX_PASSWORD_BYTES + 1);
+        assert_eq!(
+            validate_credentials("test@example.com", &long_password),
+            Err(RegistrationError::PasswordTooLong)
+        );
+    }
 }
