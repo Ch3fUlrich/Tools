@@ -102,8 +102,15 @@ function syncWindowLabelsFromStages(config) {
   const labels = [];
   const layoutMode = inferLayoutMode(config);
 
+  const windowLabelsByIndex = new Map();
+  for (const entry of config.windowLabels) {
+    if (entry && entry.stageIndex != null) {
+      windowLabelsByIndex.set(entry.stageIndex, entry);
+    }
+  }
+
   config.developmentWindows.forEach((stage, index) => {
-    const currentStage = config.windowLabels.find((entry) => entry.stageIndex === index) || {};
+    const currentStage = windowLabelsByIndex.get(index) || {};
     const fallbackLabelY = layoutMode === "lower"
       ? ((stage.y || 0) + (stage.height || 0) - 14)
       : ((stage.y || 0) + 18);
