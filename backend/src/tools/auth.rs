@@ -162,7 +162,12 @@ mod tests {
 
     #[test]
     fn accepts_ordinary_addresses() {
-        for email in ["a@b.co", "first.last+tag@sub.example.com", "USER@EXAMPLE.ORG"] {
+        for email in [
+            "a@b.co",
+            "first.last+tag@sub.example.com",
+            "USER@EXAMPLE.ORG",
+            "  padded@example.com  ",
+        ] {
             assert!(validate_credentials(email, "correct horse battery").is_ok(), "{email}");
         }
     }
@@ -177,7 +182,9 @@ mod tests {
             ("@example.com", RegistrationError::EmailMalformed),
             ("two@at@example.com", RegistrationError::EmailMalformed),
             ("space in@example.com", RegistrationError::EmailMalformed),
+            ("tab\tin@example.com", RegistrationError::EmailMalformed),
             ("trailing@example.", RegistrationError::EmailMalformed),
+            ("leading@.example", RegistrationError::EmailMalformed),
         ];
         for (email, expected) in cases {
             assert_eq!(
@@ -190,6 +197,9 @@ mod tests {
 
     #[test]
     fn bounds_the_email_length() {
+        let exact = format!("{}@example.com", "a".repeat(MAX_EMAIL_BYTES - 12));
+        assert!(validate_credentials(&exact, "correct horse battery").is_ok());
+
         let long = format!("{}@example.com", "a".repeat(MAX_EMAIL_BYTES));
         assert_eq!(
             validate_credentials(&long, "correct horse battery"),
@@ -199,14 +209,23 @@ mod tests {
 
     #[test]
     fn enforces_a_minimum_password_length() {
+        assert_eq!(validate_credentials("a@b.co", ""), Err(RegistrationError::PasswordTooShort));
+        assert_eq!(
+            validate_credentials("a@b.co", "       "),
+            Err(RegistrationError::PasswordTooShort)
+        );
         assert_eq!(
             validate_credentials("a@b.co", "short"),
             Err(RegistrationError::PasswordTooShort)
         );
+        assert!(validate_credentials("a@b.co", "exactlen").is_ok());
     }
 
     #[test]
     fn bounds_the_password_so_hashing_cannot_be_weaponised() {
+        let exact = "x".repeat(MAX_PASSWORD_BYTES);
+        assert!(validate_credentials("a@b.co", &exact).is_ok());
+
         // Argon2 cost scales with input length, so an unbounded password is a cheap way to
         // make the server burn CPU on demand.
         let huge = "x".repeat(MAX_PASSWORD_BYTES + 1);
