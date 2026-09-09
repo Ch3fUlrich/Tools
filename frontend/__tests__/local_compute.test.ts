@@ -2,6 +2,7 @@ import { calculateFatLossLocal } from '../lib/local/fatLoss';
 import { rollDiceLocal, saveDiceRollLocal, getDiceHistoryLocal } from '../lib/local/dice';
 import { getSubstancesLocal, calculateToleranceLocal } from '../lib/local/bloodLevel';
 import { analyzeN26DataLocal } from '../lib/local/n26';
+import { estimate1RmLocal } from '../lib/local/training';
 
 describe('local fat loss calculation', () => {
   it('matches backend formula: 7000 kcal for 1 kg is 100% fat', () => {
@@ -355,5 +356,28 @@ describe('local N26 analysis', () => {
     expect(res.category_totals.cardTransactions).toBeCloseTo(-25);
     expect(res.overall_total).toBeCloseTo(-25);
     expect(res.transactions[0].comment).toBe('Fallback Shop: 25');
+  });
+});
+
+describe('local training 1RM estimation', () => {
+  it('returns null for zero or negative weight', () => {
+    expect(estimate1RmLocal(0, 5)).toBeNull();
+    expect(estimate1RmLocal(-10, 5)).toBeNull();
+  });
+
+  it('returns null for zero reps', () => {
+    expect(estimate1RmLocal(100, 0)).toBeNull();
+  });
+
+  it('returns exact weight for 1 rep', () => {
+    expect(estimate1RmLocal(100, 1)).toBe(100);
+  });
+
+  it('calculates 1RM using Epley formula for >1 reps', () => {
+    // 100 * (1 + 5/30) = 100 * (1 + 0.1666...) = 116.666...
+    expect(estimate1RmLocal(100, 5)).toBeCloseTo(116.666666, 4);
+
+    // 80 * (1 + 10/30) = 80 * (1 + 0.333...) = 106.666...
+    expect(estimate1RmLocal(80, 10)).toBeCloseTo(106.666666, 4);
   });
 });
