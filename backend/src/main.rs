@@ -294,8 +294,50 @@ fn test_configure_cors_with_multiple_valid_origins() {
         Some("http://localhost:3000,http://localhost:3001,https://example.com,https://app.example.com"),
         || {
             let cors_layer = configure_cors();
-            // Should not panic and should create a valid CorsLayer with all origins
-            assert!(std::mem::size_of_val(&cors_layer) > 0);
+
+            // Build a test router with the cors layer
+            let app = axum::Router::new()
+                .route("/", axum::routing::get(|| async { "Hello" }))
+                .layer(cors_layer);
+
+            // Use a local tokio runtime to run async test server
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            rt.block_on(async {
+                let server = axum_test::TestServer::new(app.into_make_service());
+
+                // Test first origin
+                let res1 = server.get("/")
+                    .add_header(axum::http::header::ORIGIN, "http://localhost:3000")
+                    .await;
+                assert_eq!(
+                    res1.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
+                    "http://localhost:3000"
+                );
+
+                // Test second origin
+                let res2 = server.get("/")
+                    .add_header(axum::http::header::ORIGIN, "https://example.com")
+                    .await;
+                assert_eq!(
+                    res2.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
+                    "https://example.com"
+                );
+
+                // Test third origin
+                let res3 = server.get("/")
+                    .add_header(axum::http::header::ORIGIN, "https://app.example.com")
+                    .await;
+                assert_eq!(
+                    res3.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
+                    "https://app.example.com"
+                );
+
+                // Test invalid origin
+                let res4 = server.get("/")
+                    .add_header(axum::http::header::ORIGIN, "https://notallowed.com")
+                    .await;
+                assert!(res4.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).is_none());
+            });
         },
     );
 }
