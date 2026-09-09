@@ -1,3 +1,4 @@
+import { attributeMuscleEnergyLocal } from "../lib/local/training";
 import { calculateFatLossLocal } from '../lib/local/fatLoss';
 import { rollDiceLocal, saveDiceRollLocal, getDiceHistoryLocal } from '../lib/local/dice';
 import { getSubstancesLocal, calculateToleranceLocal } from '../lib/local/bloodLevel';
@@ -355,5 +356,84 @@ describe('local N26 analysis', () => {
     expect(res.category_totals.cardTransactions).toBeCloseTo(-25);
     expect(res.overall_total).toBeCloseTo(-25);
     expect(res.transactions[0].comment).toBe('Fallback Shop: 25');
+  });
+});
+
+describe('attributeMuscleEnergyLocal', () => {
+  it('returns empty array if no mappings or non-positive energy', () => {
+    expect(attributeMuscleEnergyLocal(100, [])).toEqual([]);
+    expect(attributeMuscleEnergyLocal(0, [{ muscleName: 'Pectoralis Major', involvement: 'primary', activationFraction: 1.0 }])).toEqual([]);
+    expect(attributeMuscleEnergyLocal(-10, [{ muscleName: 'Pectoralis Major', involvement: 'primary', activationFraction: 1.0 }])).toEqual([]);
+  });
+
+  it('calculates energy for a single primary muscle (gets 100% after normalization)', () => {
+    const mappings = [{ muscleName: 'Biceps', involvement: 'primary', activationFraction: 1.0 }];
+    const result = attributeMuscleEnergyLocal(100, mappings);
+    expect(result).toHaveLength(1);
+    expect(result[0].muscleName).toBe('Biceps');
+    expect(result[0].shareFraction).toBeCloseTo(1.0);
+    expect(result[0].energyKcal).toBeCloseTo(100);
+  });
+
+  it('distributes energy across primary, secondary, and stabilizer muscles', () => {
+    const mappings = [
+      { muscleName: 'Pectoralis Major', involvement: 'primary', activationFraction: 1.0 },
+      { muscleName: 'Anterior Deltoid', involvement: 'secondary', activationFraction: 0.6 },
+      { muscleName: 'Triceps Brachii', involvement: 'secondary', activationFraction: 0.4 },
+      { muscleName: 'Rotator Cuff', involvement: 'stabilizer', activationFraction: 1.0 },
+    ];
+    const result = attributeMuscleEnergyLocal(100, mappings);
+
+    expect(result).toHaveLength(4);
+
+    const pec = result.find(r => r.muscleName === 'Pectoralis Major')!;
+    expect(pec.shareFraction).toBeCloseTo(0.60);
+    expect(pec.energyKcal).toBeCloseTo(60);
+
+    const delt = result.find(r => r.muscleName === 'Anterior Deltoid')!;
+    expect(delt.shareFraction).toBeCloseTo(0.30 * 0.6);
+    expect(delt.energyKcal).toBeCloseTo(18);
+
+    const tri = result.find(r => r.muscleName === 'Triceps Brachii')!;
+    expect(tri.shareFraction).toBeCloseTo(0.30 * 0.4);
+    expect(tri.energyKcal).toBeCloseTo(12);
+
+    const cuff = result.find(r => r.muscleName === 'Rotator Cuff')!;
+    expect(cuff.shareFraction).toBeCloseTo(0.10);
+    expect(cuff.energyKcal).toBeCloseTo(10);
+  });
+
+  it('normalizes correctly when some involvement categories are missing', () => {
+    const mappings = [
+      { muscleName: 'Latissimus Dorsi', involvement: 'primary', activationFraction: 1.0 },
+      { muscleName: 'Biceps', involvement: 'secondary', activationFraction: 1.0 },
+    ];
+    const result = attributeMuscleEnergyLocal(100, mappings);
+
+    const lats = result.find(r => r.muscleName === 'Latissimus Dorsi')!;
+    const biceps = result.find(r => r.muscleName === 'Biceps')!;
+
+    expect(lats.shareFraction).toBeCloseTo(2 / 3);
+    expect(lats.energyKcal).toBeCloseTo(100 * (2 / 3));
+
+    expect(biceps.shareFraction).toBeCloseTo(1 / 3);
+    expect(biceps.energyKcal).toBeCloseTo(100 * (1 / 3));
+  });
+
+  it('handles unknown involvement types by giving them 0 share before normalization', () => {
+    const mappings = [
+      { muscleName: 'Quadriceps', involvement: 'primary', activationFraction: 1.0 },
+      { muscleName: 'Unknown', involvement: 'mystery', activationFraction: 1.0 },
+    ];
+    const result = attributeMuscleEnergyLocal(100, mappings);
+
+    const quads = result.find(r => r.muscleName === 'Quadriceps')!;
+    const unknown = result.find(r => r.muscleName === 'Unknown')!;
+
+    expect(quads.shareFraction).toBeCloseTo(1.0);
+    expect(quads.energyKcal).toBeCloseTo(100);
+
+    expect(unknown.shareFraction).toBe(0);
+    expect(unknown.energyKcal).toBe(0);
   });
 });
