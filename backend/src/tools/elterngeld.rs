@@ -130,12 +130,28 @@ mod tests {
     }
 
     #[test]
-    fn quota_blocks_a_new_scenario_at_the_limit_but_allows_an_overwrite() {
+    fn check_quota_allows_insert_below_limit() {
+        assert!(check_quota(0, false).is_ok());
         assert!(check_quota(MAX_SCENARIOS_PER_USER - 1, false).is_ok());
+    }
+
+    #[test]
+    fn check_quota_rejects_insert_at_or_above_limit() {
         assert_eq!(
             check_quota(MAX_SCENARIOS_PER_USER, false).unwrap_err(),
             ScenarioError::TooManyScenarios
         );
+        assert_eq!(
+            check_quota(MAX_SCENARIOS_PER_USER + 1, false).unwrap_err(),
+            ScenarioError::TooManyScenarios
+        );
+    }
+
+    #[test]
+    fn check_quota_always_allows_update() {
+        assert!(check_quota(0, true).is_ok());
+        assert!(check_quota(MAX_SCENARIOS_PER_USER - 1, true).is_ok());
         assert!(check_quota(MAX_SCENARIOS_PER_USER, true).is_ok());
+        assert!(check_quota(MAX_SCENARIOS_PER_USER + 1, true).is_ok());
     }
 }
