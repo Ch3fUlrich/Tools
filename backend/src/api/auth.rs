@@ -145,8 +145,8 @@ pub async fn login(
     };
 
     // Verify user exists and password (runtime query)
-    let row = sqlx::query("SELECT id, password_hash FROM users WHERE lower(email)=lower($1)")
-        .bind(&payload.email)
+    let row = sqlx::query("SELECT id, password_hash FROM users WHERE lower(email)=$1")
+        .bind(payload.email.to_lowercase())
         .fetch_optional(&*pool)
         .await;
 
