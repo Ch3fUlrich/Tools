@@ -328,3 +328,91 @@ pub fn estimate_1rm(weight_kg: f64, reps: u32) -> Option<f64> {
 pub fn compute_volume(sets: &[(f64, u32)]) -> f64 {
     sets.iter().map(|(w, r)| w * *r as f64).sum()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn dummy_measurements() -> BodyMeasurements {
+        BodyMeasurements {
+            body_weight_kg: 80.0,
+            height_cm: Some(180.0),
+            upper_arm_length_cm: Some(33.0),
+            lower_arm_length_cm: Some(26.0),
+            upper_leg_length_cm: Some(44.0),
+            lower_leg_length_cm: Some(44.0),
+            torso_length_cm: Some(52.0),
+            arm_length_cm: Some(59.0),
+            leg_length_cm: Some(88.0),
+            shoulder_width_cm: Some(45.0),
+        }
+    }
+
+    #[test]
+    fn test_compute_set_energy_zero_reps() {
+        let params = SetEnergyParams {
+            weight_kg: 100.0,
+            reps: 0,
+            movement_pattern: "squat".to_string(),
+            primary_segments_moved: vec!["upper_leg".to_string()],
+            rom_degrees: 90.0,
+            is_bodyweight: false,
+            is_unilateral: false,
+            body_mass_fraction_moved: 0.0,
+            measurements: dummy_measurements(),
+            tempo: Tempo::standard(),
+        };
+
+        let energy = compute_set_energy(&params);
+        assert_eq!(energy.total_kcal, 0.0);
+        assert_eq!(energy.potential_kcal, 0.0);
+        assert_eq!(energy.kinetic_kcal, 0.0);
+        assert_eq!(energy.isometric_kcal, 0.0);
+        assert_eq!(energy.mechanical_work_joules, 0.0);
+    }
+
+    #[test]
+    fn test_compute_set_energy_pure_isometric() {
+        let params = SetEnergyParams {
+            weight_kg: 0.0,
+            reps: 60, // reps represent seconds for core isometric
+            movement_pattern: "core".to_string(),
+            primary_segments_moved: vec!["torso".to_string()],
+            rom_degrees: 0.0, // no displacement
+            is_bodyweight: true,
+            is_unilateral: false,
+            body_mass_fraction_moved: 0.70, // typical for plank
+            measurements: dummy_measurements(),
+            tempo: Tempo::default(),
+        };
+
+        let energy = compute_set_energy(&params);
+        assert!(energy.total_kcal > 0.0);
+        assert_eq!(energy.potential_kcal, 0.0);
+        assert_eq!(energy.kinetic_kcal, 0.0);
+        assert!(energy.isometric_kcal > 0.0);
+        assert_eq!(energy.mechanical_work_joules, 0.0);
+    }
+
+    #[test]
+    fn test_compute_set_energy_weighted_standard() {
+        let params = SetEnergyParams {
+            weight_kg: 100.0,
+            reps: 10,
+            movement_pattern: "squat".to_string(),
+            primary_segments_moved: vec!["upper_leg".to_string(), "lower_leg".to_string()],
+            rom_degrees: 120.0,
+            is_bodyweight: false,
+            is_unilateral: false,
+            body_mass_fraction_moved: 0.0,
+            measurements: dummy_measurements(),
+            tempo: Tempo::standard(),
+        };
+
+        let energy = compute_set_energy(&params);
+        assert!(energy.total_kcal > 0.0);
+        assert!(energy.potential_kcal > 0.0);
+        assert!(energy.kinetic_kcal >= 0.0);
+        assert!(energy.mechanical_work_joules > 0.0);
+    }
+}
