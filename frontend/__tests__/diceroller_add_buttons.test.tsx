@@ -29,7 +29,7 @@ describe('DiceRoller add buttons coverage', () => {
       const btn = screen.getByRole('button', { name: label });
       fireEvent.click(btn);
       // Small delay to allow React to process the state update
-
+      await new Promise(resolve => setTimeout(resolve, 1));
     }
 
     // Check final result - should have added all configs

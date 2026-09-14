@@ -29,7 +29,7 @@ describe('ElterngeldOptimizer Scenarios Integration', () => {
     sessionStorage.clear();
     localStorage.clear();
 
-    vi.mocked(backendStatus.checkBackend).mockResolvedValue(undefined);
+    vi.mocked(backendStatus.checkBackend).mockResolvedValue(true);
     vi.mocked(api.getAuthConfig).mockResolvedValue({
       localAuthEnabled: false,
       oidcEnabled: true,
