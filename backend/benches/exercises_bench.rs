@@ -1,7 +1,5 @@
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use serde::Deserialize;
-use serde_json::json;
-use std::sync::Arc;
 use uuid::Uuid;
 
 #[derive(Debug, Deserialize, Clone)]

@@ -180,6 +180,7 @@ async function buildConfig() {
         "**/*.json",
         "**/*.config.js",
         "**/*.config.ts",
+        "**/benchmark_*.ts",
       ],
     },
 
