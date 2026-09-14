@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use serde::{Deserialize, Serialize};
 
 // ============================================================================
@@ -39,6 +38,7 @@ pub struct Tempo {
 }
 
 impl Tempo {
+    #[cfg(test)]
     pub fn standard() -> Self {
         Self { eccentric_s: 2.0, pause_bottom_s: 0.0, concentric_s: 1.0, pause_top_s: 0.0 }
     }
@@ -92,13 +92,4 @@ pub struct MuscleEnergy {
     pub muscle_name: String,
     pub energy_kcal: f64,
     pub share_fraction: f64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SessionStats {
-    pub total_energy_kcal: f64,
-    pub total_volume_kg: f64,
-    pub total_sets: u32,
-    pub total_reps: u32,
 }
