@@ -247,7 +247,7 @@ export function socialContributionRate(insurance: InsuranceStatus): number {
  * Steuerklasse IV (i.e. the Grundtarif), no Werbungskosten beyond the
  * Arbeitnehmer-Pauschbetrag, and the Vorsorgepauschale.
  */
-export function elterngeldNetto(profile: ElterngeldProfile): ElterngeldNettoBreakdown {
+export function elterngeldNetto(profile: ElterngeldProfile, children = 0): ElterngeldNettoBreakdown {
   const annualBase = Math.max(0, profile.annualProfit) + Math.max(0, profile.annualEmploymentGross);
   const monthlyGross = annualBase / 12;
 
@@ -263,6 +263,7 @@ export function elterngeldNetto(profile: ElterngeldProfile): ElterngeldNettoBrea
   const tax = calculateTax(taxSimulationBase, {
     tariff: getTariff(profile.baseYear),
     filing: 'single',
+    children,
   });
 
   const monthlyTax = tax.total / 12;
@@ -570,7 +571,7 @@ export function evaluateScenario(
   household: HouseholdProfile,
   referenceProfit: number,
 ): ScenarioResult {
-  const netto = elterngeldNetto(profile);
+  const netto = elterngeldNetto(profile, household.children);
   const amountRaw = elterngeldAmount(profile, netto.monthlyNetto);
 
   // ── Assessment year: household tax on the declared profit ──
