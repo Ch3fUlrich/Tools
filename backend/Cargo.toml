@@ -33,3 +33,7 @@ axum-test = "19.1"
 serial_test = "3.2"
 temp-env = "0.3.6"
 http = "1.4"
+criterion = { version = "0.5", features = ["async_tokio"] }
+[[bench]]
+name = "exercises_bench"
+harness = false
