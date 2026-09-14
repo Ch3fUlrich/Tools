@@ -2,7 +2,16 @@ import { calculateFatLossLocal } from '../lib/local/fatLoss';
 import { rollDiceLocal, saveDiceRollLocal, getDiceHistoryLocal } from '../lib/local/dice';
 import { getSubstancesLocal, calculateToleranceLocal } from '../lib/local/bloodLevel';
 import { analyzeN26DataLocal } from '../lib/local/n26';
-import { listMuscleGroupsLocal, listExercisesLocal, getExerciseLocal } from '../lib/local/training';
+import {
+  listMuscleGroupsLocal,
+  listExercisesLocal,
+  getExerciseLocal,
+  estimate1RmLocal,
+  computeRepEnergy,
+  defaultTempo,
+  attributeMuscleEnergyLocal,
+  computeVolumeLocal,
+} from '../lib/local/training';
 
 describe('local fat loss calculation', () => {
   it('matches backend formula: 7000 kcal for 1 kg is 100% fat', () => {
@@ -397,3 +406,187 @@ describe('local training data access', () => {
     expect(exercise).toBeNull();
   });
 });
+
+describe('local training 1RM estimation', () => {
+  it('returns null for zero or negative weight', () => {
+    expect(estimate1RmLocal(0, 5)).toBeNull();
+    expect(estimate1RmLocal(-10, 5)).toBeNull();
+  });
+
+  it('returns null for zero reps', () => {
+    expect(estimate1RmLocal(100, 0)).toBeNull();
+  });
+
+  it('returns exact weight for 1 rep', () => {
+    expect(estimate1RmLocal(100, 1)).toBe(100);
+  });
+
+  it('calculates 1RM using Epley formula for >1 reps', () => {
+    // 100 * (1 + 5/30) = 100 * (1 + 0.1666...) = 116.666...
+    expect(estimate1RmLocal(100, 5)).toBeCloseTo(116.666666, 4);
+
+    // 80 * (1 + 10/30) = 80 * (1 + 0.333...) = 106.666...
+    expect(estimate1RmLocal(80, 10)).toBeCloseTo(106.666666, 4);
+  });
+});
+
+describe('local training energy computation', () => {
+  it('returns zeroes when total load or displacement is non-positive', () => {
+    const tempo = defaultTempo();
+    const zeroLoad = computeRepEnergy(0, 1.0, tempo);
+    expect(zeroLoad.totalJoules).toBe(0);
+    expect(zeroLoad.potentialJoules).toBe(0);
+    expect(zeroLoad.kineticJoules).toBe(0);
+    expect(zeroLoad.isometricJoules).toBe(0);
+
+    const negativeDisplacement = computeRepEnergy(100, -1.0, tempo);
+    expect(negativeDisplacement.totalJoules).toBe(0);
+  });
+
+  it('calculates potential energy based on displacement, load, and efficiency', () => {
+    // tempo zeroes to isolate potential energy
+    const tempo = { concentricS: 0, eccentricS: 0, pauseBottomS: 0, pauseTopS: 0 };
+    const res = computeRepEnergy(100, 1.0, tempo);
+    // concentricWork = 100 * 9.81 * 1.0 = 981
+    // eConcentric = 981 / 0.25 = 3924
+    // eEccentric = 981 * 0.50 / 0.25 = 1962
+    // potentialJoules = 3924 + 1962 = 5886
+    expect(res.potentialJoules).toBeCloseTo(5886, 1);
+    expect(res.kineticJoules).toBe(0);
+    expect(res.isometricJoules).toBe(0);
+    expect(res.totalJoules).toBeCloseTo(5886, 1);
+  });
+
+  it('calculates kinetic energy when tempo times are non-zero', () => {
+    const tempo = { concentricS: 1.0, eccentricS: 2.0, pauseBottomS: 0, pauseTopS: 0 };
+    const res = computeRepEnergy(100, 1.0, tempo);
+    // vCon = 1.0 / 1.0 = 1.0 m/s
+    // vEcc = 1.0 / 2.0 = 0.5 m/s
+    // keCon = 0.5 * 100 * 1.0^2 / 0.25 = 200
+    // keEcc = 0.5 * 100 * 0.5^2 * 0.50 / 0.25 = 25
+    // kineticJoules = 200 + 25 = 225
+    expect(res.kineticJoules).toBeCloseTo(225, 1);
+    expect(res.isometricJoules).toBe(0);
+  });
+
+  it('calculates isometric energy when pauses are non-zero', () => {
+    const tempo = { concentricS: 0, eccentricS: 0, pauseBottomS: 2.0, pauseTopS: 1.0 };
+    const res = computeRepEnergy(100, 1.0, tempo);
+    // forceN = 100 * 9.81 = 981
+    // isoBottom = 981 * 0.003 * 2.0 / 0.25 = 23.544
+    // isoTop = 981 * 0.003 * 1.0 / 0.25 = 11.772
+    // isometricJoules = 35.316
+    expect(res.isometricJoules).toBeCloseTo(35.316, 2);
+  });
+});
+
+describe('attributeMuscleEnergyLocal', () => {
+  it('returns empty array if no mappings or non-positive energy', () => {
+    expect(attributeMuscleEnergyLocal(100, [])).toEqual([]);
+    expect(
+      attributeMuscleEnergyLocal(0, [
+        { muscleName: 'Pectoralis Major', involvement: 'primary', activationFraction: 1.0 },
+      ])
+    ).toEqual([]);
+    expect(
+      attributeMuscleEnergyLocal(-10, [
+        { muscleName: 'Pectoralis Major', involvement: 'primary', activationFraction: 1.0 },
+      ])
+    ).toEqual([]);
+  });
+
+  it('calculates energy for a single primary muscle (gets 100% after normalization)', () => {
+    const mappings = [{ muscleName: 'Biceps', involvement: 'primary', activationFraction: 1.0 }];
+    const result = attributeMuscleEnergyLocal(100, mappings);
+    expect(result).toHaveLength(1);
+    expect(result[0].muscleName).toBe('Biceps');
+    expect(result[0].shareFraction).toBeCloseTo(1.0);
+    expect(result[0].energyKcal).toBeCloseTo(100);
+  });
+
+  it('distributes energy across primary, secondary, and stabilizer muscles', () => {
+    const mappings = [
+      { muscleName: 'Pectoralis Major', involvement: 'primary', activationFraction: 1.0 },
+      { muscleName: 'Anterior Deltoid', involvement: 'secondary', activationFraction: 0.6 },
+      { muscleName: 'Triceps Brachii', involvement: 'secondary', activationFraction: 0.4 },
+      { muscleName: 'Rotator Cuff', involvement: 'stabilizer', activationFraction: 1.0 },
+    ];
+    const result = attributeMuscleEnergyLocal(100, mappings);
+
+    expect(result).toHaveLength(4);
+
+    const pec = result.find((r) => r.muscleName === 'Pectoralis Major')!;
+    expect(pec.shareFraction).toBeCloseTo(0.6);
+    expect(pec.energyKcal).toBeCloseTo(60);
+
+    const delt = result.find((r) => r.muscleName === 'Anterior Deltoid')!;
+    expect(delt.shareFraction).toBeCloseTo(0.3 * 0.6);
+    expect(delt.energyKcal).toBeCloseTo(18);
+
+    const tri = result.find((r) => r.muscleName === 'Triceps Brachii')!;
+    expect(tri.shareFraction).toBeCloseTo(0.3 * 0.4);
+    expect(tri.energyKcal).toBeCloseTo(12);
+
+    const cuff = result.find((r) => r.muscleName === 'Rotator Cuff')!;
+    expect(cuff.shareFraction).toBeCloseTo(0.1);
+    expect(cuff.energyKcal).toBeCloseTo(10);
+  });
+
+  it('normalizes correctly when some involvement categories are missing', () => {
+    const mappings = [
+      { muscleName: 'Latissimus Dorsi', involvement: 'primary', activationFraction: 1.0 },
+      { muscleName: 'Biceps', involvement: 'secondary', activationFraction: 1.0 },
+    ];
+    const result = attributeMuscleEnergyLocal(100, mappings);
+
+    const lats = result.find((r) => r.muscleName === 'Latissimus Dorsi')!;
+    const biceps = result.find((r) => r.muscleName === 'Biceps')!;
+
+    expect(lats.shareFraction).toBeCloseTo(2 / 3);
+    expect(lats.energyKcal).toBeCloseTo(100 * (2 / 3));
+
+    expect(biceps.shareFraction).toBeCloseTo(1 / 3);
+    expect(biceps.energyKcal).toBeCloseTo(100 * (1 / 3));
+  });
+
+  it('handles unknown involvement types by giving them 0 share before normalization', () => {
+    const mappings = [
+      { muscleName: 'Quadriceps', involvement: 'primary', activationFraction: 1.0 },
+      { muscleName: 'Unknown', involvement: 'mystery', activationFraction: 1.0 },
+    ];
+    const result = attributeMuscleEnergyLocal(100, mappings);
+
+    const quads = result.find((r) => r.muscleName === 'Quadriceps')!;
+    const unknown = result.find((r) => r.muscleName === 'Unknown')!;
+
+    expect(quads.shareFraction).toBeCloseTo(1.0);
+    expect(quads.energyKcal).toBeCloseTo(100);
+
+    expect(unknown.shareFraction).toBe(0);
+    expect(unknown.energyKcal).toBe(0);
+  });
+});
+
+describe('computeVolumeLocal', () => {
+  it('returns 0 for empty sets', () => {
+    expect(computeVolumeLocal([])).toBe(0);
+  });
+
+  it('computes correct volume for multiple sets', () => {
+    const sets = [
+      { weightKg: 100, reps: 5 },
+      { weightKg: 100, reps: 5 },
+      { weightKg: 120, reps: 3 },
+    ];
+    expect(computeVolumeLocal(sets)).toBe(1360);
+  });
+
+  it('handles zero weight or reps correctly', () => {
+    const sets = [
+      { weightKg: 100, reps: 0 },
+      { weightKg: 0, reps: 5 },
+    ];
+    expect(computeVolumeLocal(sets)).toBe(0);
+  });
+});
+
