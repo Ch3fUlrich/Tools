@@ -10,7 +10,7 @@ vi.mock('@/lib/api/client', async () => {
 import { LanguageProvider, useTranslation } from '@/components/i18n/LanguageProvider';
 import LanguageToggle from '@/components/layout/LanguageToggle';
 import ElterngeldOptimizer from '@/components/tools/ElterngeldOptimizer';
-import { LANGUAGE_STORAGE_KEY, detectBrowserLanguage, isLanguage } from '@/lib/i18n';
+import { LANGUAGE_STORAGE_KEY, detectBrowserLanguage, isLanguage, getStoredLanguage } from '@/lib/i18n';
 import { de, en } from '@/lib/i18n/messages';
 
 function Probe() {
@@ -64,6 +64,37 @@ describe('message catalogues', () => {
     for (const key of Object.keys(en.eg) as (keyof typeof en.eg)[]) {
       expect(placeholders(de.eg[key])).toEqual(placeholders(en.eg[key]));
     }
+  });
+});
+
+describe('getStoredLanguage', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('returns null if nothing is stored', () => {
+    expect(getStoredLanguage()).toBeNull();
+  });
+
+  it('returns the language if a valid language is stored', () => {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, 'de');
+    expect(getStoredLanguage()).toBe('de');
+  });
+
+  it('returns null if an invalid language is stored', () => {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, 'fr');
+    expect(getStoredLanguage()).toBeNull();
+  });
+
+  it('returns null if localStorage throws an error', () => {
+    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('localStorage is disabled');
+    });
+
+    expect(getStoredLanguage()).toBeNull();
+
+    getItemSpy.mockRestore();
   });
 });
 
