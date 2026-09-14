@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -37,11 +36,4 @@ impl SegmentMassFractions {
     pub const LOWER_ARM_HAND: f64 = 0.022; // per arm
     pub const UPPER_LEG: f64 = 0.100; // per leg
     pub const LOWER_LEG_FOOT: f64 = 0.061; // per leg
-
-    /// Center of mass position as fraction from proximal joint
-    pub const COM_TRUNK: f64 = 0.440;
-    pub const COM_UPPER_ARM: f64 = 0.436;
-    pub const COM_LOWER_ARM: f64 = 0.682;
-    pub const COM_UPPER_LEG: f64 = 0.433;
-    pub const COM_LOWER_LEG: f64 = 0.606;
 }
