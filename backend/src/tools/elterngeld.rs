@@ -124,6 +124,15 @@ mod tests {
     }
 
     #[test]
+    fn accepts_a_maximum_size_payload() {
+        // {"a":""} is 8 bytes, so we subtract 8 from the max payload
+        let exact_string = "y".repeat(MAX_PAYLOAD_BYTES - 8);
+        let exact_payload = json!({ "a": exact_string });
+        assert_eq!(exact_payload.to_string().len(), MAX_PAYLOAD_BYTES);
+        assert!(validate_scenario("n", &exact_payload).is_ok());
+    }
+
+    #[test]
     fn rejects_an_oversized_payload() {
         let big = json!({ "blob": "y".repeat(MAX_PAYLOAD_BYTES) });
         assert_eq!(validate_scenario("n", &big).unwrap_err(), ScenarioError::PayloadTooLarge);
