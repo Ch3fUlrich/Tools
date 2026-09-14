@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 pub mod compute;
 pub mod constants;
 pub mod plates;
