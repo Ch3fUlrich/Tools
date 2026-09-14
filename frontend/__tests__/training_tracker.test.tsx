@@ -100,6 +100,21 @@ describe('BodyMeasurementsPanel', () => {
     render(<BodyMeasurementsPanel />);
     await waitFor(() => expect(screen.getByText(/No measurements recorded yet/i)).toBeInTheDocument());
   });
+
+  it('logs an error when fetching measurements fails', async () => {
+    const { listMeasurements } = await import('@/lib/api/client');
+    (listMeasurements as any).mockRejectedValueOnce(new Error('Failed to load'));
+
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(<BodyMeasurementsPanel />);
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to load measurements:', expect.any(Error));
+    });
+
+    consoleSpy.mockRestore();
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
