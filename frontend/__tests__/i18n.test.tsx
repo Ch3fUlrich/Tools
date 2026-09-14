@@ -162,6 +162,44 @@ describe('LanguageProvider', () => {
     expect(isLanguage(null)).toBe(false);
     expect(['en', 'de']).toContain(detectBrowserLanguage());
   });
+
+  describe('applyLanguage', () => {
+    let originalLang: string;
+
+    beforeEach(() => {
+      originalLang = document.documentElement.lang;
+    });
+
+    afterEach(() => {
+      document.documentElement.lang = originalLang;
+    });
+
+    it('sets the lang attribute on the document element', async () => {
+      const { applyLanguage } = await import('@/lib/i18n');
+      applyLanguage('de');
+      expect(document.documentElement.lang).toBe('de');
+      applyLanguage('en');
+      expect(document.documentElement.lang).toBe('en');
+    });
+
+    it('does nothing if document is undefined (SSR environment)', async () => {
+      // Temporarily mock document as undefined
+      const originalDoc = global.document;
+      // @ts-ignore
+      delete global.document;
+
+      try {
+        const { applyLanguage } = await import('@/lib/i18n');
+
+        expect(() => {
+          applyLanguage('de');
+        }).not.toThrow();
+      } finally {
+        // Restore document
+        global.document = originalDoc;
+      }
+    });
+  });
 });
 
 describe('the Elterngeld tool in German', () => {
