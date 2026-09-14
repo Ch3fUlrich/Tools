@@ -920,4 +920,42 @@ mod tests {
         let ratio = second_drop / first_drop;
         assert!(ratio > 0.85 && ratio < 1.15, "expected near-constant rate, ratio was {ratio}");
     }
+
+    #[test]
+    fn test_absorption_rate_from_tmax() {
+        // Edge cases
+        assert_eq!(absorption_rate_from_tmax(-1.0, 0.1), f64::INFINITY);
+        assert_eq!(absorption_rate_from_tmax(0.0, 0.1), f64::INFINITY);
+        assert_eq!(absorption_rate_from_tmax(f64::NAN, 0.1), f64::INFINITY);
+        assert_eq!(absorption_rate_from_tmax(1.0, -0.1), f64::INFINITY);
+        assert_eq!(absorption_rate_from_tmax(1.0, 0.0), f64::INFINITY);
+        assert_eq!(absorption_rate_from_tmax(1.0, f64::NAN), f64::INFINITY);
+
+        // Near-equal paths
+        // When ka and ke are near equal, tmax_for uses 1.0 / ke.
+        // Let ke = 2.0, so tmax = 0.5.
+        // We expect absorption_rate_from_tmax(0.5, 2.0) to be approximately 2.0.
+        let ka_near_equal = absorption_rate_from_tmax(0.5, 2.0);
+        assert!((ka_near_equal - 2.0).abs() < 1e-3, "ka was {}", ka_near_equal);
+
+        // Standard paths
+        let tmax_for = |ka: f64, ke: f64| -> f64 {
+            if (ka - ke).abs() < 1e-9 {
+                1.0 / ke
+            } else {
+                (ka / ke).ln() / (ka - ke)
+            }
+        };
+
+        let ke_standard = 0.1;
+        let tmax_standard = 2.0;
+        let ka_standard = absorption_rate_from_tmax(tmax_standard, ke_standard);
+
+        let calculated_tmax = tmax_for(ka_standard, ke_standard);
+        assert!(
+            (calculated_tmax - tmax_standard).abs() < 1e-4,
+            "calculated tmax was {}",
+            calculated_tmax
+        );
+    }
 }
