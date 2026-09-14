@@ -2,6 +2,7 @@ import { calculateFatLossLocal } from '../lib/local/fatLoss';
 import { rollDiceLocal, saveDiceRollLocal, getDiceHistoryLocal } from '../lib/local/dice';
 import { getSubstancesLocal, calculateToleranceLocal } from '../lib/local/bloodLevel';
 import { analyzeN26DataLocal } from '../lib/local/n26';
+import { listMuscleGroupsLocal, listExercisesLocal, getExerciseLocal } from '../lib/local/training';
 
 describe('local fat loss calculation', () => {
   it('matches backend formula: 7000 kcal for 1 kg is 100% fat', () => {
@@ -355,5 +356,44 @@ describe('local N26 analysis', () => {
     expect(res.category_totals.cardTransactions).toBeCloseTo(-25);
     expect(res.overall_total).toBeCloseTo(-25);
     expect(res.transactions[0].comment).toBe('Fallback Shop: 25');
+  });
+});
+
+describe('local training data access', () => {
+  it('listMuscleGroupsLocal returns a non-empty array of muscle groups', () => {
+    const groups = listMuscleGroupsLocal();
+    expect(Array.isArray(groups)).toBe(true);
+    expect(groups.length).toBeGreaterThan(0);
+    expect(groups[0]).toHaveProperty('id');
+    expect(groups[0]).toHaveProperty('name');
+  });
+
+  it('listExercisesLocal returns a non-empty array of exercises', () => {
+    const exercises = listExercisesLocal();
+    expect(Array.isArray(exercises)).toBe(true);
+    expect(exercises.length).toBeGreaterThan(0);
+    expect(exercises[0]).toHaveProperty('id');
+    expect(exercises[0]).toHaveProperty('name');
+  });
+
+  it('getExerciseLocal correctly retrieves an exercise by ID', () => {
+    const exercises = listExercisesLocal();
+    const firstId = exercises[0].id;
+    const exercise = getExerciseLocal(firstId);
+    expect(exercise).not.toBeNull();
+    expect(exercise?.id).toBe(firstId);
+  });
+
+  it('getExerciseLocal correctly retrieves an exercise by name', () => {
+    const exercises = listExercisesLocal();
+    const firstName = exercises[0].name;
+    const exercise = getExerciseLocal(firstName);
+    expect(exercise).not.toBeNull();
+    expect(exercise?.name).toBe(firstName);
+  });
+
+  it('getExerciseLocal returns null for a non-existent exercise ID', () => {
+    const exercise = getExerciseLocal('non-existent-exercise-id');
+    expect(exercise).toBeNull();
   });
 });
