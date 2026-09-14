@@ -12,7 +12,7 @@ WORKDIR /usr/src/tools-backend
 COPY Cargo.toml Cargo.lock ./
 
 # Create dummy src to pre-build dependencies and cache them
-RUN mkdir src && echo 'fn main() { println!("dummy build"); }' > src/main.rs
+RUN mkdir -p src benches && echo 'fn main() { println!("dummy build"); }' > src/main.rs && echo 'fn main() {}' > benches/exercises_bench.rs
 
 # Precompile dependencies
 RUN cargo build --release --locked || true

@@ -19,7 +19,7 @@ ENV RUSTFLAGS="-C link-arg=-Wl,-z,relro,-z,now,-z,noexecstack"
 # Copy only manifests and a minimal dummy src/ so `cargo fetch` can parse
 # the manifest. This layer is only invalidated when Cargo.toml / Cargo.lock change.
 COPY backend/Cargo.toml backend/Cargo.lock ./
-RUN mkdir -p src && printf 'fn main() {}\n' > src/main.rs
+RUN mkdir -p src benches && printf 'fn main() {}\n' > src/main.rs && printf 'fn main() {}\n' > benches/exercises_bench.rs
 RUN cargo fetch --locked
 
 # ── Full source build ──────────────────────────────────────────────────────────
