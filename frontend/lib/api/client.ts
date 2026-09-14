@@ -7,18 +7,25 @@ import {
   markBackendOnline,
   checkBackend,
 } from '@/lib/api/backendStatus';
-import { rollDiceLocal, saveDiceRollLocal, getDiceHistoryLocal } from '@/lib/local/dice';
+import {
+  rollDiceLocal,
+  saveDiceRollLocal,
+  getDiceHistoryLocal,
+} from '@/lib/local/dice';
 import type { DiceRequest } from '@/lib/types/dice';
 import { calculateFatLossLocal } from '@/lib/local/fatLoss';
 import { analyzeN26DataLocal } from '@/lib/local/n26';
-import { getSubstancesLocal, calculateToleranceLocal } from '@/lib/local/bloodLevel';
+import {
+  getSubstancesLocal,
+  calculateToleranceLocal,
+} from '@/lib/local/bloodLevel';
 import { trainingStore } from '@/lib/local/trainingStore';
 import {
   listMuscleGroupsLocal,
   listExercisesLocal,
   getExerciseLocal,
   computeSetEnergyLocal,
-  calculatePlatesLocal
+  calculatePlatesLocal,
 } from '@/lib/local/training';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -34,7 +41,7 @@ const DEFAULT_TIMEOUT_MS = 15_000;
 async function apiRequest<T>(
   url: string,
   options: RequestInit = {},
-  errorPrefix: string,
+  errorPrefix: string
 ): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
@@ -79,7 +86,7 @@ async function apiRequest<T>(
       throw new Error(
         detail
           ? `${errorPrefix} (${response.status}): ${detail}`
-          : `${errorPrefix} (${response.status})`,
+          : `${errorPrefix} (${response.status})`
       );
     }
 
@@ -120,7 +127,10 @@ function isNetworkError(err: unknown): boolean {
  * known to be offline, the network is skipped entirely for instant local
  * results, while a shared probe periodically checks for recovery.
  */
-async function withLocalFallback<T>(remote: () => Promise<T>, local: () => T | Promise<T>): Promise<T> {
+async function withLocalFallback<T>(
+  remote: () => Promise<T>,
+  local: () => T | Promise<T>
+): Promise<T> {
   if (isBackendOffline()) {
     void checkBackend(); // cheap: cached + deduplicated, detects recovery
     return await local();
@@ -139,7 +149,11 @@ async function withLocalFallback<T>(remote: () => Promise<T>, local: () => T | P
 }
 
 /** Shorthand for JSON POST requests with credentials. */
-function jsonPost<T>(path: string, body: unknown, errorPrefix: string): Promise<T> {
+function jsonPost<T>(
+  path: string,
+  body: unknown,
+  errorPrefix: string
+): Promise<T> {
   return apiRequest<T>(
     `${API_BASE_URL}${path}`,
     {
@@ -148,7 +162,7 @@ function jsonPost<T>(path: string, body: unknown, errorPrefix: string): Promise<
       credentials: 'include',
       body: JSON.stringify(body),
     },
-    errorPrefix,
+    errorPrefix
   );
 }
 
@@ -157,12 +171,16 @@ function authGet<T>(path: string, errorPrefix: string): Promise<T> {
   return apiRequest<T>(
     `${API_BASE_URL}${path}`,
     { credentials: 'include' },
-    errorPrefix,
+    errorPrefix
   );
 }
 
 /** Shorthand for authenticated PUT requests with JSON body. */
-function authPut<T>(path: string, body: unknown, errorPrefix: string): Promise<T> {
+function authPut<T>(
+  path: string,
+  body: unknown,
+  errorPrefix: string
+): Promise<T> {
   return apiRequest<T>(
     `${API_BASE_URL}${path}`,
     {
@@ -171,7 +189,7 @@ function authPut<T>(path: string, body: unknown, errorPrefix: string): Promise<T
       credentials: 'include',
       body: JSON.stringify(body),
     },
-    errorPrefix,
+    errorPrefix
   );
 }
 
@@ -180,7 +198,7 @@ function authDelete<T>(path: string, errorPrefix: string): Promise<T> {
   return apiRequest<T>(
     `${API_BASE_URL}${path}`,
     { method: 'DELETE', credentials: 'include' },
-    errorPrefix,
+    errorPrefix
   );
 }
 
@@ -196,9 +214,9 @@ export async function rollDice(payload: DiceRequest | DiceRequest[]) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         },
-        'Roll API error',
+        'Roll API error'
       ),
-    () => rollDiceLocal(payload),
+    () => rollDiceLocal(payload)
   );
 }
 
@@ -216,7 +234,7 @@ export interface FatLossResponse {
 }
 
 export async function calculateFatLoss(
-  request: FatLossRequest,
+  request: FatLossRequest
 ): Promise<FatLossResponse> {
   return withLocalFallback(
     () =>
@@ -227,9 +245,9 @@ export async function calculateFatLoss(
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(request),
         },
-        'Failed to calculate fat loss',
+        'Failed to calculate fat loss'
       ),
-    () => calculateFatLossLocal(request),
+    () => calculateFatLossLocal(request)
   );
 }
 
@@ -248,7 +266,9 @@ export interface AnalysisResult {
   overall_total: number;
 }
 
-export async function analyzeN26Data(data: Record<string, unknown>): Promise<AnalysisResult> {
+export async function analyzeN26Data(
+  data: Record<string, unknown>
+): Promise<AnalysisResult> {
   return withLocalFallback(
     () =>
       apiRequest<AnalysisResult>(
@@ -258,9 +278,9 @@ export async function analyzeN26Data(data: Record<string, unknown>): Promise<Ana
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         },
-        'Failed to analyze N26 data',
+        'Failed to analyze N26 data'
       ),
-    () => analyzeN26DataLocal(data),
+    () => analyzeN26DataLocal(data)
   );
 }
 
@@ -283,8 +303,14 @@ export interface AuthResponse {
   error?: string;
 }
 
-export async function registerUser(request: RegisterRequest): Promise<AuthResponse> {
-  return jsonPost<AuthResponse>('/api/auth/register', request, 'Registration failed');
+export async function registerUser(
+  request: RegisterRequest
+): Promise<AuthResponse> {
+  return jsonPost<AuthResponse>(
+    '/api/auth/register',
+    request,
+    'Registration failed'
+  );
 }
 
 export async function loginUser(request: LoginRequest): Promise<AuthResponse> {
@@ -295,7 +321,7 @@ export async function logoutUser(): Promise<AuthResponse> {
   return apiRequest<AuthResponse>(
     `${API_BASE_URL}/api/auth/logout`,
     { method: 'POST', credentials: 'include' },
-    'Logout failed',
+    'Logout failed'
   );
 }
 
@@ -319,7 +345,7 @@ export async function updateUserProfile(display_name: string): Promise<void> {
       credentials: 'include',
       body: JSON.stringify({ display_name }),
     },
-    'Failed to update profile',
+    'Failed to update profile'
   );
 }
 
@@ -341,8 +367,14 @@ export interface OIDCCallbackResponse {
   };
 }
 
-export async function handleOIDCCallback(request: OIDCCallbackRequest): Promise<OIDCCallbackResponse> {
-  return jsonPost<OIDCCallbackResponse>('/api/auth/oidc/callback', request, 'OIDC callback failed');
+export async function handleOIDCCallback(
+  request: OIDCCallbackRequest
+): Promise<OIDCCallbackResponse> {
+  return jsonPost<OIDCCallbackResponse>(
+    '/api/auth/oidc/callback',
+    request,
+    'OIDC callback failed'
+  );
 }
 
 export interface AuthConfig {
@@ -365,7 +397,7 @@ export async function getAuthConfig(): Promise<AuthConfig> {
   return apiRequest<AuthConfig>(
     `${API_BASE_URL}/api/auth/config`,
     { credentials: 'include' },
-    'Failed to load auth config',
+    'Failed to load auth config'
   );
 }
 
@@ -387,7 +419,7 @@ export interface ElterngeldScenario {
 export async function listElterngeldScenarios(): Promise<ElterngeldScenario[]> {
   const res = await authGet<{ scenarios: ElterngeldScenario[] }>(
     '/api/tools/elterngeld/inputs',
-    'Failed to load saved scenarios',
+    'Failed to load saved scenarios'
   );
   return res.scenarios ?? [];
 }
@@ -401,19 +433,19 @@ export interface SaveElterngeldScenarioResponse {
 /** Save a scenario. Reusing a name overwrites that scenario rather than adding a copy. */
 export async function saveElterngeldScenario(
   name: string,
-  payload: Record<string, unknown>,
+  payload: Record<string, unknown>
 ): Promise<SaveElterngeldScenarioResponse> {
   return jsonPost<SaveElterngeldScenarioResponse>(
     '/api/tools/elterngeld/inputs',
     { name, payload },
-    'Failed to save scenario',
+    'Failed to save scenario'
   );
 }
 
 export async function deleteElterngeldScenario(id: string): Promise<void> {
   return authDelete<void>(
     `/api/tools/elterngeld/inputs/${encodeURIComponent(id)}`,
-    'Failed to delete scenario',
+    'Failed to delete scenario'
   );
 }
 
@@ -454,8 +486,6 @@ export interface BloodLevelPoint {
   time: string;
   substance: string;
   amount_mg: number;
-  /** @deprecated use amount_mg */
-  amountMg?: number;
 }
 
 export interface ToleranceCalculationResponse {
@@ -468,14 +498,14 @@ export async function getToleranceSubstances(): Promise<Substance[]> {
       apiRequest<Substance[]>(
         `${API_BASE_URL}/api/tools/bloodlevel/substances`,
         { method: 'GET', headers: { 'Content-Type': 'application/json' } },
-        'Failed to get substances',
+        'Failed to get substances'
       ),
-    () => getSubstancesLocal(),
+    () => getSubstancesLocal()
   );
 }
 
 export async function calculateTolerance(
-  request: ToleranceCalculationRequest,
+  request: ToleranceCalculationRequest
 ): Promise<ToleranceCalculationResponse> {
   return withLocalFallback(
     () =>
@@ -486,9 +516,9 @@ export async function calculateTolerance(
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(request),
         },
-        'Failed to calculate tolerance',
+        'Failed to calculate tolerance'
       ),
-    () => calculateToleranceLocal(request),
+    () => calculateToleranceLocal(request)
   );
 }
 
@@ -500,7 +530,11 @@ export async function saveDiceRoll(payload: unknown): Promise<void> {
   return withLocalFallback(
     async () => {
       try {
-        await jsonPost<void>('/api/tools/dice/save', { payload }, 'Save dice roll failed');
+        await jsonPost<void>(
+          '/api/tools/dice/save',
+          { payload },
+          'Save dice roll failed'
+        );
       } catch {
         // Best-effort: silently ignore save failures
       }
@@ -513,7 +547,11 @@ export async function saveDiceRoll(payload: unknown): Promise<void> {
 
 export async function getDiceHistory(): Promise<DiceHistoryEntry[]> {
   return withLocalFallback(
-    () => authGet<DiceHistoryEntry[]>('/api/tools/dice/history', 'History fetch failed'),
+    () =>
+      authGet<DiceHistoryEntry[]>(
+        '/api/tools/dice/history',
+        'History fetch failed'
+      ),
     async () => getDiceHistoryLocal()
   );
 }
@@ -749,14 +787,18 @@ export interface VolumeStatsPoint {
 
 // -- Body Measurements --
 
-export async function createMeasurement(req: CreateMeasurementRequest): Promise<{ id: string }> {
+export async function createMeasurement(
+  req: CreateMeasurementRequest
+): Promise<{ id: string }> {
   return withLocalFallback(
     () => jsonPost(`${T}/measurements`, req, 'Failed to save measurement'),
     () => trainingStore.createMeasurement(req)
   );
 }
 
-export async function listMeasurements(limit?: number): Promise<{ measurements: BodyMeasurement[] }> {
+export async function listMeasurements(
+  limit?: number
+): Promise<{ measurements: BodyMeasurement[] }> {
   const q = limit ? `?limit=${limit}` : '';
   return withLocalFallback(
     () => authGet(`${T}/measurements${q}`, 'Failed to load measurements'),
@@ -768,7 +810,10 @@ export async function latestMeasurement(): Promise<BodyMeasurement | null> {
   return withLocalFallback(
     async () => {
       try {
-        return await authGet<BodyMeasurement>(`${T}/measurements/latest`, 'Failed to load latest measurement');
+        return await authGet<BodyMeasurement>(
+          `${T}/measurements/latest`,
+          'Failed to load latest measurement'
+        );
       } catch {
         return null;
       }
@@ -804,7 +849,9 @@ export async function listExercises(filters?: {
 }): Promise<{ exercises: Exercise[] }> {
   const params = new URLSearchParams();
   if (filters) {
-    Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v) params.set(k, v);
+    });
   }
   const q = params.toString() ? `?${params}` : '';
   return withLocalFallback(
@@ -813,7 +860,11 @@ export async function listExercises(filters?: {
       let ex = listExercisesLocal() as unknown as Exercise[];
       if (filters?.search) {
         const query = filters.search.toLowerCase();
-        ex = ex.filter(e => e.name.toLowerCase().includes(query) || e.description?.toLowerCase().includes(query));
+        ex = ex.filter(
+          (e) =>
+            e.name.toLowerCase().includes(query) ||
+            e.description?.toLowerCase().includes(query)
+        );
       }
       return { exercises: ex };
     }
@@ -840,7 +891,9 @@ export async function listPlans(): Promise<{ plans: TrainingPlan[] }> {
   );
 }
 
-export async function createPlan(req: CreatePlanRequest): Promise<{ id: string }> {
+export async function createPlan(
+  req: CreatePlanRequest
+): Promise<{ id: string }> {
   return withLocalFallback(
     () => jsonPost(`${T}/plans`, req, 'Failed to create plan'),
     () => trainingStore.createPlan(req)
@@ -854,7 +907,10 @@ export async function getPlan(id: string): Promise<TrainingPlanDetail> {
   );
 }
 
-export async function updatePlan(id: string, data: Partial<CreatePlanRequest> & { isActive?: boolean; sortOrder?: number }): Promise<void> {
+export async function updatePlan(
+  id: string,
+  data: Partial<CreatePlanRequest> & { isActive?: boolean; sortOrder?: number }
+): Promise<void> {
   return withLocalFallback(
     () => authPut(`${T}/plans/${id}`, data, 'Failed to update plan'),
     () => trainingStore.updatePlan(id, data)
@@ -868,23 +924,40 @@ export async function deletePlan(id: string): Promise<void> {
   );
 }
 
-export async function addPlanExercise(planId: string, req: AddPlanExerciseRequest): Promise<{ id: string }> {
+export async function addPlanExercise(
+  planId: string,
+  req: AddPlanExerciseRequest
+): Promise<{ id: string }> {
   return withLocalFallback(
-    () => jsonPost(`${T}/plans/${planId}/exercises`, req, 'Failed to add exercise to plan'),
+    () =>
+      jsonPost(
+        `${T}/plans/${planId}/exercises`,
+        req,
+        'Failed to add exercise to plan'
+      ),
     () => trainingStore.addPlanExercise(planId, req)
   );
 }
 
-export async function deletePlanExercise(planId: string, id: string): Promise<void> {
+export async function deletePlanExercise(
+  planId: string,
+  id: string
+): Promise<void> {
   return withLocalFallback(
-    () => authDelete(`${T}/plans/${planId}/exercises/${id}`, 'Failed to remove exercise from plan'),
+    () =>
+      authDelete(
+        `${T}/plans/${planId}/exercises/${id}`,
+        'Failed to remove exercise from plan'
+      ),
     () => trainingStore.deletePlanExercise(planId, id)
   );
 }
 
 // -- Workout Sessions --
 
-export async function startSession(req: StartSessionRequest): Promise<{ id: string }> {
+export async function startSession(
+  req: StartSessionRequest
+): Promise<{ id: string }> {
   return withLocalFallback(
     () => jsonPost(`${T}/sessions`, req, 'Failed to start session'),
     () => trainingStore.startSession(req)
@@ -899,7 +972,9 @@ export async function listSessions(filters?: {
 }): Promise<{ sessions: WorkoutSession[] }> {
   const params = new URLSearchParams();
   if (filters) {
-    Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v) params.set(k, v);
+    });
   }
   const q = params.toString() ? `?${params}` : '';
   return withLocalFallback(
@@ -915,23 +990,36 @@ export async function getSession(id: string): Promise<WorkoutSessionDetail> {
   );
 }
 
-export async function updateSession(id: string, data: { status?: string; notes?: string }): Promise<void> {
+export async function updateSession(
+  id: string,
+  data: { status?: string; notes?: string }
+): Promise<void> {
   return withLocalFallback(
     () => authPut(`${T}/sessions/${id}`, data, 'Failed to update session'),
     () => trainingStore.updateSession(id, data)
   );
 }
 
-export async function logSet(sessionId: string, req: LogSetRequest): Promise<LogSetResponse> {
+export async function logSet(
+  sessionId: string,
+  req: LogSetRequest
+): Promise<LogSetResponse> {
   return withLocalFallback(
     () => jsonPost(`${T}/sessions/${sessionId}/sets`, req, 'Failed to log set'),
     () => trainingStore.logSet(sessionId, req)
   );
 }
 
-export async function deleteSet(sessionId: string, setId: string): Promise<void> {
+export async function deleteSet(
+  sessionId: string,
+  setId: string
+): Promise<void> {
   return withLocalFallback(
-    () => authDelete(`${T}/sessions/${sessionId}/sets/${setId}`, 'Failed to delete set'),
+    () =>
+      authDelete(
+        `${T}/sessions/${sessionId}/sets/${setId}`,
+        'Failed to delete set'
+      ),
     () => trainingStore.deleteSet(sessionId, setId)
   );
 }
@@ -946,7 +1034,9 @@ export async function statsEnergy(filters?: {
 }): Promise<{ data: EnergyStatsPoint[] }> {
   const params = new URLSearchParams();
   if (filters) {
-    Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v) params.set(k, v);
+    });
   }
   const q = params.toString() ? `?${params}` : '';
   return withLocalFallback(
@@ -963,7 +1053,9 @@ export async function statsVolume(filters?: {
 }): Promise<{ data: VolumeStatsPoint[] }> {
   const params = new URLSearchParams();
   if (filters) {
-    Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v) params.set(k, v);
+    });
   }
   const q = params.toString() ? `?${params}` : '';
   return withLocalFallback(
@@ -980,11 +1072,17 @@ export async function statsMuscleEnergy(filters?: {
 }): Promise<{ data: MuscleEnergyData[] }> {
   const params = new URLSearchParams();
   if (filters) {
-    Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v) params.set(k, v);
+    });
   }
   const q = params.toString() ? `?${params}` : '';
   return withLocalFallback(
-    () => authGet(`${T}/stats/muscle-energy${q}`, 'Failed to load muscle energy stats'),
+    () =>
+      authGet(
+        `${T}/stats/muscle-energy${q}`,
+        'Failed to load muscle energy stats'
+      ),
     async () => {
       // Very crude approximation since we don't store muscle activation correctly locally yet
       // This allows the charts to mount empty without crashing
@@ -995,48 +1093,70 @@ export async function statsMuscleEnergy(filters?: {
 
 // -- Utilities --
 
-export async function calculateEnergy(req: CalculateEnergyRequest): Promise<SetEnergyPreview> {
+export async function calculateEnergy(
+  req: CalculateEnergyRequest
+): Promise<SetEnergyPreview> {
   return withLocalFallback(
     () => jsonPost(`${T}/calculate-energy`, req, 'Failed to calculate energy'),
     async () => {
       const ex = getExerciseLocal(req.exerciseId);
-      if (!ex) throw new Error("Exercise not found");
+      if (!ex) throw new Error('Exercise not found');
       const m = await trainingStore.latestMeasurement();
       const defaultM: BodyMeasurement = {
-        id: '', measuredAt: '', bodyWeightKg: 80, heightCm: 175,
-        legLengthCm: null, upperLegLengthCm: null, lowerLegLengthCm: null,
-        armLengthCm: null, upperArmLengthCm: null, lowerArmLengthCm: null,
-        torsoLengthCm: null, shoulderWidthCm: null
+        id: '',
+        measuredAt: '',
+        bodyWeightKg: 80,
+        heightCm: 175,
+        legLengthCm: null,
+        upperLegLengthCm: null,
+        lowerLegLengthCm: null,
+        armLengthCm: null,
+        upperArmLengthCm: null,
+        lowerArmLengthCm: null,
+        torsoLengthCm: null,
+        shoulderWidthCm: null,
       };
       return computeSetEnergyLocal({
         weightKg: req.weightKg,
         reps: req.reps,
         movementPattern: ex.movementPattern,
-        primarySegmentsMoved: ex.muscles?.map((m: { muscleName: string }) => m.muscleName) || [],
+        primarySegmentsMoved:
+          ex.muscles?.map((m: { muscleName: string }) => m.muscleName) || [],
         romDegrees: ex.romDegrees,
         isBodyweight: ex.isBodyweight,
         isUnilateral: ex.isUnilateral,
-        bodyMassFractionMoved: (ex.metadata as Record<string, unknown>)?.bodyMassFractionMoved as number || 0.6,
+        bodyMassFractionMoved:
+          ((ex.metadata as Record<string, unknown>)
+            ?.bodyMassFractionMoved as number) || 0.6,
         measurements: m || defaultM,
         tempo: {
           eccentricS: req.tempoEccentricS ?? 2.0,
           pauseBottomS: req.tempoPauseBottomS ?? 0.0,
           concentricS: req.tempoConcentricS ?? 1.0,
           pauseTopS: req.tempoPauseTopS ?? 0.0,
-        }
+        },
       });
     }
   );
 }
 
-export async function calculatePlates(totalWeightKg: number): Promise<PlateCalculationResult> {
+export async function calculatePlates(
+  totalWeightKg: number
+): Promise<PlateCalculationResult> {
   return withLocalFallback(
-    () => jsonPost(`${T}/calculate-plates`, { totalWeightKg }, 'Failed to calculate plates'),
+    () =>
+      jsonPost(
+        `${T}/calculate-plates`,
+        { totalWeightKg },
+        'Failed to calculate plates'
+      ),
     async () => {
       const res = calculatePlatesLocal(totalWeightKg);
       return {
-        plates: res.platesPerSide.flatMap(p => Array(p.count).fill(p.weightKg)),
-        remainder: totalWeightKg - res.achievableWeightKg
+        plates: res.platesPerSide.flatMap((p) =>
+          Array(p.count).fill(p.weightKg)
+        ),
+        remainder: totalWeightKg - res.achievableWeightKg,
       };
     }
   );

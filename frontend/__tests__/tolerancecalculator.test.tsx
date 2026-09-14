@@ -7,8 +7,14 @@ vi.mock('@/lib/api/client', async () => {
   const actual = await import('../lib/api/client');
   return {
     ...actual,
-    getToleranceSubstances: vi.fn().mockResolvedValue([{ id: '1', name: 'TestSub' }]),
-    calculateTolerance: vi.fn().mockResolvedValue({ blood_levels: [{ time: new Date().toISOString(), value: 1 }] }),
+    getToleranceSubstances: vi
+      .fn()
+      .mockResolvedValue([{ id: '1', name: 'TestSub' }]),
+    calculateTolerance: vi
+      .fn()
+      .mockResolvedValue({
+        blood_levels: [{ time: new Date().toISOString(), value: 1 }],
+      }),
   };
 });
 
@@ -23,12 +29,34 @@ describe('ToleranceCalculator', () => {
   });
 
   it('renders and runs calculation flow', async () => {
-    const getSub = vi.spyOn(api, 'getToleranceSubstances').mockResolvedValue([
-      { id: '1', name: 'TestSub', halfLifeHours: 4, description: 't', category: 'c' }
-    ] as any);
-    const calc = vi.spyOn(api, 'calculateTolerance').mockResolvedValue({ blood_levels: [{ time: new Date().toISOString(), substance: 'TestSub', amountMg: 2 }] } as any);
+    const getSub = vi
+      .spyOn(api, 'getToleranceSubstances')
+      .mockResolvedValue([
+        {
+          id: '1',
+          name: 'TestSub',
+          halfLifeHours: 4,
+          description: 't',
+          category: 'c',
+        },
+      ] as any);
+    const calc = vi
+      .spyOn(api, 'calculateTolerance')
+      .mockResolvedValue({
+        blood_levels: [
+          {
+            time: new Date().toISOString(),
+            substance: 'TestSub',
+            amount_mg: 2,
+          },
+        ],
+      } as any);
 
-  render(<TestWrapper><BloodLevelCalculator /></TestWrapper>);
+    render(
+      <TestWrapper>
+        <BloodLevelCalculator />
+      </TestWrapper>
+    );
 
     // wait for substance options to load (select should include TestSub)
     await waitFor(() => expect(getSub).toHaveBeenCalled());
@@ -47,7 +75,9 @@ describe('ToleranceCalculator', () => {
     fireEvent.change(dosageInputs[0], { target: { value: '10' } });
 
     // Run calculation
-    const calcBtn = screen.getByRole('button', { name: /Calculate Blood Levels/i });
+    const calcBtn = screen.getByRole('button', {
+      name: /Calculate Blood Levels/i,
+    });
     fireEvent.click(calcBtn);
 
     await waitFor(() => expect(calc).toHaveBeenCalled());
