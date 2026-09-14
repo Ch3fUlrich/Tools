@@ -47,7 +47,8 @@ export const SUBSTANCES: SubstancePk[] = [
   {
     id: 'nicotine',
     name: 'Nicotine',
-    description: 'Addictive stimulant found in tobacco; heavy first-pass metabolism by mouth',
+    description:
+      'Addictive stimulant found in tobacco; heavy first-pass metabolism by mouth',
     category: 'Stimulant',
     halfLifeHours: 2,
     elimination: 'first-order',
@@ -149,12 +150,15 @@ export const SUBSTANCES: SubstancePk[] = [
     commonDosageMg: 200,
     maxDailyDoseMg: 1_000,
     eliminationRoute: 'Hepatic metabolism',
-    sources: ['Martinez-Pinilla et al., Front Pharmacol 2015 — theobromine pharmacology and kinetics'],
+    sources: [
+      'Martinez-Pinilla et al., Front Pharmacol 2015 — theobromine pharmacology and kinetics',
+    ],
   },
   {
     id: 'naproxen',
     name: 'Naproxen',
-    description: 'Long-acting NSAID; the long half-life is why it is dosed twice daily',
+    description:
+      'Long-acting NSAID; the long half-life is why it is dosed twice daily',
     category: 'NSAID',
     halfLifeHours: 14,
     elimination: 'first-order',
@@ -163,12 +167,15 @@ export const SUBSTANCES: SubstancePk[] = [
     commonDosageMg: 250,
     maxDailyDoseMg: 1_000,
     eliminationRoute: 'Hepatic metabolism',
-    sources: ['Davies & Anderson, Clin Pharmacokinet 1997 — clinical pharmacokinetics of naproxen'],
+    sources: [
+      'Davies & Anderson, Clin Pharmacokinet 1997 — clinical pharmacokinetics of naproxen',
+    ],
   },
   {
     id: 'aspirin',
     name: 'Aspirin (as salicylate)',
-    description: 'Measured as salicylate: aspirin itself is hydrolysed within minutes',
+    description:
+      'Measured as salicylate: aspirin itself is hydrolysed within minutes',
     category: 'NSAID',
     halfLifeHours: 3,
     elimination: 'first-order',
@@ -197,7 +204,9 @@ export const SUBSTANCES: SubstancePk[] = [
     commonDosageMg: 25,
     maxDailyDoseMg: 150,
     eliminationRoute: 'Hepatic metabolism (CYP2D6)',
-    sources: ['Paton & Webster, Clin Pharmacokinet 1985 — pharmacokinetics of H1-receptor antagonists'],
+    sources: [
+      'Paton & Webster, Clin Pharmacokinet 1985 — pharmacokinetics of H1-receptor antagonists',
+    ],
   },
   {
     id: 'cetirizine',
@@ -211,12 +220,15 @@ export const SUBSTANCES: SubstancePk[] = [
     commonDosageMg: 10,
     maxDailyDoseMg: 10,
     eliminationRoute: 'Renal excretion',
-    sources: ['Chen, Clin Pharmacokinet 2008 — physicochemical properties and pharmacokinetics of cetirizine'],
+    sources: [
+      'Chen, Clin Pharmacokinet 2008 — physicochemical properties and pharmacokinetics of cetirizine',
+    ],
   },
   {
     id: 'loratadine',
     name: 'Loratadine',
-    description: 'Non-sedating antihistamine; its active metabolite lasts far longer than the parent',
+    description:
+      'Non-sedating antihistamine; its active metabolite lasts far longer than the parent',
     category: 'Antihistamine',
     halfLifeHours: 8.4,
     elimination: 'first-order',
@@ -225,7 +237,9 @@ export const SUBSTANCES: SubstancePk[] = [
     commonDosageMg: 10,
     maxDailyDoseMg: 10,
     eliminationRoute: 'Hepatic metabolism (CYP3A4/2D6)',
-    sources: ['Haria, Fitton & Peters, Drugs 1994 — loratadine pharmacokinetics review'],
+    sources: [
+      'Haria, Fitton & Peters, Drugs 1994 — loratadine pharmacokinetics review',
+    ],
   },
   {
     id: 'melatonin',
@@ -239,7 +253,9 @@ export const SUBSTANCES: SubstancePk[] = [
     commonDosageMg: 3,
     maxDailyDoseMg: 10,
     eliminationRoute: 'Hepatic metabolism (CYP1A2)',
-    sources: ['DeMuro et al., J Clin Pharmacol 2000 — absolute bioavailability of oral melatonin'],
+    sources: [
+      'DeMuro et al., J Clin Pharmacol 2000 — absolute bioavailability of oral melatonin',
+    ],
   },
   {
     id: 'pseudoephedrine',
@@ -253,7 +269,9 @@ export const SUBSTANCES: SubstancePk[] = [
     commonDosageMg: 60,
     maxDailyDoseMg: 240,
     eliminationRoute: 'Renal excretion',
-    sources: ['Kanfer, Dowse & Vuma, J Clin Pharmacol 1993 — pharmacokinetics of oral decongestants'],
+    sources: [
+      'Kanfer, Dowse & Vuma, J Clin Pharmacol 1993 — pharmacokinetics of oral decongestants',
+    ],
   },
   {
     id: 'amoxicillin',
@@ -270,12 +288,15 @@ export const SUBSTANCES: SubstancePk[] = [
     commonDosageMg: 500,
     maxDailyDoseMg: 3_000,
     eliminationRoute: 'Renal excretion',
-    sources: ['Spyker et al., Antimicrob Agents Chemother 1977 — amoxicillin dose dependence and bioavailability'],
+    sources: [
+      'Spyker et al., Antimicrob Agents Chemother 1977 — amoxicillin dose dependence and bioavailability',
+    ],
   },
   {
     id: 'metformin',
     name: 'Metformin',
-    description: 'Antidiabetic excreted unchanged; accumulates if renal function is poor',
+    description:
+      'Antidiabetic excreted unchanged; accumulates if renal function is poor',
     category: 'Antidiabetic',
     halfLifeHours: 6.2,
     elimination: 'first-order',
@@ -284,12 +305,15 @@ export const SUBSTANCES: SubstancePk[] = [
     commonDosageMg: 500,
     maxDailyDoseMg: 2_000,
     eliminationRoute: 'Renal excretion',
-    sources: ['Graham et al., Clin Pharmacokinet 2011 — clinical pharmacokinetics of metformin'],
+    sources: [
+      'Graham et al., Clin Pharmacokinet 2011 — clinical pharmacokinetics of metformin',
+    ],
   },
   {
     id: 'omeprazole',
     name: 'Omeprazole',
-    description: 'Proton-pump inhibitor; its effect long outlasts its plasma half-life',
+    description:
+      'Proton-pump inhibitor; its effect long outlasts its plasma half-life',
     category: 'Proton-pump inhibitor',
     halfLifeHours: 1,
     elimination: 'first-order',
@@ -302,12 +326,15 @@ export const SUBSTANCES: SubstancePk[] = [
     commonDosageMg: 20,
     maxDailyDoseMg: 40,
     eliminationRoute: 'Hepatic metabolism (CYP2C19)',
-    sources: ['Andersson, Clin Pharmacokinet 1996 — pharmacokinetics of proton pump inhibitors'],
+    sources: [
+      'Andersson, Clin Pharmacokinet 1996 — pharmacokinetics of proton pump inhibitors',
+    ],
   },
   {
     id: 'sertraline',
     name: 'Sertraline',
-    description: 'SSRI; the long half-life is why steady state takes about a week',
+    description:
+      'SSRI; the long half-life is why steady state takes about a week',
     category: 'SSRI',
     halfLifeHours: 26,
     elimination: 'first-order',
@@ -316,11 +343,19 @@ export const SUBSTANCES: SubstancePk[] = [
     commonDosageMg: 50,
     maxDailyDoseMg: 200,
     eliminationRoute: 'Hepatic metabolism',
-    sources: ['DeVane, Liston & Markowitz, Clin Pharmacokinet 2002 — sertraline pharmacokinetics'],
+    sources: [
+      'DeVane, Liston & Markowitz, Clin Pharmacokinet 2002 — sertraline pharmacokinetics',
+    ],
   },
 ];
 
+const substanceLookupCache = new Map<string, SubstancePk>();
+for (const s of SUBSTANCES) {
+  substanceLookupCache.set(s.id.toLowerCase(), s);
+  substanceLookupCache.set(s.name.toLowerCase(), s);
+}
+
 export function findSubstance(idOrName: string): SubstancePk | undefined {
   const needle = idOrName.toLowerCase();
-  return SUBSTANCES.find((s) => s.id.toLowerCase() === needle || s.name.toLowerCase() === needle);
+  return substanceLookupCache.get(needle);
 }
