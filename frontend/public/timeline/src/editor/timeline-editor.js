@@ -5712,13 +5712,33 @@
         : (row.kind === "block" ? `end=${roundToThree(row.y)}` : `y=${roundToThree(row.y)}`));
       const xLabel = row.xLabel || roundToThree(row.x);
 
-      tr.innerHTML = `
-        <td data-label="Type"><span class="inspector-kind ${kindClass}">${escapeHtml(row.kind)}</span></td>
-        <td data-label="Group">${escapeHtml(row.group)}</td>
-        <td data-label="Label">${escapeHtml(row.label)}</td>
-        <td data-label="Age / Start">${escapeHtml(xLabel)}</td>
-        <td data-label="Y / End age / Width">${escapeHtml(yLabel)}</td>
-      `;
+      const tdType = document.createElement("td");
+      tdType.dataset.label = "Type";
+      const spanKind = document.createElement("span");
+      spanKind.className = `inspector-kind ${kindClass}`;
+      spanKind.textContent = String(row.kind);
+      tdType.appendChild(spanKind);
+      tr.appendChild(tdType);
+
+      const tdGroup = document.createElement("td");
+      tdGroup.dataset.label = "Group";
+      tdGroup.textContent = String(row.group);
+      tr.appendChild(tdGroup);
+
+      const tdLabel = document.createElement("td");
+      tdLabel.dataset.label = "Label";
+      tdLabel.textContent = String(row.label);
+      tr.appendChild(tdLabel);
+
+      const tdAge = document.createElement("td");
+      tdAge.dataset.label = "Age / Start";
+      tdAge.textContent = String(xLabel);
+      tr.appendChild(tdAge);
+
+      const tdY = document.createElement("td");
+      tdY.dataset.label = "Y / End age / Width";
+      tdY.textContent = String(yLabel);
+      tr.appendChild(tdY);
 
       state.ui.inspectorBody.appendChild(tr);
 
