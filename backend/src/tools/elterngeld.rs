@@ -163,4 +163,43 @@ mod tests {
         assert!(check_quota(MAX_SCENARIOS_PER_USER, true).is_ok());
         assert!(check_quota(MAX_SCENARIOS_PER_USER + 1, true).is_ok());
     }
+
+    #[test]
+    fn test_scenario_error_messages() {
+        assert_eq!(ScenarioError::NameMissing.message(), "name must not be empty");
+        assert_eq!(ScenarioError::NameTooLong.message(), "name is too long");
+        assert_eq!(ScenarioError::PayloadNotObject.message(), "payload must be a JSON object");
+        assert_eq!(ScenarioError::PayloadTooLarge.message(), "payload is too large");
+        assert_eq!(ScenarioError::TooManyScenarios.message(), "saved scenario limit reached");
+    }
+
+    #[test]
+    fn test_validate_scenario_error_paths() {
+        assert_eq!(validate_scenario("", &json!({})).unwrap_err(), ScenarioError::NameMissing);
+
+        let long_name = "a".repeat(MAX_NAME_CHARS + 1);
+        assert_eq!(
+            validate_scenario(&long_name, &json!({})).unwrap_err(),
+            ScenarioError::NameTooLong
+        );
+
+        assert_eq!(
+            validate_scenario("Valid Name", &json!(null)).unwrap_err(),
+            ScenarioError::PayloadNotObject
+        );
+        assert_eq!(
+            validate_scenario("Valid Name", &json!(42)).unwrap_err(),
+            ScenarioError::PayloadNotObject
+        );
+        assert_eq!(
+            validate_scenario("Valid Name", &json!(true)).unwrap_err(),
+            ScenarioError::PayloadNotObject
+        );
+
+        let massive_payload = json!({ "data": "x".repeat(MAX_PAYLOAD_BYTES) });
+        assert_eq!(
+            validate_scenario("Valid Name", &massive_payload).unwrap_err(),
+            ScenarioError::PayloadTooLarge
+        );
+    }
 }
