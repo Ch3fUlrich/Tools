@@ -66,13 +66,13 @@ export function calculateToleranceLocal(
     bySubstance.set(intake.substance, group);
   }
 
+  const sampleMs = request.time_points.map((t) => Date.parse(t));
+
   for (const [substanceName, intakes] of bySubstance) {
     const substance = findSubstance(substanceName);
     if (!substance) {
       throw new Error(`Substance '${substanceName}' not found in database`);
     }
-
-    const sampleMs = request.time_points.map((t) => Date.parse(t));
 
     const doses = intakes.map((intake) => {
       const { params } = resolveRoute(substance, asRoute(intake.route), Boolean(intake.with_food));
