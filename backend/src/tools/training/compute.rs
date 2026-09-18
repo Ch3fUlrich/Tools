@@ -437,4 +437,26 @@ mod tests {
         let result = estimate_1rm(100.0, 10).unwrap();
         assert!((result - expected).abs() < f64::EPSILON);
     }
+
+    #[test]
+    fn test_compute_volume_empty_sets() {
+        let sets: &[(f64, u32)] = &[];
+        assert_eq!(compute_volume(sets), 0.0);
+    }
+
+    #[test]
+    fn test_compute_volume_zero_weight_or_reps() {
+        let sets = vec![(0.0, 10), (100.0, 0), (0.0, 0)];
+        assert_eq!(compute_volume(&sets), 0.0);
+    }
+
+    #[test]
+    fn test_compute_volume_negative_values() {
+        let sets = vec![(-50.0, 10), (100.0, 5)];
+        // (-50 * 10) + (100 * 5) = -500 + 500 = 0.0
+        assert_eq!(compute_volume(&sets), 0.0);
+
+        let sets2 = vec![(-20.0, 5)];
+        assert_eq!(compute_volume(&sets2), -100.0);
+    }
 }
