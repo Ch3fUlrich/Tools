@@ -8,4 +8,6 @@ for (let i = 0; i < 1_000_000; i++) {
   findSubstance('caffeine');
 }
 const end = performance.now();
-console.log(`findSubstance baseline time: ${(end - start).toFixed(2)} ms`);
+process.stdout.write(
+  `findSubstance baseline time: ${(end - start).toFixed(2)} ms\n`
+);

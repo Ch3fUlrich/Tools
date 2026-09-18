@@ -13,13 +13,13 @@ for (let i = 0; i < 10000; i++) {
   intakes.push({
     substance: i % 2 === 0 ? substance.id : substance.name,
     time: '2026-01-01T00:00:00.000Z',
-    dosage_mg: 10
+    dosage_mg: 10,
   });
 }
 
 const request = {
   intakes,
-  time_points
+  time_points,
 };
 
 const start = performance.now();
@@ -27,4 +27,4 @@ for (let i = 0; i < 1000; i++) {
   calculateToleranceLocal(request);
 }
 const end = performance.now();
-console.log(`Baseline time: ${(end - start).toFixed(2)} ms`);
+process.stdout.write(`Baseline time: ${(end - start).toFixed(2)} ms\n`);
