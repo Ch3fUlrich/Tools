@@ -136,7 +136,7 @@ pub async fn get_session(
                 ws.energy_kcal, ws.energy_potential_kcal, ws.energy_kinetic_kcal, ws.energy_isometric_kcal,
                 ws.notes, ws.performed_at
          FROM workout_sets ws JOIN exercises e ON e.id = ws.exercise_id
-         WHERE ws.session_id = $1 ORDER BY ws.performed_at, ws.set_number"
+         WHERE ws.session_id = $1 AND ws.deleted_at IS NULL ORDER BY ws.performed_at, ws.set_number"
     )
     .bind(uuid)
     .fetch_all(&*pool)
@@ -256,8 +256,8 @@ pub async fn update_session(
 async fn recalculate_session_totals(pool: &PgPool, session_id: Uuid) -> Result<(), sqlx::Error> {
     sqlx::query(
         "UPDATE workout_sessions SET
-            total_energy_kcal = (SELECT COALESCE(SUM(energy_kcal), 0) FROM workout_sets WHERE session_id = $1),
-            total_volume_kg = (SELECT COALESCE(SUM(weight_kg * reps), 0) FROM workout_sets WHERE session_id = $1),
+            total_energy_kcal = (SELECT COALESCE(SUM(energy_kcal), 0) FROM workout_sets WHERE session_id = $1 AND deleted_at IS NULL),
+            total_volume_kg = (SELECT COALESCE(SUM(weight_kg * reps), 0) FROM workout_sets WHERE session_id = $1 AND deleted_at IS NULL),
             updated_at = now()
          WHERE id = $1"
     )
