@@ -415,4 +415,36 @@ mod tests {
         assert!(energy.kinetic_kcal >= 0.0);
         assert!(energy.mechanical_work_joules > 0.0);
     }
+
+    #[test]
+    fn test_compute_moving_segment_mass_negative_weight() {
+        let mass = compute_moving_segment_mass(
+            -80.0,
+            &["upper_arm".to_string(), "lower_arm".to_string()],
+            false,
+        );
+        assert!(mass < 0.0);
+    }
+
+    #[test]
+    fn test_compute_moving_segment_mass_zero_weight() {
+        let mass = compute_moving_segment_mass(
+            0.0,
+            &["upper_arm".to_string(), "lower_arm".to_string()],
+            false,
+        );
+        assert_eq!(mass, 0.0);
+    }
+
+    #[test]
+    fn test_compute_moving_segment_mass_empty_segments() {
+        let mass = compute_moving_segment_mass(80.0, &[], false);
+        assert_eq!(mass, 0.0);
+    }
+
+    #[test]
+    fn test_compute_moving_segment_mass_unknown_segment() {
+        let mass = compute_moving_segment_mass(80.0, &["unknown".to_string()], false);
+        assert_eq!(mass, 0.0);
+    }
 }
