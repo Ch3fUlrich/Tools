@@ -377,7 +377,9 @@ export class TrainingStore {
         dataByDate[date] = (dataByDate[date] || 0) + (s.energyKcal || 0);
     }
 
-    const data = Object.keys(dataByDate).sort().map(date => ({
+    const keys = Object.keys(dataByDate);
+    keys.sort();
+    const data = keys.map(date => ({
         date,
         energyKcal: dataByDate[date]
     }));
@@ -402,7 +404,9 @@ export class TrainingStore {
         dataByDate[date] = (dataByDate[date] || 0) + (s.weightKg * s.reps);
     }
 
-    const data = Object.keys(dataByDate).sort().map(date => ({
+    const keys = Object.keys(dataByDate);
+    keys.sort();
+    const data = keys.map(date => ({
         date,
         volumeKg: dataByDate[date]
     }));
