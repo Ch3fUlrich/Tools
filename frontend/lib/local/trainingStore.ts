@@ -45,7 +45,9 @@ export class TrainingStore {
           db.createObjectStore('plans', { keyPath: 'id' });
         }
         if (!db.objectStoreNames.contains('planExercises')) {
-          const store = db.createObjectStore('planExercises', { keyPath: 'id' });
+          const store = db.createObjectStore('planExercises', {
+            keyPath: 'id',
+          });
           store.createIndex('planId', 'planId', { unique: false });
         }
         if (!db.objectStoreNames.contains('sessions')) {
@@ -66,7 +68,11 @@ export class TrainingStore {
   }
 
   // Helper for querying
-  private async getAll<T>(storeName: string, indexName?: string, indexValue?: string | IDBKeyRange): Promise<T[]> {
+  private async getAll<T>(
+    storeName: string,
+    indexName?: string,
+    indexValue?: string | IDBKeyRange
+  ): Promise<T[]> {
     await this.init();
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction(storeName, 'readonly');
@@ -123,7 +129,9 @@ export class TrainingStore {
 
   // --- Measurements ---
 
-  async createMeasurement(req: CreateMeasurementRequest): Promise<{ id: string }> {
+  async createMeasurement(
+    req: CreateMeasurementRequest
+  ): Promise<{ id: string }> {
     const id = this.uuid();
     const measurement: BodyMeasurement = {
       id,
@@ -143,9 +151,14 @@ export class TrainingStore {
     return { id };
   }
 
-  async listMeasurements(limit?: number): Promise<{ measurements: BodyMeasurement[] }> {
+  async listMeasurements(
+    limit?: number
+  ): Promise<{ measurements: BodyMeasurement[] }> {
     const all = await this.getAll<BodyMeasurement>('measurements');
-    all.sort((a, b) => new Date(b.measuredAt).getTime() - new Date(a.measuredAt).getTime());
+    all.sort(
+      (a, b) =>
+        new Date(b.measuredAt).getTime() - new Date(a.measuredAt).getTime()
+    );
     return { measurements: limit ? all.slice(0, limit) : all };
   }
 
@@ -183,12 +196,22 @@ export class TrainingStore {
   async getPlan(id: string): Promise<TrainingPlanDetail> {
     const plan = await this.get<TrainingPlan>('plans', id);
     if (!plan) throw new Error('Plan not found');
-    const exercises = await this.getAll<PlanExercise & { planId: string }>('planExercises', 'planId', id);
+    const exercises = await this.getAll<PlanExercise & { planId: string }>(
+      'planExercises',
+      'planId',
+      id
+    );
     exercises.sort((a, b) => a.sortOrder - b.sortOrder);
     return { ...plan, exercises };
   }
 
-  async updatePlan(id: string, data: Partial<CreatePlanRequest> & { isActive?: boolean; sortOrder?: number }): Promise<void> {
+  async updatePlan(
+    id: string,
+    data: Partial<CreatePlanRequest> & {
+      isActive?: boolean;
+      sortOrder?: number;
+    }
+  ): Promise<void> {
     const plan = await this.get<TrainingPlan>('plans', id);
     if (!plan) throw new Error('Plan not found');
     await this.put('plans', { ...plan, ...data });
@@ -198,11 +221,14 @@ export class TrainingStore {
     await this.delete('plans', id);
   }
 
-  async addPlanExercise(planId: string, req: AddPlanExerciseRequest): Promise<{ id: string }> {
+  async addPlanExercise(
+    planId: string,
+    req: AddPlanExerciseRequest
+  ): Promise<{ id: string }> {
     const id = this.uuid();
     const ex = getExerciseLocal(req.exerciseId);
     if (!ex) throw new Error('Exercise not found');
-    
+
     const pEx = {
       id,
       planId,
@@ -244,43 +270,71 @@ export class TrainingStore {
     return { id };
   }
 
-  async listSessions(filters?: { from?: string; to?: string; planId?: string; status?: string }): Promise<{ sessions: WorkoutSession[] }> {
+  async listSessions(filters?: {
+    from?: string;
+    to?: string;
+    planId?: string;
+    status?: string;
+  }): Promise<{ sessions: WorkoutSession[] }> {
     let all = await this.getAll<WorkoutSession>('sessions');
-    if (filters?.planId) all = all.filter(s => s.planId === filters.planId);
-    if (filters?.status) all = all.filter(s => s.status === filters.status);
+    if (filters?.planId) all = all.filter((s) => s.planId === filters.planId);
+    if (filters?.status) all = all.filter((s) => s.status === filters.status);
     if (filters?.from) {
       const fromD = new Date(filters.from).getTime();
-      all = all.filter(s => new Date(s.startedAt).getTime() >= fromD);
+      all = all.filter((s) => new Date(s.startedAt).getTime() >= fromD);
     }
     if (filters?.to) {
       const toD = new Date(filters.to).getTime();
-      all = all.filter(s => new Date(s.startedAt).getTime() <= toD);
+      all = all.filter((s) => new Date(s.startedAt).getTime() <= toD);
     }
-    all.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+    all.sort(
+      (a, b) =>
+        new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+    );
     return { sessions: all };
   }
 
   async getSession(id: string): Promise<WorkoutSessionDetail> {
     const session = await this.get<WorkoutSession>('sessions', id);
     if (!session) throw new Error('Session not found');
-    const sets = await this.getAll<WorkoutSet & { sessionId: string }>('sets', 'sessionId', id);
-    sets.sort((a, b) => new Date(a.performedAt).getTime() - new Date(b.performedAt).getTime());
+    const sets = await this.getAll<WorkoutSet & { sessionId: string }>(
+      'sets',
+      'sessionId',
+      id
+    );
+    sets.sort(
+      (a, b) =>
+        new Date(a.performedAt).getTime() - new Date(b.performedAt).getTime()
+    );
     return { ...session, sets };
   }
 
-  async updateSession(id: string, data: { status?: string; notes?: string }): Promise<void> {
+  async updateSession(
+    id: string,
+    data: { status?: string; notes?: string }
+  ): Promise<void> {
     const session = await this.get<WorkoutSession>('sessions', id);
     if (!session) throw new Error('Session not found');
-    
+
     const toUpdate = { ...session, ...data };
     if (data.status === 'completed' && session.status !== 'completed') {
       toUpdate.completedAt = new Date().toISOString();
       // recalculate total energy
-      const sets = await this.getAll<WorkoutSet & { sessionId: string }>('sets', 'sessionId', id);
-      toUpdate.totalEnergyKcal = sets.reduce((acc, s) => acc + (s.energyKcal || 0), 0);
-      toUpdate.totalVolumeKg = sets.reduce((acc, s) => acc + (s.weightKg * s.reps), 0);
+      const sets = await this.getAll<WorkoutSet & { sessionId: string }>(
+        'sets',
+        'sessionId',
+        id
+      );
+      toUpdate.totalEnergyKcal = sets.reduce(
+        (acc, s) => acc + (s.energyKcal || 0),
+        0
+      );
+      toUpdate.totalVolumeKg = sets.reduce(
+        (acc, s) => acc + s.weightKg * s.reps,
+        0
+      );
     }
-    
+
     await this.put('sessions', toUpdate);
   }
 
@@ -291,10 +345,18 @@ export class TrainingStore {
 
     const m = await this.latestMeasurement();
     const defaultM: BodyMeasurement = {
-        id: '', measuredAt: '', bodyWeightKg: 80, heightCm: 175,
-        legLengthCm: null, upperLegLengthCm: null, lowerLegLengthCm: null,
-        armLengthCm: null, upperArmLengthCm: null, lowerArmLengthCm: null,
-        torsoLengthCm: null, shoulderWidthCm: null
+      id: '',
+      measuredAt: '',
+      bodyWeightKg: 80,
+      heightCm: 175,
+      legLengthCm: null,
+      upperLegLengthCm: null,
+      lowerLegLengthCm: null,
+      armLengthCm: null,
+      upperArmLengthCm: null,
+      lowerArmLengthCm: null,
+      torsoLengthCm: null,
+      shoulderWidthCm: null,
     };
     const measurements = m || defaultM;
 
@@ -309,11 +371,13 @@ export class TrainingStore {
       weightKg: req.weightKg,
       reps: req.reps,
       movementPattern: ex.movementPattern,
-      primarySegmentsMoved: ex.muscles?.map(m => m.muscleName) || [], // Approximation for segments
+      primarySegmentsMoved: ex.muscles?.map((m) => m.muscleName) || [], // Approximation for segments
       romDegrees: ex.romDegrees,
       isBodyweight: ex.isBodyweight,
       isUnilateral: ex.isUnilateral,
-      bodyMassFractionMoved: (ex.metadata as Record<string, unknown>)?.bodyMassFractionMoved as number || 0.6,
+      bodyMassFractionMoved:
+        ((ex.metadata as Record<string, unknown>)
+          ?.bodyMassFractionMoved as number) || 0.6,
       measurements: measurements,
       tempo,
     });
@@ -360,51 +424,65 @@ export class TrainingStore {
 
   // --- Stats ---
 
-  async statsEnergy(filters?: { from?: string; to?: string; planId?: string; exerciseId?: string }): Promise<{ data: Array<{ date: string; energyKcal: number }> }> {
+  async statsEnergy(filters?: {
+    from?: string;
+    to?: string;
+    planId?: string;
+    exerciseId?: string;
+  }): Promise<{ data: Array<{ date: string; energyKcal: number }> }> {
     const sessions = (await this.listSessions(filters)).sessions;
-    const sessionIds = new Set(sessions.map(s => s.id));
-    
+    const sessionIds = new Set(sessions.map((s) => s.id));
+
     let allSets = await this.getAll<WorkoutSet & { sessionId: string }>('sets');
-    allSets = allSets.filter(s => sessionIds.has(s.sessionId));
-    
+    allSets = allSets.filter((s) => sessionIds.has(s.sessionId));
+
     if (filters?.exerciseId) {
-        allSets = allSets.filter(s => s.exerciseId === filters.exerciseId);
+      allSets = allSets.filter((s) => s.exerciseId === filters.exerciseId);
     }
 
     const dataByDate: Record<string, number> = {};
     for (const s of allSets) {
-        const date = s.performedAt.slice(0, 10);
-        dataByDate[date] = (dataByDate[date] || 0) + (s.energyKcal || 0);
+      const date = s.performedAt.slice(0, 10);
+      dataByDate[date] = (dataByDate[date] || 0) + (s.energyKcal || 0);
     }
 
-    const data = Object.keys(dataByDate).sort().map(date => ({
-        date,
-        energyKcal: dataByDate[date]
+    const keys = Object.keys(dataByDate);
+    keys.sort();
+    const data = keys.map((date) => ({
+      date,
+      energyKcal: dataByDate[date],
     }));
 
     return { data };
   }
 
-  async statsVolume(filters?: { from?: string; to?: string; planId?: string; exerciseId?: string }): Promise<{ data: Array<{ date: string; volumeKg: number }> }> {
+  async statsVolume(filters?: {
+    from?: string;
+    to?: string;
+    planId?: string;
+    exerciseId?: string;
+  }): Promise<{ data: Array<{ date: string; volumeKg: number }> }> {
     const sessions = (await this.listSessions(filters)).sessions;
-    const sessionIds = new Set(sessions.map(s => s.id));
-    
+    const sessionIds = new Set(sessions.map((s) => s.id));
+
     let allSets = await this.getAll<WorkoutSet & { sessionId: string }>('sets');
-    allSets = allSets.filter(s => sessionIds.has(s.sessionId));
-    
+    allSets = allSets.filter((s) => sessionIds.has(s.sessionId));
+
     if (filters?.exerciseId) {
-        allSets = allSets.filter(s => s.exerciseId === filters.exerciseId);
+      allSets = allSets.filter((s) => s.exerciseId === filters.exerciseId);
     }
 
     const dataByDate: Record<string, number> = {};
     for (const s of allSets) {
-        const date = s.performedAt.slice(0, 10);
-        dataByDate[date] = (dataByDate[date] || 0) + (s.weightKg * s.reps);
+      const date = s.performedAt.slice(0, 10);
+      dataByDate[date] = (dataByDate[date] || 0) + s.weightKg * s.reps;
     }
 
-    const data = Object.keys(dataByDate).sort().map(date => ({
-        date,
-        volumeKg: dataByDate[date]
+    const keys = Object.keys(dataByDate);
+    keys.sort();
+    const data = keys.map((date) => ({
+      date,
+      volumeKg: dataByDate[date],
     }));
 
     return { data };
