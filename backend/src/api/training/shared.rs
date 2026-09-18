@@ -7,11 +7,12 @@ pub struct PaginationParams {
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 pub struct StatsFilterParams {
     pub from: Option<String>,
     pub to: Option<String>,
+    #[allow(dead_code)]
     pub plan_id: Option<String>,
+    #[allow(dead_code)]
     pub exercise_id: Option<String>,
 }
 
