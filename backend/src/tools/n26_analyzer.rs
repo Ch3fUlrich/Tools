@@ -125,6 +125,96 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_process_category_happy_path() {
+        use serde_json::json;
+        let data = vec![
+            json!({
+                "amount": 100.5,
+                "date": "2024-01-01",
+                "comment": "Groceries"
+            }),
+            json!({
+                "amount": -50.0,
+                "date": "2024-01-02",
+                "comment": "Coffee"
+            }),
+        ];
+        let result = process_category(&data, "test_category", "amount", "date", "comment", 2.0);
+        assert_eq!(result.len(), 2);
+
+        assert_eq!(result[0].amount, 201.0);
+        assert_eq!(result[0].date, "2024-01-01");
+        assert_eq!(result[0].category, "test_category");
+        assert_eq!(result[0].comment, "Groceries");
+
+        assert_eq!(result[1].amount, -100.0);
+        assert_eq!(result[1].date, "2024-01-02");
+        assert_eq!(result[1].category, "test_category");
+        assert_eq!(result[1].comment, "Coffee");
+    }
+
+    #[test]
+    fn test_process_category_missing_fields() {
+        use serde_json::json;
+        let data = vec![
+            json!({
+                "amount": 100.5,
+                "date": "2024-01-01"
+            }),
+            json!({
+                "date": "2024-01-02",
+                "comment": "Coffee"
+            }),
+            json!({
+                "amount": 50.0,
+                "comment": "Coffee"
+            }),
+            json!({
+                "amount": 10.0,
+                "date": "2024-01-03",
+                "comment": "Tea"
+            }),
+        ];
+
+        let result = process_category(&data, "test", "amount", "date", "comment", 1.0);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].amount, 10.0);
+        assert_eq!(result[0].comment, "Tea");
+    }
+
+    #[test]
+    fn test_process_category_wrong_types() {
+        use serde_json::json;
+        let data = vec![
+            json!({
+                "amount": "100.5",
+                "date": "2024-01-01",
+                "comment": "Groceries"
+            }),
+            json!({
+                "amount": 50.0,
+                "date": 20240102,
+                "comment": "Coffee"
+            }),
+            json!({
+                "amount": 10.0,
+                "date": "2024-01-03",
+                "comment": true
+            }),
+            json!({
+                "amount": 5.0,
+                "date": "2024-01-04",
+                "comment": "Snacks"
+            }),
+        ];
+
+        let result = process_category(&data, "test", "amount", "date", "comment", 1.0);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].amount, 5.0);
+        assert_eq!(result[0].comment, "Snacks");
+    }
+
+    #[test]
     fn test_analyze_empty_transactions() {
         let result = analyze_transactions(vec![]);
         assert_eq!(result.transactions.len(), 0);
