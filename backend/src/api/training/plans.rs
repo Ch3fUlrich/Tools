@@ -196,7 +196,7 @@ pub async fn delete_plan(
             return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
         }
     };
-    match sqlx::query("DELETE FROM training_plans WHERE id = $1 AND user_id = $2")
+    match sqlx::query("UPDATE training_plans SET is_active = false WHERE id = $1 AND user_id = $2")
         .bind(uuid)
         .bind(user.id)
         .execute(&*pool)
