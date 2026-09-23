@@ -250,6 +250,28 @@ mod tests {
         }
     }
 
+    #[test]
+    fn local_auth_ignores_non_unicode_values() {
+        #[cfg(unix)]
+        {
+            use std::ffi::OsString;
+            use std::os::unix::ffi::OsStringExt;
+            let non_unicode = OsString::from_vec(vec![0xFF, 0xFF]);
+            temp_env::with_var("LOCAL_AUTH_ENABLED", Some(&non_unicode), || {
+                assert!(!local_auth_enabled());
+            });
+        }
+    }
+
+    #[test]
+    fn local_auth_handles_complex_whitespace() {
+        for on in ["\ttrue\n", "  1  ", "\ryes\r\n", "\u{00A0}on\u{00A0}"] {
+            temp_env::with_var("LOCAL_AUTH_ENABLED", Some(on), || {
+                assert!(local_auth_enabled(), "{on:?} should enable local auth");
+            });
+        }
+    }
+
     #[tokio::test]
     async fn the_dummy_hash_is_real_work_not_a_parse_failure() {
         // If DUMMY_PASSWORD_HASH were malformed, verify_password would bail out on the
