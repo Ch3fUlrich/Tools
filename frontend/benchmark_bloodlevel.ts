@@ -12,7 +12,7 @@ for (let i = 0; i < 100; i++) {
   intakes.push({
     substance: substance.id,
     time: '2026-01-01T00:00:00.000Z',
-    dosage_mg: 100
+    dosage_mg: 100,
   });
 }
 
@@ -23,7 +23,7 @@ for (let i = 0; i < 1000; i++) {
 
 const request = {
   intakes,
-  time_points
+  time_points,
 };
 
 const start = performance.now();
@@ -31,4 +31,4 @@ for (let i = 0; i < 100; i++) {
   calculateToleranceLocal(request);
 }
 const end = performance.now();
-console.log(`Baseline time: ${(end - start).toFixed(2)} ms`);
+process.stdout.write(`Baseline time: ${(end - start).toFixed(2)} ms\n`);
