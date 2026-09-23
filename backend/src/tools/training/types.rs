@@ -21,6 +21,7 @@ pub struct BodyMeasurements {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SegmentMasses {
+    pub head_neck: f64,
     pub trunk: f64,
     pub upper_arm: f64,
     pub lower_arm_hand: f64,
