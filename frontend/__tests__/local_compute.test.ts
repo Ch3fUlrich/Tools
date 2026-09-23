@@ -123,6 +123,17 @@ describe('local dice rolling', () => {
     consoleErrorSpy.mockRestore();
     setItemSpy.mockRestore();
   });
+
+  it('returns empty array on storage error when getting history', () => {
+    const getItemSpy = vi.spyOn(globalThis.localStorage, 'getItem').mockImplementation(() => {
+      throw new Error('Storage disabled');
+    });
+
+    const result = getDiceHistoryLocal();
+    expect(result).toEqual([]);
+
+    getItemSpy.mockRestore();
+  });
 });
 
 describe('local blood level calculation', () => {
