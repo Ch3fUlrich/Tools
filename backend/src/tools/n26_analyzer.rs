@@ -113,7 +113,11 @@ pub fn analyze_transactions(transactions: Vec<Transaction>) -> AnalysisResult {
     let mut overall_total = 0.0;
 
     for transaction in &transactions {
-        *category_totals.entry(transaction.category.clone()).or_insert(0.0) += transaction.amount;
+        if let Some(total) = category_totals.get_mut(&transaction.category) {
+            *total += transaction.amount;
+        } else {
+            category_totals.insert(transaction.category.clone(), transaction.amount);
+        }
         overall_total += transaction.amount;
     }
 
