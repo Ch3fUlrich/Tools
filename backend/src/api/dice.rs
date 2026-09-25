@@ -109,11 +109,14 @@ pub async fn roll(
             Err(e) => (axum::http::StatusCode::BAD_REQUEST, axum::Json(e)).into_response(),
         },
         RollPayload::Batch(reqs) => {
+            let futures: Vec<_> = reqs.into_iter().map(dice_logic::handle_roll).collect();
+            let results = futures::future::join_all(futures).await;
+
             let mut all_rolls = Vec::new();
             let mut total_requested = 0;
 
-            for req in reqs {
-                let mut resp = match dice_logic::handle_roll(req).await {
+            for res in results {
+                let mut resp = match res {
                     Ok(r) => r,
                     Err(e) => {
                         return (axum::http::StatusCode::BAD_REQUEST, axum::Json(e)).into_response()
