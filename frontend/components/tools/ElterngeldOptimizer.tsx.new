@@ -1,0 +1,373 @@
+"use client";
+
+import React from 'react';
+import CardSection from '@/components/ui/CardSection';
+import ModernCheckbox from '@/components/ui/ModernCheckbox';
+import NumberInput from '@/components/ui/NumberInput';
+import { useTranslation } from '@/components/i18n/LanguageProvider';
+import type { TaxYear } from '@/lib/local/germanTax';
+import SavedScenarios from './elterngeld/SavedScenarios';
+import { useElterngeldState, EXAMPLE } from './elterngeld/useElterngeldState';
+import { useElterngeldModel } from './elterngeld/useElterngeldModel';
+import { ElterngeldResults } from './elterngeld/ElterngeldResults';
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '0.8125rem',
+  fontWeight: 600,
+  color: 'var(--fg-secondary)',
+  marginBottom: '0.375rem',
+};
+
+const hintStyle: React.CSSProperties = {
+  fontSize: '0.75rem',
+  fontWeight: 400,
+  color: 'var(--muted)',
+};
+
+function Field({
+  id,
+  label,
+  hint,
+  children,
+}: {
+  id: string;
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ marginBottom: '0.875rem' }}>
+      <label htmlFor={id} style={labelStyle}>
+        {label}
+        {hint && (
+          <>
+            {' '}
+            <span style={hintStyle}>{hint}</span>
+          </>
+        )}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function Segmented<T extends string>({
+  legend,
+  value,
+  options,
+  onChange,
+}: {
+  legend: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+}) {
+  return (
+    <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+      <legend style={labelStyle}>{legend}</legend>
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.375rem',
+          background: 'var(--bg)',
+          padding: '0.25rem',
+          borderRadius: '0.625rem',
+          border: '1px solid var(--card-border)',
+        }}
+      >
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            className={`op-btn ${value === option.value ? 'active' : ''}`}
+            aria-pressed={value === option.value}
+            onClick={() => onChange(option.value)}
+            style={{ flex: 1, padding: '0.5rem 0.375rem', fontSize: '0.8125rem' }}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+/**
+ * A real Kindertagespflege case, shown as greyed-out placeholders so the page
+ * demonstrates a full worked example on first load. Empty fields fall back to these
+ * values, so the numbers on screen always match what is being calculated; typing in a
+ * field replaces the example for that field only.
+ */
+export const ElterngeldOptimizer: React.FC = () => {
+  const { t } = useTranslation();
+  const { snapshot, applySnapshot, loadExample, updateField } = useElterngeldState();
+  const model = useElterngeldModel(snapshot, t);
+
+  return (
+    <div className="p-6 lg:p-8 space-y-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        {/* ── Inputs ── */}
+        <div className="space-y-6 xl:col-span-1">
+          <CardSection title={t('eg.household')} gradient="from-amber-400 to-orange-500" delay="100ms">
+            <Segmented
+              legend={t('eg.filingLegend')}
+              value={snapshot.filing}
+              onChange={(v) => updateField('filing', v)}
+              options={[
+                { value: 'single', label: t('eg.single') },
+                { value: 'married', label: t('eg.married') },
+              ]}
+            />
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <Field id="eg-base-year" label={t('eg.baseYear')} hint={t('eg.baseYearHint')}>
+                <select
+                  id="eg-base-year"
+                  className="form-input h-12"
+                  value={snapshot.baseYear}
+                  onChange={(e) => updateField('baseYear', Number(e.target.value) as TaxYear)}
+                >
+                  <option value={2025}>2025</option>
+                  <option value={2026}>2026</option>
+                </select>
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="eg-partner-base" label={t('eg.partnerIncome')} hint={t('eg.assessmentYr')}>
+                <NumberInput id="eg-partner-base" value={snapshot.partnerBase} onChange={(v) => updateField('partnerBase', v)} step={500} min={0} unit="€" placeholder={EXAMPLE.partnerBase} />
+              </Field>
+              <Field id="eg-partner-leave" label={t('eg.partnerIncome')} hint={t('eg.leaveYr')}>
+                <NumberInput id="eg-partner-leave" value={snapshot.partnerLeave} onChange={(v) => updateField('partnerLeave', v)} step={500} min={0} unit="€" placeholder={EXAMPLE.partnerLeave} />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="eg-prepaid-base" label={t('eg.prepaidBase')} hint={t('eg.prepaidBaseHint')}>
+                <NumberInput id="eg-prepaid-base" value={snapshot.prepaidBase} onChange={(v) => updateField('prepaidBase', v)} step={500} min={0} unit="€" placeholder={EXAMPLE.prepaidBase} />
+              </Field>
+              <Field id="eg-prepaid-leave" label={t('eg.prepaidLeave')} hint={t('eg.prepaidLeaveHint')}>
+                <NumberInput id="eg-prepaid-leave" value={snapshot.prepaidLeave} onChange={(v) => updateField('prepaidLeave', v)} step={500} min={0} unit="€" placeholder={EXAMPLE.prepaidLeave} />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="eg-own-leave" label={t('eg.ownIncome')} hint={t('eg.leaveYr')}>
+                <NumberInput id="eg-own-leave" value={snapshot.ownLeave} onChange={(v) => updateField('ownLeave', v)} step={500} min={0} unit="€" placeholder={EXAMPLE.ownLeave} />
+              </Field>
+              <Field id="eg-leave-year" label={t('eg.leaveYear')}>
+                <select
+                  id="eg-leave-year"
+                  className="form-input h-12"
+                  value={snapshot.leaveYear}
+                  onChange={(e) => updateField('leaveYear', Number(e.target.value) as TaxYear)}
+                >
+                  <option value={2025}>2025</option>
+                  <option value={2026}>2026</option>
+                </select>
+              </Field>
+            </div>
+          </CardSection>
+
+          <CardSection title={t('eg.options')} gradient="from-orange-400 to-rose-500" delay="150ms">
+            <Segmented
+              legend={t('eg.deltaLegend')}
+              value={snapshot.profitDeltaKind}
+              onChange={(v) => updateField('profitDeltaKind', v)}
+              options={[
+                { value: 'timing', label: t('eg.timing') },
+                { value: 'cash', label: t('eg.cash') },
+              ]}
+            />
+            <p className="text-sm mt-2 mb-4" style={{ color: 'var(--muted)' }}>
+              {profitDeltaKind === 'timing'
+                ? t('eg.timingHint')
+                : t('eg.cashHint')}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="eg-profit-low" label={t('eg.lowerProfit')} hint={t('eg.perYear')}>
+                <NumberInput id="eg-profit-low" value={snapshot.profitLow} onChange={(v) => updateField('profitLow', v)} step={100} min={0} unit="€" placeholder={EXAMPLE.profitLow} />
+              </Field>
+              <Field id="eg-profit-high" label={t('eg.higherProfit')} hint={t('eg.perYear')}>
+                <NumberInput id="eg-profit-high" value={snapshot.profitHigh} onChange={(v) => updateField('profitHigh', v)} step={100} min={0} unit="€" placeholder={EXAMPLE.profitHigh} />
+              </Field>
+            </div>
+            <Field id="eg-emp-gross" label={t('eg.employmentGross')} hint={t('eg.employmentGrossHint')}>
+              <NumberInput id="eg-emp-gross" value={snapshot.employmentGross} onChange={(v) => updateField('employmentGross', v)} step={500} min={0} unit="€" placeholder={EXAMPLE.employmentGross} />
+            </Field>
+            <Field id="eg-relief" label={t('eg.relief')} hint={t('eg.reliefHint')}>
+              <NumberInput id="eg-relief" value={snapshot.relief} onChange={(v) => updateField('relief', v)} step={1} min={0} unit="%" placeholder={EXAMPLE.relief} />
+            </Field>
+            <button type="button" className="btn-ghost w-full h-11 text-sm font-semibold" onClick={loadExample}>
+              {t('eg.loadExample')}
+            </button>
+          </CardSection>
+
+          <CardSection title={t('eg.insurance')} gradient="from-rose-400 to-fuchsia-500" delay="200ms">
+            <fieldset style={{ border: 0, padding: 0, margin: '0 0 0.875rem' }}>
+              <legend style={labelStyle}>
+                {t('eg.insuranceLegend')} <span style={hintStyle}>{t('eg.insuranceLegendHint')}</span>
+              </legend>
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                <ModernCheckbox id="eg-kv" checked={snapshot.pflichtKV} onChange={(v) => updateField('pflichtKV', v)} label={<span className="text-sm">{t('eg.health')}</span>} ariaLabel={t('eg.healthAria')} />
+                <ModernCheckbox id="eg-rv" checked={snapshot.pflichtRV} onChange={(v) => updateField('pflichtRV', v)} label={<span className="text-sm">{t('eg.pension')}</span>} ariaLabel={t('eg.pensionAria')} />
+                <ModernCheckbox id="eg-av" checked={snapshot.pflichtAV} onChange={(v) => updateField('pflichtAV', v)} label={<span className="text-sm">{t('eg.unemployment')}</span>} ariaLabel={t('eg.unemploymentAria')} />
+                <ModernCheckbox id="eg-childless" checked={snapshot.childless} onChange={(v) => updateField('childless', v)} label={<span className="text-sm">{t('eg.childless')}</span>} ariaLabel={t('eg.childlessAria')} />
+              </div>
+            </fieldset>
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="eg-basis-months" label={t('eg.basisMonths')} hint={t('eg.months')}>
+                <NumberInput id="eg-basis-months" value={snapshot.basisMonths} onChange={(v) => updateField('basisMonths', v)} step={1} min={0} unit="mo" placeholder={EXAMPLE.basisMonths} />
+              </Field>
+              <Field id="eg-plus-months" label={t('eg.plusMonths')} hint={t('eg.months')}>
+                <NumberInput id="eg-plus-months" value={snapshot.plusMonths} onChange={(v) => updateField('plusMonths', v)} step={1} min={0} unit="mo" placeholder={EXAMPLE.plusMonths} />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="eg-during" label={t('eg.duringLeave')} hint={t('eg.perMonth')}>
+                <NumberInput id="eg-during" value={snapshot.duringLeave} onChange={(v) => updateField('duringLeave', v)} step={50} min={0} unit="€" placeholder={EXAMPLE.duringLeave} />
+              </Field>
+              <Field id="eg-multiples" label={t('eg.multiples')} hint={t('eg.multiplesHint')}>
+                <NumberInput id="eg-multiples" value={snapshot.multiples} onChange={(v) => updateField('multiples', v)} step={1} min={0} placeholder={EXAMPLE.multiples} />
+              </Field>
+            </div>
+            <ModernCheckbox
+              id="eg-sibling"
+              checked={snapshot.siblingBonus}
+              onChange={(v) => updateField('siblingBonus', v)}
+              label={<span className="text-sm">{t('eg.siblingBonus')}</span>}
+              ariaLabel={t('eg.siblingBonusAria')}
+            />
+          </CardSection>
+
+          <CardSection title={t('eg.childrenSection')} gradient="from-fuchsia-500 to-violet-600" delay="250ms">
+            <Field id="eg-children" label={t('eg.children')} hint={t('eg.childrenHint')}>
+              <NumberInput id="eg-children" value={snapshot.children} onChange={(v) => updateField('children', v)} step={1} min={0} placeholder={EXAMPLE.children} />
+            </Field>
+            <ModernCheckbox
+              id="eg-maternity"
+              checked={snapshot.maternityEnabled}
+              onChange={(v) => updateField('maternityEnabled', v)}
+              label={<span className="text-sm">{t('eg.maternityElected')}</span>}
+              ariaLabel={t('eg.maternityElectedAria')}
+            />
+            <p className="text-sm mt-2 mb-3" style={{ color: 'var(--muted)' }}>
+              {t('eg.maternityHint')}
+            </p>
+            {maternityEnabled && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field id="eg-weeks-before" label={t('eg.weeksBefore')} hint={t('eg.weeksBeforeHint')}>
+                    <NumberInput id="eg-weeks-before" value={snapshot.weeksBefore} onChange={(v) => updateField('weeksBefore', v)} step={1} min={0} unit="wk" placeholder={EXAMPLE.weeksBefore} />
+                  </Field>
+                  <Field id="eg-weeks-after" label={t('eg.weeksAfter')} hint={t('eg.weeksAfterHint')}>
+                    <NumberInput id="eg-weeks-after" value={snapshot.weeksAfter} onChange={(v) => updateField('weeksAfter', v)} step={1} min={0} unit="wk" placeholder={EXAMPLE.weeksAfter} />
+                  </Field>
+                </div>
+                <Field id="eg-extra-contribution" label={t('eg.extraContribution')} hint={t('eg.extraContributionHint')}>
+                  <NumberInput id="eg-extra-contribution" value={snapshot.extraContribution} onChange={(v) => updateField('extraContribution', v)} step={10} min={0} unit="€" placeholder={EXAMPLE.extraContribution} />
+                </Field>
+              </>
+            )}
+          </CardSection>
+
+          <CardSection
+            title={t('eg.savedTitle')}
+            gradient="from-violet-500 to-purple-600"
+            delay="300ms"
+          >
+            <SavedScenarios snapshot={snapshot} onLoad={applySnapshot} />
+          </CardSection>
+        </div>
+
+        {/* ── Results ── */}
+        <div className="space-y-6 xl:col-span-2">
+          <ElterngeldResults model={model} profitDeltaKind={snapshot.profitDeltaKind} relief={snapshot.relief} />
+        </div>
+      </div>
+                <div style={{ fontSize: 'clamp(1.875rem, 5vw, 3rem)', fontWeight: 800, lineHeight: 1.05, margin: '0.5rem 0' }}>
+                  {eurSigned(model.delta)}
+                </div>
+                <p style={{ fontSize: '0.9375rem', opacity: 0.95, maxWidth: '62ch', margin: 0 }}>
+                  {verdictTone === 'neutral'
+                    ? t('eg.verdictWash')
+                    : t(verdictTone === 'positive' ? 'eg.verdictHigher' : 'eg.verdictLower', {
+                        profit: eur2(verdictTone === 'positive' ? model.highProfit : model.lowProfit),
+                        tax: eur2(model.high.baseYearTax.total - model.low.baseYearTax.total),
+                        benefit: eur2(Math.abs(model.high.benefitsTotal - model.low.benefitsTotal)),
+                      })}
+                </p>
+              </div>
+
+              <CardSection title={t('eg.sideBySide')} gradient="from-amber-400 to-orange-500" delay="100ms">
+                <ScenarioTable low={model.low} high={model.high} />
+                {warnings.length > 0 && (
+                  <ul className="mt-4 space-y-2 list-none p-0">
+                    {warnings.map((warning) => (
+                      <li
+                        key={warning}
+                        className="text-sm"
+                        style={{
+                          borderLeft: '3px solid var(--warning)',
+                          background: 'rgba(245,158,11,0.09)',
+                          borderRadius: '0.375rem',
+                          padding: '0.5rem 0.75rem',
+                          color: 'var(--fg-secondary)',
+                        }}
+                      >
+                        {warning}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardSection>
+
+              <CardSection title={t('eg.filingTitle')} gradient="from-fuchsia-500 to-violet-600" delay="120ms">
+                <FilingAdvice
+                  comparison={model.high.filingComparison}
+                  benefitsTotal={model.high.benefitsTotal}
+                />
+              </CardSection>
+
+              <CardSection title={t('eg.optimumTitle')} gradient="from-orange-400 to-rose-500" delay="150ms">
+                <p className="text-sm mb-3" style={{ color: 'var(--muted)' }}>
+                  {t('eg.optimumIntro')}
+                </p>
+                <TradeoffChart
+                  points={model.points}
+                  optimum={model.optimum}
+                  lowProfit={model.lowProfit}
+                  highProfit={model.highProfit}
+                />
+              </CardSection>
+
+              <CardSection title={t('eg.reasoningTitle')} gradient="from-rose-400 to-fuchsia-500" delay="200ms">
+                <MethodNotes
+                  low={model.low}
+                  high={model.high}
+                  household={model.household}
+                  basisMonths={model.basisMonths}
+                />
+                <div
+                  className="text-sm mt-4"
+                  style={{
+                    borderLeft: '3px solid var(--warning)',
+                    background: 'rgba(245,158,11,0.09)',
+                    borderRadius: '0.375rem',
+                    padding: '0.625rem 0.875rem',
+                    color: 'var(--fg-secondary)',
+                  }}
+                >
+                  {t('eg.disclaimer')}
+                </div>
+              </CardSection>
+
+              <CardSection title={t('eg.sourcesTitle')} gradient="from-slate-400 to-slate-600" delay="250ms">
+                <Sources />
+              </CardSection>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ElterngeldOptimizer;
