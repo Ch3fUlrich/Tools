@@ -52,6 +52,90 @@ pub struct ToleranceResponse {
     pub substances: Vec<SubstanceInfo>,
 }
 
+fn calculate_saturating_levels(
+    substance: &Substance,
+    doses: &[(DateTime<Utc>, f64, f64)],
+    time_points: &[DateTime<Utc>],
+) -> Vec<BloodLevelPoint> {
+    let origin = doses
+        .iter()
+        .map(|(t, _, _)| *t)
+        .chain(time_points.iter().copied())
+        .min()
+        .unwrap_or_else(Utc::now);
+    let to_hours = |t: DateTime<Utc>| -> f64 {
+        t.signed_duration_since(origin).num_milliseconds() as f64 / 3_600_000.0
+    };
+
+    let saturating: Vec<SaturatingDose> = doses
+        .iter()
+        .map(|(t, dose, ka)| SaturatingDose {
+            hours_from_start: to_hours(*t),
+            bioavailable_dose: *dose,
+            ka: *ka,
+        })
+        .collect();
+    let sample_hours: Vec<f64> = time_points.iter().map(|t| to_hours(*t)).collect();
+
+    let amounts = simulate_saturating(
+        &saturating,
+        substance.vmax_mg_per_hour,
+        substance.km_mg,
+        &sample_hours,
+        0.01,
+    );
+
+    time_points
+        .iter()
+        .enumerate()
+        .map(|(i, &time_point)| {
+            let amount = amounts.get(i).copied().unwrap_or(0.0);
+            BloodLevelPoint {
+                time: time_point,
+                substance: substance.id.clone(),
+                amount_mg: if amount.is_finite() { amount } else { 0.0 },
+            }
+        })
+        .collect()
+}
+
+fn calculate_first_order_levels(
+    substance: &Substance,
+    doses: &[(DateTime<Utc>, f64, f64)],
+    time_points: &[DateTime<Utc>],
+    ke: f64,
+) -> Vec<BloodLevelPoint> {
+    time_points
+        .iter()
+        .map(|&time_point| {
+            let mut total_amount = 0.0;
+
+            for (intake_time, bioavailable_dose, ka) in doses {
+                let time_elapsed = time_point.signed_duration_since(*intake_time);
+                if time_elapsed.num_seconds() < 0 {
+                    continue; // Future intake, skip
+                }
+                let hours_elapsed = time_elapsed.num_seconds() as f64 / 3600.0;
+                let remaining = if ke > 0.0 {
+                    amount_first_order(*bioavailable_dose, *ka, ke, hours_elapsed)
+                } else {
+                    0.0
+                };
+                if remaining.is_finite() {
+                    total_amount += remaining;
+                }
+            }
+
+            let safe_total_amount = if total_amount.is_finite() { total_amount } else { 0.0 };
+            BloodLevelPoint {
+                time: time_point,
+                substance: substance.id.clone(),
+                amount_mg: safe_total_amount,
+            }
+        })
+        .collect()
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Elimination {
     FirstOrder,
@@ -712,7 +796,6 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
 
         let half_life_hours = substance.half_life_hours;
         let bioavailability_percent = substance.bioavailability_percent;
-        let substance_id_for_levels = substance.id.clone();
         let ke = elimination_rate(half_life_hours);
 
         // Resolve every dose once: bioavailable amount plus the absorption rate its route
@@ -733,69 +816,18 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
             .collect();
 
         if substance.elimination == Elimination::Saturating {
-            let origin = doses
-                .iter()
-                .map(|(t, _, _)| *t)
-                .chain(request.time_points.iter().copied())
-                .min()
-                .unwrap_or_else(Utc::now);
-            let to_hours = |t: DateTime<Utc>| -> f64 {
-                t.signed_duration_since(origin).num_milliseconds() as f64 / 3_600_000.0
-            };
-
-            let saturating: Vec<SaturatingDose> = doses
-                .iter()
-                .map(|(t, dose, ka)| SaturatingDose {
-                    hours_from_start: to_hours(*t),
-                    bioavailable_dose: *dose,
-                    ka: *ka,
-                })
-                .collect();
-            let sample_hours: Vec<f64> = request.time_points.iter().map(|t| to_hours(*t)).collect();
-
-            let amounts = simulate_saturating(
-                &saturating,
-                substance.vmax_mg_per_hour,
-                substance.km_mg,
-                &sample_hours,
-                0.01,
-            );
-
-            for (i, &time_point) in request.time_points.iter().enumerate() {
-                let amount = amounts.get(i).copied().unwrap_or(0.0);
-                blood_levels.push(BloodLevelPoint {
-                    time: time_point,
-                    substance: substance_id_for_levels.clone(),
-                    amount_mg: if amount.is_finite() { amount } else { 0.0 },
-                });
-            }
+            blood_levels.extend(calculate_saturating_levels(
+                &substance,
+                &doses,
+                &request.time_points,
+            ));
         } else {
-            for &time_point in &request.time_points {
-                let mut total_amount = 0.0;
-
-                for (intake_time, bioavailable_dose, ka) in &doses {
-                    let time_elapsed = time_point.signed_duration_since(*intake_time);
-                    if time_elapsed.num_seconds() < 0 {
-                        continue; // Future intake, skip
-                    }
-                    let hours_elapsed = time_elapsed.num_seconds() as f64 / 3600.0;
-                    let remaining = if ke > 0.0 {
-                        amount_first_order(*bioavailable_dose, *ka, ke, hours_elapsed)
-                    } else {
-                        0.0
-                    };
-                    if remaining.is_finite() {
-                        total_amount += remaining;
-                    }
-                }
-
-                let safe_total_amount = if total_amount.is_finite() { total_amount } else { 0.0 };
-                blood_levels.push(BloodLevelPoint {
-                    time: time_point,
-                    substance: substance_id_for_levels.clone(),
-                    amount_mg: safe_total_amount,
-                });
-            }
+            blood_levels.extend(calculate_first_order_levels(
+                &substance,
+                &doses,
+                &request.time_points,
+                ke,
+            ));
         }
 
         substances_info.push(SubstanceInfo {
