@@ -23,7 +23,7 @@ fn redact_database_url(url: &str) -> String {
     if let Some(idx) = url.find("://") {
         let scheme = &url[..idx];
         let rest = &url[idx + 3..];
-        if let Some(at) = rest.find('@') {
+        if let Some(at) = rest.rfind('@') {
             // show `scheme://***@host...`
             let host_part = &rest[at + 1..];
             return format!("{scheme}://***@{host_part}");
@@ -340,4 +340,21 @@ fn test_configure_cors_with_multiple_valid_origins() {
             });
         },
     );
+}
+
+#[test]
+fn test_redact_database_url() {
+    assert_eq!(
+        redact_database_url("postgres://user:password@localhost/db"),
+        "postgres://***@localhost/db"
+    );
+    assert_eq!(
+        redact_database_url("postgres://user:p@ssword@localhost/db"),
+        "postgres://***@localhost/db"
+    );
+    assert_eq!(
+        redact_database_url("redis://:p@ssword@localhost:6379"),
+        "redis://***@localhost:6379"
+    );
+    assert_eq!(redact_database_url("postgres://localhost/db"), "postgres://localhost/db");
 }
