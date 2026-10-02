@@ -68,6 +68,15 @@ describe('elterngeld scenario payloads', () => {
     expect(fromPayload({ profitLow: Number.NaN })).not.toHaveProperty('profitLow');
   });
 
+  it('handles boundary cases for numeric inputs in text fields', () => {
+    expect(fromPayload({ profitLow: 0 }).profitLow).toBe('0');
+    expect(fromPayload({ profitLow: -100 }).profitLow).toBe('-100');
+    expect(fromPayload({ profitLow: 1.5 }).profitLow).toBe('1.5');
+    expect(fromPayload({ profitLow: 1e3 }).profitLow).toBe('1000');
+    expect(fromPayload({ profitLow: Number.POSITIVE_INFINITY })).not.toHaveProperty('profitLow');
+    expect(fromPayload({ profitLow: Number.NEGATIVE_INFINITY })).not.toHaveProperty('profitLow');
+  });
+
   it('rejects union values that are not part of the union', () => {
     const loaded = fromPayload({ filing: 'divorced', profitDeltaKind: 'nope', baseYear: 1999 });
     expect(loaded).toEqual({});
