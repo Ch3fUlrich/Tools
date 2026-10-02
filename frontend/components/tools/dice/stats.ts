@@ -48,15 +48,27 @@ export function computeCleanSums(
     if (!isRerollable(f)) cleanFaces.push(f);
   }
   if (cleanFaces.length === 0) return new Set();
-  let sums = new Set<number>([0]);
+
+  let sumsArray = new Uint8Array(1);
+  sumsArray[0] = 1;
+
   for (let d = 0; d < numDice; d++) {
-    const next = new Set<number>();
-    for (const s of sums) {
+    const nextSize = (d + 1) * sides + 1;
+    const nextArray = new Uint8Array(nextSize);
+    for (let s = 0; s < sumsArray.length; s++) {
+      if (sumsArray[s] === 0) continue;
       for (const f of cleanFaces) {
-        next.add(s + f);
+        nextArray[s + f] = 1;
       }
     }
-    sums = next;
+    sumsArray = nextArray;
+  }
+
+  const sums = new Set<number>();
+  for (let i = 0; i < sumsArray.length; i++) {
+    if (sumsArray[i] > 0) {
+      sums.add(i);
+    }
   }
   return sums;
 }
