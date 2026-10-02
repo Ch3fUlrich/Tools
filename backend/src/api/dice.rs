@@ -3,6 +3,7 @@ use axum::debug_handler;
 use axum::extract::Extension;
 use axum::extract::Json;
 use axum::response::IntoResponse;
+use futures::future::join_all;
 use lazy_static::lazy_static;
 use serde_json::Value as JsonValue;
 use std::collections::HashMap;
@@ -112,8 +113,11 @@ pub async fn roll(
             let mut all_rolls = Vec::new();
             let mut total_requested = 0;
 
-            for req in reqs {
-                let mut resp = match dice_logic::handle_roll(req).await {
+            let futures = reqs.into_iter().map(dice_logic::handle_roll);
+            let results = join_all(futures).await;
+
+            for res in results {
+                let mut resp = match res {
                     Ok(r) => r,
                     Err(e) => {
                         return (axum::http::StatusCode::BAD_REQUEST, axum::Json(e)).into_response()
