@@ -717,7 +717,7 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
 
         // Resolve every dose once: bioavailable amount plus the absorption rate its route
         // and fed state imply.
-        let doses: Vec<(DateTime<Utc>, f64, f64)> = intakes
+        let mut doses: Vec<(DateTime<Utc>, f64, f64)> = intakes
             .iter()
             .map(|intake| {
                 let params = resolve_route(
@@ -731,6 +731,8 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
                 (intake.time, bioavailable_dose, ka)
             })
             .collect();
+
+        doses.sort_unstable_by_key(|(t, _, _)| *t);
 
         if substance.elimination == Elimination::Saturating {
             let origin = doses
@@ -776,7 +778,7 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
                 for (intake_time, bioavailable_dose, ka) in &doses {
                     let time_elapsed = time_point.signed_duration_since(*intake_time);
                     if time_elapsed.num_seconds() < 0 {
-                        continue; // Future intake, skip
+                        break; // Future intake, since doses are sorted, all subsequent doses are in the future
                     }
                     let hours_elapsed = time_elapsed.num_seconds() as f64 / 3600.0;
                     let remaining = if ke > 0.0 {
