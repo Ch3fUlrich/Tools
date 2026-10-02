@@ -115,18 +115,87 @@ export function calculateToleranceLocal(
     }
 
     const ke = eliminationRate(substance.halfLifeHours);
-    request.time_points.forEach((timePoint, i) => {
-      let totalAmount = 0;
-      for (const dose of doses) {
-        const hoursElapsed = (sampleMs[i] - dose.timeMs) / 3_600_000;
-        if (!Number.isFinite(hoursElapsed) || hoursElapsed < 0) continue;
-        const remaining = ke > 0 ? amountFirstOrder(dose.bioavailableDose, dose.ka, ke, hoursElapsed) : 0;
-        totalAmount += Number.isFinite(remaining) ? remaining : 0;
+    if (ke <= 0) {
+      request.time_points.forEach((timePoint) => {
+        bloodLevels.push({ time: timePoint, substance: substanceName, amount_mg: 0 });
+      });
+      continue;
+    }
+
+    const dosesByKa = new Map<number, typeof doses>();
+    for (const dose of doses) {
+      const group = dosesByKa.get(dose.ka) ?? [];
+      group.push(dose);
+      dosesByKa.set(dose.ka, group);
+    }
+
+    const sortedSampleMsWithIndex = sampleMs.map((ms, index) => ({ ms, index })).sort((a, b) => a.ms - b.ms);
+    const amounts = new Float64Array(sampleMs.length);
+
+    for (const [ka, kaDoses] of dosesByKa) {
+      kaDoses.sort((a, b) => a.timeMs - b.timeMs);
+
+      let doseIndex = 0;
+      let G = 0;
+      let B = 0;
+      let lastTimeMs = kaDoses.length > 0 ? kaDoses[0].timeMs : 0;
+
+      const isIV = !Number.isFinite(ka);
+      const isEq = Math.abs(ka - ke) < 1e-9;
+      const kaKeFactor = isIV || isEq ? 0 : ka / (ka - ke);
+
+      for (const sample of sortedSampleMsWithIndex) {
+        const currentMs = sample.ms;
+
+        while (doseIndex < kaDoses.length && kaDoses[doseIndex].timeMs <= currentMs) {
+          const dose = kaDoses[doseIndex];
+
+          const dtHours = (dose.timeMs - lastTimeMs) / 3_600_000;
+          if (dtHours > 0) {
+            const expKe = Math.exp(-ke * dtHours);
+            if (isIV) {
+              B = B * expKe;
+            } else if (isEq) {
+              B = B * expKe + G * ke * dtHours * expKe;
+              G = G * expKe;
+            } else {
+              B = B * expKe + G * kaKeFactor * (expKe - Math.exp(-ka * dtHours));
+              G = G * Math.exp(-ka * dtHours);
+            }
+          }
+
+          if (isIV) {
+            B += dose.bioavailableDose;
+          } else {
+            G += dose.bioavailableDose;
+          }
+
+          lastTimeMs = dose.timeMs;
+          doseIndex += 1;
+        }
+
+        const dtHours = (currentMs - lastTimeMs) / 3_600_000;
+        let currentB = 0;
+        if (dtHours >= 0) {
+          const expKe = Math.exp(-ke * dtHours);
+          if (isIV) {
+            currentB = B * expKe;
+          } else if (isEq) {
+            currentB = B * expKe + G * ke * dtHours * expKe;
+          } else {
+            currentB = B * expKe + G * kaKeFactor * (expKe - Math.exp(-ka * dtHours));
+          }
+        }
+
+        amounts[sample.index] += currentB > 0 ? currentB : 0;
       }
+    }
+
+    request.time_points.forEach((timePoint, i) => {
       bloodLevels.push({
         time: timePoint,
         substance: substanceName,
-        amount_mg: Number.isFinite(totalAmount) ? totalAmount : 0,
+        amount_mg: Number.isFinite(amounts[i]) ? amounts[i] : 0,
       });
     });
   }
