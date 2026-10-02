@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { useActiveWorkout, emptyRow } from '../components/tools/training/useActiveWorkout';
 import * as apiClient from '../lib/api/client';
 
