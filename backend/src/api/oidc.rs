@@ -12,6 +12,7 @@ use openidconnect::{
 use rand::RngCore;
 use serde::Deserialize;
 use sqlx::PgPool;
+#[allow(unused_imports)]
 use sqlx::Row;
 use std::sync::Arc;
 use tokio::sync::Mutex;
