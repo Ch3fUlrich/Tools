@@ -9,7 +9,6 @@ use openidconnect::{
     AuthenticationFlow, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
     PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, Scope, TokenResponse,
 };
-use rand::RngCore;
 use serde::Deserialize;
 use sqlx::PgPool;
 use sqlx::Row;
@@ -234,10 +233,10 @@ pub async fn start(
 
     // generate state and nonce
     let mut state_bytes = [0u8; 16];
-    rand::rng().fill_bytes(&mut state_bytes);
+    rand::fill(&mut state_bytes);
     let state = URL_SAFE_NO_PAD.encode(state_bytes);
     let mut nonce_bytes = [0u8; 16];
-    rand::rng().fill_bytes(&mut nonce_bytes);
+    rand::fill(&mut nonce_bytes);
     let nonce = URL_SAFE_NO_PAD.encode(nonce_bytes);
 
     // PKCE (RFC 7636). This is a confidential client, so the secret already binds the code
