@@ -10,7 +10,6 @@ import type {
 } from '@/lib/api/client';
 import {
   absorptionRateFromTmax,
-  amountFirstOrder,
   eliminationRate,
   resolveRoute,
   type Route,
