@@ -173,4 +173,35 @@ mod tests {
         assert_eq!(res[0].category, "cash26Data");
         assert_eq!(res[0].amount, 10.5);
     }
+
+    #[test]
+    fn test_parse_n26_json_missing_or_malformed_data() {
+        use serde_json::json;
+
+        let mut data_map = std::collections::HashMap::new();
+        // Missing amount
+        data_map.insert(
+            "cash26Data".to_string(),
+            Some(vec![json!({"transaction_date": "2024-01-01", "transaction_type": "cash"})]),
+        );
+        // Wrong type for amount
+        data_map.insert(
+            "bankTransfers".to_string(),
+            Some(vec![
+                json!({"amount": "100.0", "ts": "2024-01-01", "reference_text": "transfer"}),
+            ]),
+        );
+        // Missing merchant
+        data_map.insert(
+            "cardTransactions".to_string(),
+            Some(vec![json!({"end_amount": 50.0, "transaction_date": "2024-01-01"})]),
+        );
+
+        let n26 =
+            N26Data { id: "2".to_string(), created: "2024-01-02".to_string(), data: data_map };
+
+        let res = parse_n26_json(n26).expect("parse failed");
+        // Since all entries are malformed or missing required fields, they should be skipped
+        assert_eq!(res.len(), 0);
+    }
 }
