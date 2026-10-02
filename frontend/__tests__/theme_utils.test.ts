@@ -19,17 +19,17 @@ describe('theme utils', () => {
   });
 
   it('handles localStorage errors gracefully', () => {
-    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+    const getItemSpy = vi.spyOn(globalThis.localStorage, 'getItem').mockImplementation(() => {
       throw new Error('Quota exceeded');
     });
     expect(getStoredTheme()).toBeNull();
 
-    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    const setItemSpy = vi.spyOn(globalThis.localStorage, 'setItem').mockImplementation(() => {
       throw new Error('Quota exceeded');
     });
     expect(() => setStoredTheme('dark')).not.toThrow();
 
-    const removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+    const removeItemSpy = vi.spyOn(globalThis.localStorage, 'removeItem').mockImplementation(() => {
       throw new Error('Quota exceeded');
     });
     expect(() => setStoredTheme(null)).not.toThrow();
@@ -50,6 +50,15 @@ describe('theme utils', () => {
     (globalThis as any).window.matchMedia = orig;
   });
 
+  it('prefersDark throws an error', () => {
+    const orig = (globalThis as any).window?.matchMedia;
+    (globalThis as any).window = (globalThis as any).window || {};
+    (globalThis as any).window.matchMedia = () => { throw new Error('Some error'); };
+
+    expect(prefersDark()).toBe(false);
+    (globalThis as any).window.matchMedia = orig;
+  });
+
   it('applies theme classes to document element', () => {
     applyTheme('dark');
     expect(document.documentElement.classList.contains('dark')).toBe(true);
@@ -58,6 +67,20 @@ describe('theme utils', () => {
     applyTheme(null);
     expect(document.documentElement.classList.contains('dark')).toBe(false);
     expect(document.documentElement.classList.contains('light')).toBe(false);
+  });
+
+  it('does nothing when document is undefined', () => {
+    const originalDocument = globalThis.document;
+    try {
+      // @ts-ignore
+      delete (globalThis as any).document;
+
+      // Should not throw and should simply return
+      expect(() => applyTheme('dark')).not.toThrow();
+    } finally {
+      // Restore document
+      globalThis.document = originalDocument;
+    }
   });
 
   it('resolves initial theme from storage or system', () => {
