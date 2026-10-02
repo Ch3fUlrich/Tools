@@ -121,6 +121,18 @@ mod tests {
             validate_scenario("n", &json!("string")).unwrap_err(),
             ScenarioError::PayloadNotObject
         );
+        assert_eq!(
+            validate_scenario("n", &json!(42)).unwrap_err(),
+            ScenarioError::PayloadNotObject
+        );
+        assert_eq!(
+            validate_scenario("n", &json!(true)).unwrap_err(),
+            ScenarioError::PayloadNotObject
+        );
+        assert_eq!(
+            validate_scenario("n", &json!(null)).unwrap_err(),
+            ScenarioError::PayloadNotObject
+        );
     }
 
     #[test]
