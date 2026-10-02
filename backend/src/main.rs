@@ -287,8 +287,8 @@ fn test_env_cleanup_on_panic() {
 #[serial(env)]
 fn test_configure_cors_with_multiple_valid_origins() {
     // Test that multiple origins are all properly configured
-    // This test verifies the fix for the issue where calling allow_origin
-    // repeatedly in a loop would overwrite previous values
+    // This test ensures that calling allow_origin
+    // repeatedly in a loop does not overwrite previous values
     temp_env::with_var(
         "ALLOWED_ORIGINS",
         Some("http://localhost:3000,http://localhost:3001,https://example.com,https://app.example.com"),
