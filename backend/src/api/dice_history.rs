@@ -18,6 +18,7 @@ pub struct SaveRequest {
 }
 
 #[derive(Serialize)]
+#[allow(dead_code)]
 pub struct HistoryEntry {
     pub id: Option<String>,
     pub payload: JsonValue,
@@ -132,22 +133,40 @@ pub async fn history(
 ) -> impl IntoResponse {
     if let Ok(AuthenticatedUser(user)) = auth {
         // return last 50 entries for user
-        let rows = sqlx::query("SELECT id::text as id, payload, created_at FROM dice_rolls WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50")
-            .bind(user.id)
-            .fetch_all(&*pool)
-            .await;
-        return match rows {
-            Ok(rs) => {
-                let mut out: Vec<HistoryEntry> = Vec::with_capacity(rs.len());
-                for r in rs {
-                    let id: Option<String> = r.try_get("id").ok();
-                    let payload: JsonValue =
-                        r.try_get("payload").unwrap_or(serde_json::json!(null));
-                    let created_at: chrono::DateTime<chrono::Utc> =
-                        r.try_get("created_at").unwrap_or(chrono::Utc::now());
-                    out.push(HistoryEntry { id, payload, created_at: created_at.to_rfc3339() });
-                }
-                (StatusCode::OK, axum::Json(out)).into_response()
+        let row = sqlx::query(
+            r#"
+            SELECT COALESCE(
+                json_agg(
+                    json_build_object(
+                        'id', id::text,
+                        'payload', payload,
+                        'created_at', to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+                    )
+                )::text,
+                '[]'
+            ) as payload_json
+            FROM (
+                SELECT id, payload, created_at
+                FROM dice_rolls
+                WHERE user_id = $1
+                ORDER BY created_at DESC
+                LIMIT 50
+            ) sub
+            "#,
+        )
+        .bind(user.id)
+        .fetch_one(&*pool)
+        .await;
+        return match row {
+            Ok(rec) => {
+                let json_str: String =
+                    rec.try_get("payload_json").unwrap_or_else(|_| "[]".to_string());
+                axum::response::Response::builder()
+                    .status(StatusCode::OK)
+                    .header(axum::http::header::CONTENT_TYPE, "application/json")
+                    .body(axum::body::Body::from(json_str))
+                    .unwrap_or_default()
+                    .into_response()
             }
             Err(e) => (
                 StatusCode::INTERNAL_SERVER_ERROR,

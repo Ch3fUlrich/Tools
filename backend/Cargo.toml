@@ -36,4 +36,6 @@ http = "1.4"
 criterion = { version = "0.5", features = ["async_tokio"] }
 [[bench]]
 name = "exercises_bench"
+[[bench]]
+name = "dice_history_bench"
 harness = false
