@@ -44,8 +44,24 @@ describe('useActiveWorkout', () => {
 
   describe('hook initialization', () => {
     it('loads plans, exercises and handles empty in-progress sessions', async () => {
-      vi.mocked(apiClient.listPlans).mockResolvedValue({ plans: [{ id: 'p1', name: 'Plan 1', description: '', created_at: '', updated_at: '' }] });
-      vi.mocked(apiClient.listExercises).mockResolvedValue({ exercises: [{ id: 'ex-1', name: 'Squat', movementPattern: '' }] });
+      vi.mocked(apiClient.listPlans).mockResolvedValue({
+        plans: [{ id: 'p1', name: 'Plan 1', description: '', planType: 'strength', isActive: true, sortOrder: 0 }]
+      });
+      vi.mocked(apiClient.listExercises).mockResolvedValue({
+        exercises: [{
+          id: 'ex-1',
+          name: 'Squat',
+          description: null,
+          movementPattern: '',
+          equipment: '',
+          difficulty: '',
+          isBodyweight: false,
+          isUnilateral: false,
+          isSystemDefault: false,
+          romDegrees: 0,
+          metadata: {}
+        }]
+      });
       vi.mocked(apiClient.listSessions).mockResolvedValue({ sessions: [] });
 
       const { result } = renderHook(() => useActiveWorkout());
@@ -83,28 +99,39 @@ describe('useActiveWorkout', () => {
 
       // Return a session list with one in-progress
       vi.mocked(apiClient.listSessions).mockResolvedValue({
-        sessions: [{ id: 's1', name: 'S1', startTime: 't1', status: 'in_progress' }]
+        sessions: [{ id: 's1', planId: null, name: 'S1', startedAt: 't1', completedAt: null, status: 'in_progress', notes: null, totalEnergyKcal: null, totalVolumeKg: null }]
       });
 
       // Return full details when it gets fetched
       vi.mocked(apiClient.getSession).mockResolvedValue({
         id: 's1',
+        planId: null,
         name: 'S1',
-        startTime: 't1',
+        startedAt: 't1',
+        completedAt: null,
         status: 'in_progress',
+        notes: null,
+        totalEnergyKcal: null,
+        totalVolumeKg: null,
         sets: [
           {
             id: 'set-1',
-            sessionId: 's1',
             exerciseId: 'ex-1',
             exerciseName: 'Squat',
             setNumber: 1,
             weightKg: 100,
             reps: 5,
+            rpe: null,
+            tempoEccentricS: 2,
+            tempoPauseBottomS: 0,
+            tempoConcentricS: 1,
+            tempoPauseTopS: 0,
             isWarmup: false,
             isDropset: false,
             isFailure: false,
-            loggedAt: 't2',
+            restAfterSeconds: null,
+            notes: null,
+            performedAt: 't2',
             energyKcal: null,
             energyPotentialKcal: null,
             energyKineticKcal: null,
