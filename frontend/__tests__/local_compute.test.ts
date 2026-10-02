@@ -123,6 +123,47 @@ describe('local dice rolling', () => {
     consoleErrorSpy.mockRestore();
     setItemSpy.mockRestore();
   });
+
+  it('caps local history at 100 entries', () => {
+    localStorage.clear();
+    const history = Array.from({ length: 105 }, (_, i) => ({
+      id: `id-${i}`,
+      payload: { count: i },
+      created_at: new Date().toISOString(),
+    }));
+    localStorage.setItem('tools:diceHistory', JSON.stringify(history));
+
+    saveDiceRollLocal({ new: 'entry' });
+
+    const retrieved = getDiceHistoryLocal();
+    expect(retrieved).toHaveLength(100);
+    expect(retrieved[0].payload).toEqual({ new: 'entry' });
+    expect(retrieved[99].payload).toEqual({ count: 98 });
+    localStorage.clear();
+  });
+
+  it('uses Date fallback when randomUUID is unavailable', () => {
+    localStorage.clear();
+    const originalCrypto = globalThis.crypto;
+    const mockCrypto = { ...originalCrypto };
+    delete (mockCrypto as any).randomUUID;
+    vi.stubGlobal('crypto', mockCrypto);
+
+    saveDiceRollLocal({ fallback: true });
+    const history = getDiceHistoryLocal();
+    expect(history[0].id).toMatch(/^\d+$/);
+
+    vi.unstubAllGlobals();
+    localStorage.clear();
+  });
+
+  it('returns empty array if history in localStorage is corrupted', () => {
+    localStorage.clear();
+    localStorage.setItem('tools:diceHistory', 'not-valid-json');
+    const history = getDiceHistoryLocal();
+    expect(history).toEqual([]);
+    localStorage.clear();
+  });
 });
 
 describe('local blood level calculation', () => {
