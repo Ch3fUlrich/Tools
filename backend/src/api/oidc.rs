@@ -428,8 +428,23 @@ pub async fn callback(
         (None, None)
     };
 
-    // Obtain the claims we persist. `preferred_username` is what Authelia sends as the
-    // human-readable handle; `name` is the fuller display name, so prefer it when present.
+    let identity = match extract_identity(claims.as_ref()) {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+
+    let uid = match provision_oidc_user(&pool, &issuer, &identity).await {
+        Ok(uid) => uid,
+        Err(e) => return error_response(StatusCode::INTERNAL_SERVER_ERROR, e),
+    };
+
+    validate_nonce_and_create_session(store, q.state.clone(), stored_nonce, claims, uid).await
+}
+
+#[allow(clippy::result_large_err)]
+fn extract_identity(
+    claims: Option<&openidconnect::core::CoreIdTokenClaims>,
+) -> Result<OidcIdentity, axum::http::Response<String>> {
     let subject = claims.as_ref().map(|c| c.subject().to_string()).unwrap_or_default();
     let email = claims.as_ref().and_then(|c| c.email().map(|e| e.to_string()));
     let display_name = claims.as_ref().and_then(|c| {
@@ -439,23 +454,23 @@ pub async fn callback(
     });
 
     if subject.is_empty() {
-        return error_response(StatusCode::BAD_REQUEST, "missing subject in id token");
+        return Err(error_response(StatusCode::BAD_REQUEST, "missing subject in id token"));
     }
 
-    let provider = issuer; // use issuer as provider name
-    let identity = OidcIdentity { subject, email, display_name };
-    let uid = match provision_oidc_user(&pool, &provider, &identity).await {
-        Ok(uid) => uid,
-        Err(e) => return error_response(StatusCode::INTERNAL_SERVER_ERROR, e),
-    };
+    Ok(OidcIdentity { subject, email, display_name })
+}
 
-    // Validate state/nonce if we stored them during start
+async fn validate_nonce_and_create_session(
+    store: Option<Arc<Mutex<SessionStore>>>,
+    state: Option<String>,
+    stored_nonce: Option<String>,
+    claims: Option<openidconnect::core::CoreIdTokenClaims>,
+    uid: sqlx::types::Uuid,
+) -> axum::http::Response<String> {
     if let Some(store_arc) = store {
         let mut guard = store_arc.lock().await;
-        // attempt to take nonce by state
-        if let Some(_state) = q.state.clone() {
+        if let Some(_state) = state {
             if let Some(stored_nonce) = stored_nonce {
-                // compare nonces if claims provided
                 if let Some(c) = &claims {
                     if let Some(token_nonce) = c.nonce() {
                         if token_nonce.secret() != stored_nonce.as_str() {
@@ -464,17 +479,14 @@ pub async fn callback(
                     }
                 }
             } else {
-                // no stored state; continue but warn
                 tracing::warn!(
                     "OIDC callback without stored state/nonce - CSRF protection disabled"
                 );
             }
         }
 
-        // Create session
         match guard.create_session(uid, 60 * 60 * 24).await {
             Ok(sid) => {
-                // Only add Secure flag when not running on localhost
                 let secure_flag = match std::env::var("ALLOWED_ORIGINS") {
                     Ok(origins)
                         if origins.contains("localhost") || origins.contains("127.0.0.1") =>
@@ -484,15 +496,13 @@ pub async fn callback(
                     _ => "; Secure",
                 };
                 let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax{secure_flag}");
-                // Redirect to frontend (if configured) with cookie set
                 let frontend = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "/".to_string());
-                let http_resp = axum::http::Response::builder()
+                return axum::http::Response::builder()
                     .status(StatusCode::FOUND)
                     .header(header::SET_COOKIE, cookie)
                     .header(header::LOCATION, frontend)
                     .body(String::new())
                     .unwrap_or_default();
-                return http_resp;
             }
             Err(e) => {
                 return error_response(
@@ -503,7 +513,6 @@ pub async fn callback(
         }
     }
 
-    // If no session store present, just return link result
     axum::http::Response::builder()
         .status(StatusCode::OK)
         .body(format!("linked user {uid}"))
