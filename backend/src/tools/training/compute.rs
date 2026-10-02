@@ -415,4 +415,25 @@ mod tests {
         assert!(energy.kinetic_kcal >= 0.0);
         assert!(energy.mechanical_work_joules > 0.0);
     }
+
+    #[test]
+    fn test_estimate_1rm_invalid() {
+        assert_eq!(estimate_1rm(0.0, 5), None);
+        assert_eq!(estimate_1rm(-10.0, 5), None);
+        assert_eq!(estimate_1rm(100.0, 0), None);
+    }
+
+    #[test]
+    fn test_estimate_1rm_direct() {
+        assert_eq!(estimate_1rm(100.0, 1), Some(100.0));
+    }
+
+    #[test]
+    fn test_estimate_1rm_epley() {
+        // Epley formula: weight * (1 + reps / 30)
+        // 100 * (1 + 10 / 30) = 100 * (1 + 1/3) = 133.333...
+        let expected = 100.0 * (1.0 + 10.0 / 30.0);
+        let result = estimate_1rm(100.0, 10).unwrap();
+        assert!((result - expected).abs() < f64::EPSILON);
+    }
 }
