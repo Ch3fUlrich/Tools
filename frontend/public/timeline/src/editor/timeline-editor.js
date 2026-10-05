@@ -2024,12 +2024,29 @@
     const stages = getStages();
     const bounds = getStageBounds();
 
+    const lineElements = state.svg.querySelectorAll(".stage-boundary-handle");
+    const hitboxElements = state.svg.querySelectorAll(".stage-boundary-hitbox");
+
+    const linesMap = new Map();
+    const hitboxesMap = new Map();
+
+    for (let i = 0; i < lineElements.length; i += 1) {
+      const idx = lineElements[i].getAttribute("data-boundary-index");
+      if (idx !== null) linesMap.set(idx, lineElements[i]);
+    }
+
+    for (let i = 0; i < hitboxElements.length; i += 1) {
+      const idx = hitboxElements[i].getAttribute("data-boundary-index");
+      if (idx !== null) hitboxesMap.set(idx, hitboxElements[i]);
+    }
+
     for (let boundaryIndex = 0; boundaryIndex < stages.length - 1; boundaryIndex += 1) {
       const leftStage = stages[boundaryIndex];
       const boundaryX = leftStage.x + leftStage.width;
 
-      const line = state.svg.querySelector(`.stage-boundary-handle[data-boundary-index="${boundaryIndex}"]`);
-      const hitbox = state.svg.querySelector(`.stage-boundary-hitbox[data-boundary-index="${boundaryIndex}"]`);
+      const idxStr = String(boundaryIndex);
+      const line = linesMap.get(idxStr);
+      const hitbox = hitboxesMap.get(idxStr);
 
       if (line) {
         line.setAttribute("x1", boundaryX);
