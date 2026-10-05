@@ -9,6 +9,7 @@ use super::{constants::*, types::*};
 #[must_use]
 pub fn compute_segment_masses(body_weight_kg: f64) -> SegmentMasses {
     SegmentMasses {
+        head_neck: body_weight_kg * SegmentMassFractions::HEAD_NECK,
         trunk: body_weight_kg * SegmentMassFractions::TRUNK,
         upper_arm: body_weight_kg * SegmentMassFractions::UPPER_ARM,
         lower_arm_hand: body_weight_kg * SegmentMassFractions::LOWER_ARM_HAND,

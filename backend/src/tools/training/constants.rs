@@ -30,7 +30,6 @@ pub const JOULES_PER_KCAL: f64 = 4184.0;
 pub struct SegmentMassFractions;
 
 impl SegmentMassFractions {
-    #[allow(dead_code)]
     pub const HEAD_NECK: f64 = 0.081;
     pub const TRUNK: f64 = 0.497;
     pub const UPPER_ARM: f64 = 0.028; // per arm
