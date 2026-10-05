@@ -1,6 +1,6 @@
 // German income-tax primitives (§ 32a EStG, SolZG 1995, § 32b EStG).
 //
-// Kirchensteuer is deliberately not modelled. Removing its always-zero term exposed a § 2e Abs. 4 BEEG bug (Kinderfreibeträge for SolZ ignored), which is now fixed by explicitly passing the children count.
+// Kirchensteuer is deliberately not modelled. Explicitly passing the children count ensures correct SolZ calculation according to § 2e Abs. 4 BEEG.
 //
 // Pure functions, no I/O. Every constant is sourced from the statute so the
 // Elterngeld model in `elterngeld.ts` can be audited line by line.
