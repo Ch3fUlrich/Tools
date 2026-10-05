@@ -173,6 +173,18 @@ mod tests {
     }
 
     #[test]
+    fn registration_error_messages_are_correct() {
+        assert_eq!(RegistrationError::EmailMissing.message(), "email is required");
+        assert_eq!(RegistrationError::EmailMalformed.message(), "email is not a valid address");
+        assert_eq!(RegistrationError::EmailTooLong.message(), "email is too long");
+        assert_eq!(
+            RegistrationError::PasswordTooShort.message(),
+            "password must be at least 8 characters"
+        );
+        assert_eq!(RegistrationError::PasswordTooLong.message(), "password is too long");
+    }
+
+    #[test]
     fn rejects_addresses_that_are_obviously_not_addresses() {
         let cases = [
             ("", RegistrationError::EmailMissing),
