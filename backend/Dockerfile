@@ -11,8 +11,12 @@ WORKDIR /usr/src/tools-backend
 # Copy manifests only for dependency caching
 COPY Cargo.toml Cargo.lock ./
 
-# Create dummy src to pre-build dependencies and cache them
-RUN mkdir -p src benches && echo 'fn main() { println!("dummy build"); }' > src/main.rs && echo 'fn main() {}' > benches/exercises_bench.rs
+# Create dummy src to pre-build dependencies and cache them.
+# Dummy files must exist for EVERY [[bench]] target — cargo validates target
+# paths while parsing the manifest, before it can build anything.
+RUN mkdir -p src benches && echo 'fn main() { println!("dummy build"); }' > src/main.rs && \
+    awk '/^\[\[bench\]\]/{f=1;next} f&&/name *=/{match($0,/"[^"]+"/); print substr($0,RSTART+1,RLENGTH-2); f=0}' Cargo.toml | \
+    while read -r bench; do echo 'fn main() {}' > "benches/$bench.rs"; done
 
 # Precompile dependencies
 RUN cargo build --release --locked || true

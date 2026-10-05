@@ -18,8 +18,12 @@ ENV RUSTFLAGS="-C link-arg=-Wl,-z,relro,-z,now,-z,noexecstack"
 # ── Dependency pre-fetch (cache layer) ────────────────────────────────────────
 # Copy only manifests and a minimal dummy src/ so `cargo fetch` can parse
 # the manifest. This layer is only invalidated when Cargo.toml / Cargo.lock change.
+# Dummy files must exist for EVERY [[bench]] target — cargo validates target
+# paths while parsing the manifest, before it can fetch anything.
 COPY backend/Cargo.toml backend/Cargo.lock ./
-RUN mkdir -p src benches && printf 'fn main() {}\n' > src/main.rs && printf 'fn main() {}\n' > benches/exercises_bench.rs
+RUN mkdir -p src benches && printf 'fn main() {}\n' > src/main.rs && \
+    awk '/^\[\[bench\]\]/{f=1;next} f&&/name *=/{match($0,/"[^"]+"/); print substr($0,RSTART+1,RLENGTH-2); f=0}' Cargo.toml | \
+    while read -r bench; do printf 'fn main() {}\n' > "benches/$bench.rs"; done
 RUN cargo fetch --locked
 
 # ── Full source build ──────────────────────────────────────────────────────────
