@@ -37,6 +37,16 @@ const snapshot: ElterngeldSnapshot = {
 };
 
 describe('elterngeld scenario payloads', () => {
+  describe('toPayload', () => {
+    it('returns a new object with all snapshot fields plus the snapshot version', () => {
+      const payload = toPayload(snapshot);
+      expect(payload).toEqual({
+        ...snapshot,
+        version: SNAPSHOT_VERSION,
+      });
+    });
+  });
+
   it('round-trips every field', () => {
     expect(fromPayload(toPayload(snapshot))).toEqual(snapshot);
   });
