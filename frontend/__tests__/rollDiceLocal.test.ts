@@ -52,12 +52,6 @@ describe('rollDiceLocal', () => {
     expect(response.rolls[0].spread).toBe(3); // 4 - 1
   });
 
-  it('handles median calculation with zero used items (should handle empty gracefully)', () => {
-    // Actually count=0 is rejected, so used is never empty in rollDiceLocal,
-    // but the `buildStats` handles sorted.length === 0 by returning median=0 and spread=0
-    // We can't reach count=0 naturally, but we can verify median logic via randomDieValue loop testing if needed.
-  });
-
   it('handles randomDieValue rejecting out-of-bounds values', () => {
     if (getRandomValuesSpy) getRandomValuesSpy.mockRestore();
 
