@@ -11,7 +11,6 @@ use axum::{
 use serde::Deserialize;
 use serde_json::json;
 use sqlx::PgPool;
-use sqlx::Row;
 use std::sync::Arc;
 
 /// Whether the session cookie may travel over plain HTTP.
@@ -108,6 +107,12 @@ pub struct LoginRequest {
     pub password: String,
 }
 
+#[derive(sqlx::FromRow)]
+struct LoginUserRow {
+    id: uuid::Uuid,
+    password_hash: Option<String>,
+}
+
 pub async fn login(
     Extension(pool): Extension<Arc<PgPool>>,
     Extension(store_opt): Extension<Option<Arc<tokio::sync::Mutex<SessionStore>>>>,
@@ -145,10 +150,12 @@ pub async fn login(
     };
 
     // Verify user exists and password (runtime query)
-    let row = sqlx::query("SELECT id, password_hash FROM users WHERE lower(email)=$1")
-        .bind(payload.email.to_lowercase())
-        .fetch_optional(&*pool)
-        .await;
+    let row = sqlx::query_as::<_, LoginUserRow>(
+        "SELECT id, password_hash FROM users WHERE lower(email)=$1",
+    )
+    .bind(payload.email.to_lowercase())
+    .fetch_optional(&*pool)
+    .await;
 
     let Ok(Some(rec)) = row else {
         // Spend the same CPU an existing account would, so a miss cannot be told from a
@@ -157,8 +164,7 @@ pub async fn login(
         return unauthorized();
     };
 
-    let pwd: Option<String> = rec.try_get("password_hash").ok();
-    let Some(pwd) = pwd.filter(|p| !p.is_empty()) else {
+    let Some(pwd) = rec.password_hash.filter(|p| !p.is_empty()) else {
         // An account with no password hash (registered through OIDC) must not be a fast
         // path either.
         auth_tools::verify_password_dummy(&payload.password).await;
@@ -170,13 +176,7 @@ pub async fn login(
     }
 
     // create session
-    let uid: uuid::Uuid = match rec.try_get("id") {
-        Ok(u) => u,
-        Err(e) => {
-            tracing::error!("failed to read id column: {}", e);
-            return internal_error();
-        }
-    };
+    let uid: uuid::Uuid = rec.id;
 
     let Some(store) = store_opt else {
         return Response::builder()
@@ -244,27 +244,33 @@ pub async fn logout(
         .unwrap_or_default()
 }
 
+#[derive(sqlx::FromRow)]
+struct ProfileRow {
+    id: uuid::Uuid,
+    email: String,
+    display_name: Option<String>,
+    created_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
 pub async fn get_profile(
     AuthenticatedUser(user): AuthenticatedUser,
     Extension(pool): Extension<Arc<PgPool>>,
 ) -> impl IntoResponse {
-    let row = sqlx::query("SELECT id, email, display_name, created_at FROM users WHERE id = $1")
-        .bind(user.id)
-        .fetch_one(&*pool)
-        .await;
+    let row = sqlx::query_as::<_, ProfileRow>(
+        "SELECT id, email, display_name, created_at FROM users WHERE id = $1",
+    )
+    .bind(user.id)
+    .fetch_one(&*pool)
+    .await;
     match row {
         Ok(rec) => {
-            let id: uuid::Uuid = rec.try_get("id").unwrap_or_default();
-            let email: String = rec.try_get("email").unwrap_or_default();
-            let display_name: Option<String> = rec.try_get("display_name").ok().flatten();
-            let created_at: chrono::DateTime<chrono::Utc> =
-                rec.try_get("created_at").unwrap_or_else(|_| chrono::Utc::now());
+            let created_at = rec.created_at.unwrap_or_else(chrono::Utc::now);
             (
                 StatusCode::OK,
                 AxumJson(json!({
-                    "id": id.to_string(),
-                    "email": email,
-                    "display_name": display_name,
+                    "id": rec.id.to_string(),
+                    "email": rec.email,
+                    "display_name": rec.display_name,
                     "created_at": created_at.to_rfc3339()
                 })),
             )
