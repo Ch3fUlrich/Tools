@@ -16,7 +16,7 @@ pub async fn stats_energy(
         "SELECT ws.started_at::date as day, SUM(wse.energy_kcal) as total_energy
          FROM workout_sessions ws
          JOIN workout_sets wse ON wse.session_id = ws.id
-         WHERE ws.user_id = $1 AND ws.status = 'completed'
+         WHERE ws.user_id = $1 AND ws.status = 'completed' AND wse.deleted_at IS NULL
          GROUP BY ws.started_at::date
          ORDER BY day DESC LIMIT 365",
     )
@@ -49,7 +49,7 @@ pub async fn stats_volume(
         "SELECT ws.started_at::date as day, SUM(wse.weight_kg * wse.reps) as total_volume
          FROM workout_sessions ws
          JOIN workout_sets wse ON wse.session_id = ws.id
-         WHERE ws.user_id = $1 AND ws.status = 'completed'
+         WHERE ws.user_id = $1 AND ws.status = 'completed' AND wse.deleted_at IS NULL
          GROUP BY ws.started_at::date
          ORDER BY day DESC LIMIT 365",
     )
@@ -86,7 +86,7 @@ pub async fn stats_muscle_energy(
          JOIN workout_sets wse ON wse.session_id = ws.id
          JOIN exercise_muscles em ON em.exercise_id = wse.exercise_id
          JOIN muscle_groups mg ON mg.id = em.muscle_group_id
-         WHERE ws.user_id = $1 AND ws.status = 'completed'
+         WHERE ws.user_id = $1 AND ws.status = 'completed' AND wse.deleted_at IS NULL
          GROUP BY mg.name, mg.display_name, mg.relative_size, mg.body_map_position, mg.svg_region_id
          ORDER BY mg.name"
     )

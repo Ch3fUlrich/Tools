@@ -263,7 +263,7 @@ pub async fn delete_set(
             .into_response();
     }
 
-    match sqlx::query("DELETE FROM workout_sets WHERE id = $1 AND session_id = $2")
+    match sqlx::query("UPDATE workout_sets SET deleted_at = now() WHERE id = $1 AND session_id = $2 AND deleted_at IS NULL")
         .bind(set_uuid)
         .bind(session_uuid)
         .execute(&*pool)
