@@ -169,26 +169,15 @@ pub async fn history(
         return match vals {
             Ok(list) => {
                 let now = Utc::now().to_rfc3339();
-                let mut out_str = String::with_capacity(list.len() * 100);
-                out_str.push('[');
-                for (i, s) in list.iter().enumerate() {
-                    if i > 0 {
-                        out_str.push(',');
-                    }
-                    out_str.push_str(r#"{"id":null,"payload":"#);
-                    out_str.push_str(s);
-                    out_str.push_str(r#","created_at":""#);
-                    out_str.push_str(&now);
-                    out_str.push_str(r#""}"#);
+                let mut out: Vec<HistoryEntry> = Vec::with_capacity(list.len());
+                for s in list {
+                    out.push(HistoryEntry {
+                        id: None,
+                        payload: serde_json::from_str(&s).unwrap_or(serde_json::json!(null)),
+                        created_at: now.clone(),
+                    });
                 }
-                out_str.push(']');
-
-                axum::response::Response::builder()
-                    .status(StatusCode::OK)
-                    .header(axum::http::header::CONTENT_TYPE, "application/json")
-                    .body(axum::body::Body::from(out_str))
-                    .unwrap_or_default()
-                    .into_response()
+                (StatusCode::OK, axum::Json(out)).into_response()
             }
             Err(e) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
