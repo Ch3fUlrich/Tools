@@ -4,8 +4,6 @@ pub mod plates;
 pub mod types;
 
 pub use compute::*;
-#[allow(unused_imports)]
-pub use constants::*;
 pub use plates::*;
 pub use types::*;
 
@@ -15,6 +13,7 @@ pub use types::*;
 
 #[cfg(test)]
 mod tests {
+    use super::constants::*;
     use super::*;
 
     fn test_measurements() -> BodyMeasurements {
