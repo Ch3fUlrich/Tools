@@ -159,6 +159,53 @@ async fn saving_without_a_session_is_rejected() {
 }
 
 #[tokio::test]
+async fn check_quota_enforces_limit_on_save() {
+    let Some(h) = setup().await else { return };
+
+    // Fill the quota
+    for i in 0..tools_backend::tools::elterngeld::MAX_SCENARIOS_PER_USER {
+        let resp = h
+            .server
+            .post("/api/tools/elterngeld/inputs")
+            .add_header("cookie", &h.alice)
+            .json(&serde_json::json!({
+                "name": format!("Scenario {}", i),
+                "payload": payload(30_000)
+            }))
+            .await;
+        assert_eq!(resp.status_code(), 201, "setup creates scenarios up to the limit");
+    }
+
+    // Try to exceed the quota
+    let excess = h
+        .server
+        .post("/api/tools/elterngeld/inputs")
+        .add_header("cookie", &h.alice)
+        .json(&serde_json::json!({ "name": "One too many", "payload": payload(30_000) }))
+        .await;
+    assert_eq!(excess.status_code(), 409, "inserting beyond the limit is rejected");
+
+    let error_body: serde_json::Value = excess.json();
+    assert_eq!(
+        error_body["error"],
+        tools_backend::tools::elterngeld::ScenarioError::TooManyScenarios.message()
+    );
+
+    // Editing an existing one must still work
+    let update = h
+        .server
+        .post("/api/tools/elterngeld/inputs")
+        .add_header("cookie", &h.alice)
+        .json(&serde_json::json!({ "name": "Scenario 0", "payload": payload(45_000) }))
+        .await;
+    assert_eq!(
+        update.status_code(),
+        200,
+        "updating an existing scenario is still allowed at limit"
+    );
+}
+
+#[tokio::test]
 async fn a_blank_name_is_a_client_error_not_a_silent_save() {
     let Some(h) = setup().await else { return };
 
