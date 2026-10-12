@@ -298,13 +298,14 @@ fn test_configure_cors_with_multiple_valid_origins() {
             let rt = tokio::runtime::Runtime::new().unwrap();
             rt.block_on(async {
                 let server = axum_test::TestServer::new(app.into_make_service());
+                let empty_header = axum::http::HeaderValue::from_static("");
 
                 // Test first origin
                 let res1 = server.get("/")
                     .add_header(axum::http::header::ORIGIN, "http://localhost:3000")
                     .await;
                 assert_eq!(
-                    res1.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
+                    res1.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap_or(&empty_header),
                     "http://localhost:3000"
                 );
 
@@ -313,7 +314,7 @@ fn test_configure_cors_with_multiple_valid_origins() {
                     .add_header(axum::http::header::ORIGIN, "https://example.com")
                     .await;
                 assert_eq!(
-                    res2.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
+                    res2.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap_or(&empty_header),
                     "https://example.com"
                 );
 
@@ -322,7 +323,7 @@ fn test_configure_cors_with_multiple_valid_origins() {
                     .add_header(axum::http::header::ORIGIN, "https://app.example.com")
                     .await;
                 assert_eq!(
-                    res3.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
+                    res3.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap_or(&empty_header),
                     "https://app.example.com"
                 );
 
