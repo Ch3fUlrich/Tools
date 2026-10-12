@@ -43,6 +43,16 @@ describe('RegisterForm', () => {
     await waitFor(() => expect(spy).toHaveBeenCalled());
     expect(onSuccess).toHaveBeenCalled();
   });
+
+  it('shows error when registration fails', async () => {
+    vi.spyOn(apiClient, 'registerUser').mockRejectedValue(new Error('registration failed'));
+    render(<TestWrapper><RegisterForm /></TestWrapper>);
+    await userEvent.type(screen.getByLabelText('Email'), 'a@b.com');
+    await userEvent.type(screen.getByLabelText('Password'), 'password123');
+    await userEvent.type(screen.getByLabelText('Confirm Password'), 'password123');
+    fireEvent.submit(screen.getByRole('button', { name: /Create Account/i }).closest('form')!);
+    expect(await screen.findByText(/registration failed/i)).toBeInTheDocument();
+  });
 });
 
 describe('LoginForm', () => {
