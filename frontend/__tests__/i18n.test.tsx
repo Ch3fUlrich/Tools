@@ -7,10 +7,19 @@ vi.mock('@/lib/api/client', async () => {
   return { ...actual };
 });
 
-import { LanguageProvider, useTranslation } from '@/components/i18n/LanguageProvider';
+import {
+  LanguageProvider,
+  useTranslation,
+} from '@/components/i18n/LanguageProvider';
 import LanguageToggle from '@/components/layout/LanguageToggle';
 import ElterngeldOptimizer from '@/components/tools/ElterngeldOptimizer';
-import { LANGUAGE_STORAGE_KEY, detectBrowserLanguage, isLanguage, getStoredLanguage } from '@/lib/i18n';
+import {
+  LANGUAGE_STORAGE_KEY,
+  detectBrowserLanguage,
+  isLanguage,
+  getStoredLanguage,
+  setStoredLanguage,
+} from '@/lib/i18n';
 import { de, en } from '@/lib/i18n/messages';
 
 function Probe() {
@@ -19,7 +28,9 @@ function Probe() {
     <div>
       <span data-testid="lang">{language}</span>
       <span data-testid="msg">{t('eg.household')}</span>
-      <span data-testid="interp">{t('eg.filingSaves', { amount: '1.234,00 €' })}</span>
+      <span data-testid="interp">
+        {t('eg.filingSaves', { amount: '1.234,00 €' })}
+      </span>
       <span data-testid="missing">{t('common.appName')}</span>
     </div>
   );
@@ -36,8 +47,8 @@ describe('message catalogues', () => {
         compare(
           (a as Record<string, unknown>)[key],
           (b as Record<string, unknown> | undefined)?.[key],
-          [...path, key],
-        ),
+          [...path, key]
+        )
       );
     }
     return [];
@@ -88,13 +99,61 @@ describe('getStoredLanguage', () => {
   });
 
   it('returns null if localStorage throws an error', () => {
-    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-      throw new Error('localStorage is disabled');
-    });
+    const getItemSpy = vi
+      .spyOn(Storage.prototype, 'getItem')
+      .mockImplementation(() => {
+        throw new Error('localStorage is disabled');
+      });
 
     expect(getStoredLanguage()).toBeNull();
 
     getItemSpy.mockRestore();
+  });
+});
+
+describe('setStoredLanguage', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('stores the language if a valid language is provided', () => {
+    setStoredLanguage('de');
+    expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('de');
+  });
+
+  it('removes the language from storage if null is provided', () => {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
+    setStoredLanguage(null);
+    expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBeNull();
+  });
+
+  it('does not throw an error if localStorage is unavailable', () => {
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, 'setItem')
+      .mockImplementation(() => {
+        throw new Error('localStorage is disabled');
+      });
+
+    expect(() => {
+      setStoredLanguage('de');
+    }).not.toThrow();
+
+    setItemSpy.mockRestore();
+  });
+
+  it('does not throw an error if localStorage removeItem is unavailable', () => {
+    const removeItemSpy = vi
+      .spyOn(Storage.prototype, 'removeItem')
+      .mockImplementation(() => {
+        throw new Error('localStorage is disabled');
+      });
+
+    expect(() => {
+      setStoredLanguage(null);
+    }).not.toThrow();
+
+    removeItemSpy.mockRestore();
   });
 });
 
@@ -108,7 +167,7 @@ describe('LanguageProvider', () => {
       <LanguageProvider>
         <LanguageToggle />
         <Probe />
-      </LanguageProvider>,
+      </LanguageProvider>
     );
     const scope = within(container);
 
@@ -116,7 +175,9 @@ describe('LanguageProvider', () => {
     expect(scope.getByTestId('msg')).toHaveTextContent(en.eg.household);
 
     await act(async () => {
-      fireEvent.click(scope.getByRole('radio', { name: /Auf Deutsch umschalten/i }));
+      fireEvent.click(
+        scope.getByRole('radio', { name: /Auf Deutsch umschalten/i })
+      );
     });
 
     expect(scope.getByTestId('lang')).toHaveTextContent('de');
@@ -127,32 +188,42 @@ describe('LanguageProvider', () => {
     const { container } = render(
       <LanguageProvider>
         <Probe />
-      </LanguageProvider>,
+      </LanguageProvider>
     );
-    expect(within(container).getByTestId('interp')).toHaveTextContent('1.234,00 €');
+    expect(within(container).getByTestId('interp')).toHaveTextContent(
+      '1.234,00 €'
+    );
   });
 
   it('persists the choice and marks the current one for screen readers', async () => {
     const { container } = render(
       <LanguageProvider>
         <LanguageToggle />
-      </LanguageProvider>,
+      </LanguageProvider>
     );
     const scope = within(container);
 
     await act(async () => {
-      fireEvent.click(scope.getByRole('radio', { name: /Auf Deutsch umschalten/i }));
+      fireEvent.click(
+        scope.getByRole('radio', { name: /Auf Deutsch umschalten/i })
+      );
     });
 
     expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('de');
-    expect(scope.getByRole('radio', { name: /Auf Deutsch umschalten/i })).toHaveAttribute('aria-checked', 'true');
-    expect(scope.getByRole('radio', { name: /Switch to English/i })).toHaveAttribute('aria-checked', 'false');
+    expect(
+      scope.getByRole('radio', { name: /Auf Deutsch umschalten/i })
+    ).toHaveAttribute('aria-checked', 'true');
+    expect(
+      scope.getByRole('radio', { name: /Switch to English/i })
+    ).toHaveAttribute('aria-checked', 'false');
     expect(document.documentElement.lang).toBe('de');
   });
 
   it('falls back to English outside a provider instead of throwing', () => {
     const { container } = render(<Probe />);
-    expect(within(container).getByTestId('msg')).toHaveTextContent(en.eg.household);
+    expect(within(container).getByTestId('msg')).toHaveTextContent(
+      en.eg.household
+    );
   });
 
   it('only accepts the two supported language tags', () => {
@@ -208,20 +279,24 @@ describe('the Elterngeld tool in German', () => {
       <LanguageProvider>
         <LanguageToggle />
         <ElterngeldOptimizer />
-      </LanguageProvider>,
+      </LanguageProvider>
     );
     const scope = within(container);
 
     expect(scope.getByText(en.eg.household)).toBeInTheDocument();
 
     await act(async () => {
-      fireEvent.click(scope.getByRole('radio', { name: /Auf Deutsch umschalten/i }));
+      fireEvent.click(
+        scope.getByRole('radio', { name: /Auf Deutsch umschalten/i })
+      );
     });
 
     expect(scope.getByText(de.eg.household)).toBeInTheDocument();
     expect(scope.getByText(de.eg.sideBySide)).toBeInTheDocument();
     expect(scope.getByText(de.eg.reasoningTitle)).toBeInTheDocument();
     // The recommendation banner is rebuilt from the German catalogue too.
-    expect(scope.getByRole('status').textContent).toContain(de.eg.recommendation);
+    expect(scope.getByRole('status').textContent).toContain(
+      de.eg.recommendation
+    );
   });
 });
