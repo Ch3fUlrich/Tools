@@ -1,5 +1,100 @@
 import { describe, it, expect } from 'vitest';
-import { amountFirstOrder } from '@/lib/local/pharmacokinetics';
+import { amountFirstOrder, resolveRoute, SubstancePk } from '@/lib/local/pharmacokinetics';
+
+const mockSubstance: SubstancePk = {
+  id: 'mock-substance',
+  name: 'Mock Substance',
+  description: 'A mock substance for testing',
+  category: 'Test',
+  halfLifeHours: 5,
+  elimination: 'first-order',
+  commonDosageMg: 100,
+  maxDailyDoseMg: 500,
+  eliminationRoute: 'hepatic',
+  sources: [],
+  food: {
+    tmaxFactor: 1.5, // Food delays absorption by 50%
+    bioavailabilityFactor: 0.8, // Food reduces AUC by 20%
+  },
+  routes: {
+    oral: {
+      bioavailabilityPercent: 50,
+      tmaxHours: 2,
+    },
+    intravenous: {
+      bioavailabilityPercent: 100,
+      tmaxHours: 0,
+    },
+    nasal: {
+      bioavailabilityPercent: 75,
+      tmaxHours: 0.5,
+    },
+  },
+};
+
+describe('pharmacokinetics - resolveRoute', () => {
+  it('returns direct route parameters without food', () => {
+    const result = resolveRoute(mockSubstance, 'nasal', false);
+    expect(result).toEqual({
+      params: { bioavailabilityPercent: 75, tmaxHours: 0.5 },
+      usedRoute: 'nasal',
+      substituted: false,
+    });
+  });
+
+  it('applies food effect to routes with absorption (tmax > 0)', () => {
+    const result = resolveRoute(mockSubstance, 'oral', true);
+    // 50 * 0.8 = 40, 2 * 1.5 = 3
+    expect(result).toEqual({
+      params: { bioavailabilityPercent: 40, tmaxHours: 3 },
+      usedRoute: 'oral',
+      substituted: false,
+    });
+  });
+
+  it('does not apply food effect to routes without absorption (tmax = 0)', () => {
+    const result = resolveRoute(mockSubstance, 'intravenous', true);
+    expect(result).toEqual({
+      params: { bioavailabilityPercent: 100, tmaxHours: 0 },
+      usedRoute: 'intravenous',
+      substituted: false,
+    });
+  });
+
+  it('falls back to oral route if direct route is missing', () => {
+    const result = resolveRoute(mockSubstance, 'sublingual', false);
+    expect(result).toEqual({
+      params: { bioavailabilityPercent: 50, tmaxHours: 2 },
+      usedRoute: 'oral',
+      substituted: true,
+    });
+  });
+
+  it('falls back to oral route and applies food effect if route is missing and taken with food', () => {
+    const result = resolveRoute(mockSubstance, 'sublingual', true);
+    expect(result).toEqual({
+      params: { bioavailabilityPercent: 40, tmaxHours: 3 },
+      usedRoute: 'oral',
+      substituted: true,
+    });
+  });
+
+  it('falls back to intravenous if route is missing and oral is also missing', () => {
+    const mockSubstanceNoOral: SubstancePk = {
+      ...mockSubstance,
+      routes: {
+        nasal: { bioavailabilityPercent: 75, tmaxHours: 0.5 }
+      }
+    };
+
+    const result = resolveRoute(mockSubstanceNoOral, 'sublingual', false);
+    expect(result).toEqual({
+      params: { bioavailabilityPercent: 100, tmaxHours: 0 },
+      usedRoute: 'intravenous',
+      substituted: true,
+    });
+  });
+});
 
 describe('pharmacokinetics - amountFirstOrder', () => {
   it('returns 0 for negative time', () => {
