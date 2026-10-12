@@ -5,6 +5,7 @@ import {
   defaultTempo,
   computeMovingSegmentMass,
   SegmentMassFractions,
+  calculatePlatesLocal,
 } from '../lib/local/training';
 import exercisesData from '../lib/local/data/exercises.json';
 
@@ -128,3 +129,59 @@ describe('computeMovingSegmentMass', () => {
   });
 });
 
+describe('calculatePlatesLocal', () => {
+  it('should return an empty array for target weight equal to the barbell weight (20kg)', () => {
+    const result = calculatePlatesLocal(20);
+    expect(result).toEqual({
+      totalWeightKg: 20,
+      barbellWeightKg: 20,
+      platesPerSide: [],
+      achievableWeightKg: 20,
+    });
+  });
+
+  it('should calculate correct plates for weight perfectly divisible by available plates (60kg)', () => {
+    const result = calculatePlatesLocal(60);
+    expect(result).toEqual({
+      totalWeightKg: 60,
+      barbellWeightKg: 20,
+      platesPerSide: [{ weightKg: 20, count: 1 }],
+      achievableWeightKg: 60,
+    });
+  });
+
+  it('should handle non-standard weights by returning the closest achievable weight below target (61kg)', () => {
+    const result = calculatePlatesLocal(61);
+    expect(result).toEqual({
+      totalWeightKg: 61,
+      barbellWeightKg: 20,
+      platesPerSide: [{ weightKg: 20, count: 1 }],
+      achievableWeightKg: 60,
+    });
+  });
+
+  it('should return empty array and 20kg achievable weight for target weights below barbell weight (10kg)', () => {
+    const result = calculatePlatesLocal(10);
+    expect(result).toEqual({
+      totalWeightKg: 10,
+      barbellWeightKg: 20,
+      platesPerSide: [],
+      achievableWeightKg: 20,
+    });
+  });
+
+  it('should correctly use all standard plates (117.5kg -> 20kg bar + 48.75kg per side)', () => {
+    const result = calculatePlatesLocal(117.5);
+    expect(result).toEqual({
+      totalWeightKg: 117.5,
+      barbellWeightKg: 20,
+      platesPerSide: [
+        { weightKg: 20, count: 2 },
+        { weightKg: 5, count: 1 },
+        { weightKg: 2.5, count: 1 },
+        { weightKg: 1.25, count: 1 },
+      ],
+      achievableWeightKg: 117.5,
+    });
+  });
+});
