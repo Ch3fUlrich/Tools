@@ -10,7 +10,7 @@ vi.mock('@/lib/api/client', async () => {
 import { LanguageProvider, useTranslation } from '@/components/i18n/LanguageProvider';
 import LanguageToggle from '@/components/layout/LanguageToggle';
 import ElterngeldOptimizer from '@/components/tools/ElterngeldOptimizer';
-import { LANGUAGE_STORAGE_KEY, detectBrowserLanguage, isLanguage, getStoredLanguage } from '@/lib/i18n';
+import { LANGUAGE_STORAGE_KEY, detectBrowserLanguage, isLanguage, getStoredLanguage, resolveInitialLanguage } from '@/lib/i18n';
 import { de, en } from '@/lib/i18n/messages';
 
 function Probe() {
@@ -95,6 +95,66 @@ describe('getStoredLanguage', () => {
     expect(getStoredLanguage()).toBeNull();
 
     getItemSpy.mockRestore();
+  });
+});
+
+describe('resolveInitialLanguage', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('returns the stored language if available', () => {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, 'de');
+    expect(resolveInitialLanguage()).toBe('de');
+  });
+
+  it('falls back to browser language if stored language is unavailable', () => {
+    const originalLanguage = Object.getOwnPropertyDescriptor(navigator, 'language');
+    const originalLanguages = Object.getOwnPropertyDescriptor(navigator, 'languages');
+
+    Object.defineProperty(navigator, 'language', { value: 'de-DE', configurable: true });
+    Object.defineProperty(navigator, 'languages', { value: ['de-DE', 'de'], configurable: true });
+
+    expect(resolveInitialLanguage()).toBe('de');
+
+    if (originalLanguage) {
+        Object.defineProperty(navigator, 'language', originalLanguage);
+    } else {
+        // @ts-ignore
+        delete navigator.language;
+    }
+
+    if (originalLanguages) {
+        Object.defineProperty(navigator, 'languages', originalLanguages);
+    } else {
+        // @ts-ignore
+        delete navigator.languages;
+    }
+  });
+
+  it('returns the default language if both are unavailable', () => {
+    const originalLanguages = Object.getOwnPropertyDescriptor(navigator, 'languages');
+    const originalLanguage = Object.getOwnPropertyDescriptor(navigator, 'language');
+
+    Object.defineProperty(navigator, 'languages', { value: [], configurable: true });
+    Object.defineProperty(navigator, 'language', { value: undefined, configurable: true });
+
+    expect(resolveInitialLanguage()).toBe('en');
+
+    if (originalLanguages) {
+        Object.defineProperty(navigator, 'languages', originalLanguages);
+    } else {
+        // @ts-ignore
+        delete navigator.languages;
+    }
+
+    if (originalLanguage) {
+        Object.defineProperty(navigator, 'language', originalLanguage);
+    } else {
+        // @ts-ignore
+        delete navigator.language;
+    }
   });
 });
 
