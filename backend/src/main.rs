@@ -303,28 +303,28 @@ fn test_configure_cors_with_multiple_valid_origins() {
                 let res1 = server.get("/")
                     .add_header(axum::http::header::ORIGIN, "http://localhost:3000")
                     .await;
-                assert_eq!(
-                    res1.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
-                    "http://localhost:3000"
-                );
+                match res1.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN) {
+                    Some(header) => assert_eq!(header, "http://localhost:3000"),
+                    None => panic!("Missing ACCESS_CONTROL_ALLOW_ORIGIN header"),
+                }
 
                 // Test second origin
                 let res2 = server.get("/")
                     .add_header(axum::http::header::ORIGIN, "https://example.com")
                     .await;
-                assert_eq!(
-                    res2.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
-                    "https://example.com"
-                );
+                match res2.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN) {
+                    Some(header) => assert_eq!(header, "https://example.com"),
+                    None => panic!("Missing ACCESS_CONTROL_ALLOW_ORIGIN header"),
+                }
 
                 // Test third origin
                 let res3 = server.get("/")
                     .add_header(axum::http::header::ORIGIN, "https://app.example.com")
                     .await;
-                assert_eq!(
-                    res3.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
-                    "https://app.example.com"
-                );
+                match res3.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN) {
+                    Some(header) => assert_eq!(header, "https://app.example.com"),
+                    None => panic!("Missing ACCESS_CONTROL_ALLOW_ORIGIN header"),
+                }
 
                 // Test invalid origin
                 let res4 = server.get("/")
