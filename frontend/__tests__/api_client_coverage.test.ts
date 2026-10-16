@@ -26,6 +26,18 @@ describe('api client full coverage', () => {
     } catch {}
   });
 
+  it('apiRequest fallbacks correctly on bad json', async () => {
+    // when json() throws, should fallback to empty object
+    (globalThis as any).fetch.mockResolvedValueOnce({
+      ok: true,
+      headers: { get: () => '' },
+      json: async () => { throw new Error('Bad JSON'); },
+    });
+    // use any API function, doesn't matter which
+    const res = await getToleranceSubstances();
+    expect(res).toEqual({});
+  });
+
   it('calculateFatLoss success and failure', async () => {
     const good = {
       fat_loss_percentage: 10,
