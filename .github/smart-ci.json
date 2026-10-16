@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "jobs": ["backend", "frontend"],
+  "always_jobs": [],
+  "ignore": ["docs/**", "**/*.md", "LICENSE"],
+  "full_if": [],
+  "rules": [
+    {"paths": ["backend/**"], "jobs": ["backend"]},
+    {"paths": ["frontend/**"], "jobs": ["frontend"]},
+    {"paths": ["backend/src/tools/bloodlevel.rs", "frontend/lib/local/**"], "jobs": ["backend", "frontend"]}
+  ]
+}

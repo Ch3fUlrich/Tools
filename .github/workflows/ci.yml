@@ -5,14 +5,43 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+    # `labeled` re-runs CI when merge-ready is added: that run is the FULL suite.
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
+    inputs:
+      full:
+        description: Run the full suite (a dispatch is always a full run; the input exists so callers can pass it through)
+        type: boolean
+        default: true
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
   packages: write
 
 jobs:
+  # CI-SMART-SELECT: a PR push runs only the job(s) its diff needs (map:
+  # .github/smart-ci.json). The FULL suite runs on the merge-ready label,
+  # workflow_dispatch, every push to main, and whenever the selection is unknown
+  # or a workflow / dependency / CI file changed. "CI merge gate" (bottom) is the
+  # check that proves the full run happened; the two required checks below are
+  # skipped (= pass) when their job was not selected.
+  smart:
+    name: Smart CI select
+    uses: Ch3fUlrich/AutoOS/.github/workflows/smart-ci.yml@lane/ci-smart-select
+    with:
+      selector_repo: Ch3fUlrich/AutoOS
+      selector_ref: lane/ci-smart-select
+      runs_on: ${{ toJSON('ubuntu-latest') }}
+      full: ${{ github.event_name == 'workflow_dispatch' && inputs.full }}
+
   backend:
     name: Backend tests (Postgres + Redis)
+    needs: smart
+    if: ${{ needs.smart.outputs.full == 'true' || fromJSON(needs.smart.outputs.jobs).backend }}
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -78,6 +107,8 @@ jobs:
 
   frontend:
     name: Frontend tests
+    needs: smart
+    if: ${{ needs.smart.outputs.full == 'true' || fromJSON(needs.smart.outputs.jobs).frontend }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -121,7 +152,7 @@ jobs:
   build-artifacts:
     name: Build artifacts
     runs-on: ubuntu-latest
-    needs: [ backend, frontend ]
+    needs: [ smart, backend, frontend ]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -162,3 +193,42 @@ jobs:
         with:
           name: build-artifacts-zip
           path: build-artifacts.zip
+
+  # Red only when a job failed or was cancelled. A selected-only PR run passes
+  # but leaves the commit status "Full suite (merge-ready)" pending; the full run
+  # (label merge-ready, or dispatch full=true) sets it to success. Make both
+  # "CI merge gate" and "Full suite (merge-ready)" required checks for merge.
+  merge-gate:
+    name: CI merge gate
+    if: always()
+    needs: [ smart, backend, frontend, build-artifacts ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+    steps:
+      - name: Selected jobs passed; report whether the run was full
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVENT: ${{ github.event_name }}
+          FULL: ${{ needs.smart.outputs.full }}
+          REASON: ${{ needs.smart.outputs.reason }}
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "event=$EVENT full=$FULL results=$RESULTS reason=$REASON"
+          ctx="Full suite (merge-ready)"
+          post() { gh api "repos/$REPO/statuses/$SHA" -f state="$1" -f context="$ctx" -f description="$2" >/dev/null || echo "::warning::could not set the $ctx status"; }
+          for r in $RESULTS; do
+            case "$r" in
+              success|skipped) ;;
+              *) post failure "a CI job ended $r"; echo "::error::a CI job ended $r"; exit 1 ;;
+            esac
+          done
+          if [ "$EVENT" = pull_request ] && [ "$FULL" != true ]; then
+            post pending "selected-only run: add the merge-ready label for the full suite"
+            echo "::notice::selected-only run passed; the full suite (label merge-ready or dispatch full=true) is still required before merge"
+          else
+            post success "full suite passed"
+          fi
