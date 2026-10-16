@@ -4,6 +4,7 @@ use axum::extract::{Extension, Json};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::IntoResponse;
 use chrono::Utc;
+// Provides lpush, ltrim, expire, lrange on redis connections
 use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
