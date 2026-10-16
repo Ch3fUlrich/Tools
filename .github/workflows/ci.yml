@@ -4,7 +4,8 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
+    # lane/** lets a stacked PR (base = a lane branch) run CI; main stays the default target.
+    branches: [ main, 'lane/**' ]
     # `labeled` re-runs CI when merge-ready is added: that run is the FULL suite.
     types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
