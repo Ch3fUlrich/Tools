@@ -10,7 +10,7 @@ vi.mock('@/lib/api/client', async () => {
 import { LanguageProvider, useTranslation } from '@/components/i18n/LanguageProvider';
 import LanguageToggle from '@/components/layout/LanguageToggle';
 import ElterngeldOptimizer from '@/components/tools/ElterngeldOptimizer';
-import { LANGUAGE_STORAGE_KEY, detectBrowserLanguage, isLanguage, getStoredLanguage } from '@/lib/i18n';
+import { LANGUAGE_STORAGE_KEY, detectBrowserLanguage, isLanguage, getStoredLanguage, resolveInitialLanguage, DEFAULT_LANGUAGE } from '@/lib/i18n';
 import { de, en } from '@/lib/i18n/messages';
 
 function Probe() {
@@ -95,6 +95,32 @@ describe('getStoredLanguage', () => {
     expect(getStoredLanguage()).toBeNull();
 
     getItemSpy.mockRestore();
+  });
+});
+
+describe('resolveInitialLanguage', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('returns the stored language if available', () => {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, 'de');
+    expect(resolveInitialLanguage()).toBe('de');
+  });
+
+  it('falls back to browser language if stored language is unavailable', () => {
+    vi.spyOn(window.navigator, 'language', 'get').mockReturnValue('de-DE');
+    vi.spyOn(window.navigator, 'languages', 'get').mockReturnValue(['de-DE', 'de']);
+
+    expect(resolveInitialLanguage()).toBe('de');
+  });
+
+  it('returns the default language if both are unavailable', () => {
+    vi.spyOn(window.navigator, 'language', 'get').mockReturnValue('');
+    vi.spyOn(window.navigator, 'languages', 'get').mockReturnValue([]);
+
+    expect(resolveInitialLanguage()).toBe(DEFAULT_LANGUAGE);
   });
 });
 
