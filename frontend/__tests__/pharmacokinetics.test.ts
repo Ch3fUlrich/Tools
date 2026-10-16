@@ -1,5 +1,44 @@
 import { describe, it, expect } from 'vitest';
-import { amountFirstOrder } from '@/lib/local/pharmacokinetics';
+import {
+  amountFirstOrder,
+  absorptionRateFromTmax,
+} from '@/lib/local/pharmacokinetics';
+
+describe('pharmacokinetics - absorptionRateFromTmax', () => {
+  it('returns POSITIVE_INFINITY if tmaxHours or ke is not positive', () => {
+    expect(absorptionRateFromTmax(0, 0.5)).toBe(Number.POSITIVE_INFINITY);
+    expect(absorptionRateFromTmax(-1, 0.5)).toBe(Number.POSITIVE_INFINITY);
+    expect(absorptionRateFromTmax(1, 0)).toBe(Number.POSITIVE_INFINITY);
+    expect(absorptionRateFromTmax(1, -0.5)).toBe(Number.POSITIVE_INFINITY);
+  });
+
+  it('calculates the correct absorption rate (ka) for given tmax and ke', () => {
+    // We can verify the result by plugging ka back into the Tmax formula:
+    // Tmax = ln(ka / ke) / (ka - ke)
+    const checkTmax = (tmaxHours: number, ke: number) => {
+      const ka = absorptionRateFromTmax(tmaxHours, ke);
+      expect(ka).toBeGreaterThan(ke); // ka must exceed ke for a peak
+
+      const calculatedTmax = Math.log(ka / ke) / (ka - ke);
+      expect(calculatedTmax).toBeCloseTo(tmaxHours, 3);
+    };
+
+    checkTmax(1, 0.5);
+    checkTmax(0.5, 0.1);
+    checkTmax(2, 0.2);
+    checkTmax(4, 0.05);
+  });
+
+  it('handles extreme values of Tmax', () => {
+    const checkTmax = (tmaxHours: number, ke: number) => {
+      const ka = absorptionRateFromTmax(tmaxHours, ke);
+      const calculatedTmax = Math.log(ka / ke) / (ka - ke);
+      expect(calculatedTmax).toBeCloseTo(tmaxHours, 3);
+    };
+    checkTmax(100, 0.01); // Very long Tmax
+    checkTmax(0.1, 0.5); // Very short Tmax
+  });
+});
 
 describe('pharmacokinetics - amountFirstOrder', () => {
   it('returns 0 for negative time', () => {
@@ -15,10 +54,14 @@ describe('pharmacokinetics - amountFirstOrder', () => {
     expect(amountFirstOrder(dose, Infinity, ke, 0)).toBe(dose);
 
     // At t=2, it should decay by e^(-ke * t)
-    expect(amountFirstOrder(dose, Infinity, ke, 2)).toBeCloseTo(dose * Math.exp(-ke * 2));
+    expect(amountFirstOrder(dose, Infinity, ke, 2)).toBeCloseTo(
+      dose * Math.exp(-ke * 2)
+    );
 
     // At t=10, more decay
-    expect(amountFirstOrder(dose, Infinity, ke, 10)).toBeCloseTo(dose * Math.exp(-ke * 10));
+    expect(amountFirstOrder(dose, Infinity, ke, 10)).toBeCloseTo(
+      dose * Math.exp(-ke * 10)
+    );
   });
 
   it('handles the singularity when ka == ke', () => {
@@ -46,11 +89,13 @@ describe('pharmacokinetics - amountFirstOrder', () => {
     expect(amountFirstOrder(dose, ka, ke, 0)).toBe(0);
 
     // t=1
-    const expectedT1 = (dose * ka) / (ka - ke) * (Math.exp(-ke * 1) - Math.exp(-ka * 1));
+    const expectedT1 =
+      ((dose * ka) / (ka - ke)) * (Math.exp(-ke * 1) - Math.exp(-ka * 1));
     expect(amountFirstOrder(dose, ka, ke, 1)).toBeCloseTo(expectedT1);
 
     // t=10
-    const expectedT10 = (dose * ka) / (ka - ke) * (Math.exp(-ke * 10) - Math.exp(-ka * 10));
+    const expectedT10 =
+      ((dose * ka) / (ka - ke)) * (Math.exp(-ke * 10) - Math.exp(-ka * 10));
     expect(amountFirstOrder(dose, ka, ke, 10)).toBeCloseTo(expectedT10);
   });
 
@@ -63,7 +108,8 @@ describe('pharmacokinetics - amountFirstOrder', () => {
     expect(amountFirstOrder(dose, ka, ke, 0)).toBe(0);
 
     // t=1
-    const expectedT1 = (dose * ka) / (ka - ke) * (Math.exp(-ke * 1) - Math.exp(-ka * 1));
+    const expectedT1 =
+      ((dose * ka) / (ka - ke)) * (Math.exp(-ke * 1) - Math.exp(-ka * 1));
     expect(amountFirstOrder(dose, ka, ke, 1)).toBeCloseTo(expectedT1);
   });
 
