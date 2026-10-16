@@ -104,23 +104,22 @@ pub async fn save_scenario(
     };
 
     if !is_update {
-        let count = sqlx::query_scalar::<_, i64>(
+        let count = match sqlx::query_scalar::<_, i64>(
             "SELECT count(*) FROM elterngeld_inputs WHERE user_id = $1",
         )
         .bind(user.id)
         .fetch_one(&*pool)
-        .await;
-        match count {
-            Ok(n) => {
-                if let Err(e) = check_quota(n, false) {
-                    return (StatusCode::CONFLICT, Json(json!({"error": e.message()})))
-                        .into_response();
-                }
-            }
+        .await
+        {
+            Ok(n) => n,
             Err(e) => {
                 tracing::error!("save_scenario count failed: {e}");
                 return internal();
             }
+        };
+
+        if let Err(e) = check_quota(count, false) {
+            return (StatusCode::CONFLICT, Json(json!({"error": e.message()}))).into_response();
         }
     }
 
