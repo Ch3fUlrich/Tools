@@ -767,24 +767,20 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
     let mut owned_substances: Vec<Option<Substance>> =
         get_substances().into_iter().map(Some).collect();
 
-    // Build O(1) lookup map
-    let mut substances_map: std::collections::HashMap<String, usize> =
-        std::collections::HashMap::with_capacity(owned_substances.len() * 2);
-    for (idx, sub) in owned_substances.iter().enumerate() {
-        if let Some(s) = sub {
-            substances_map.insert(s.id.to_ascii_lowercase(), idx);
-            substances_map.insert(s.name.to_ascii_lowercase(), idx);
-        }
-    }
-
     // Group intakes by substance
     let mut substance_intakes: std::collections::HashMap<usize, Vec<&SubstanceIntake>> =
         std::collections::HashMap::new();
 
     for intake in &request.intakes {
         let substance_name = &intake.substance;
-        let &idx = substances_map
-            .get(&substance_name.to_ascii_lowercase())
+        let idx = owned_substances
+            .iter()
+            .position(|s| {
+                s.as_ref().is_some_and(|sub| {
+                    sub.id.eq_ignore_ascii_case(substance_name)
+                        || sub.name.eq_ignore_ascii_case(substance_name)
+                })
+            })
             .ok_or_else(|| format!("Substance '{}' not found in database", substance_name))?;
         substance_intakes.entry(idx).or_default().push(intake);
     }
