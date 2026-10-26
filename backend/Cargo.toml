@@ -28,6 +28,7 @@ anyhow = "1.0"
 rust-embed = "8.11.0"
 moka = { version = "0.12.15", features = ["future"] }
 futures = "0.3.32"
+rustc-hash = "2.1.3"
 
 [dev-dependencies]
 axum-test = "19.1"
