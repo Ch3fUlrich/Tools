@@ -53,17 +53,19 @@ where
                     .bind(sess.user_id)
                     .fetch_one(&*pool)
                     .await
-                    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("DB error: {e}")))?;
+                    .map_err(|_| {
+                        (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string())
+                    })?;
 
-                let id: sqlx::types::Uuid = row.try_get("id").map_err(|e| {
-                    (StatusCode::INTERNAL_SERVER_ERROR, format!("Row parse error: {e}"))
+                let id: sqlx::types::Uuid = row.try_get("id").map_err(|_| {
+                    (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string())
                 })?;
                 let user = AuthUser { id };
 
                 Ok(Self(user))
             }
             Ok(None) => Err((StatusCode::UNAUTHORIZED, "Session not found".to_string())),
-            Err(e) => Err((StatusCode::INTERNAL_SERVER_ERROR, format!("Redis error: {e}"))),
+            Err(_) => Err((StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string())),
         }
     }
 }
