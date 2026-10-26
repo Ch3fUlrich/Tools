@@ -160,11 +160,9 @@ pub async fn delete_measurement(
     Extension(pool): Extension<Arc<PgPool>>,
     Path(id): Path<String>,
 ) -> impl IntoResponse {
-    let uuid = match Uuid::parse_str(&id) {
+    let uuid = match crate::api::training::shared::parse_uuid(&id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
-        }
+        Err(e) => return e,
     };
     match sqlx::query("DELETE FROM body_measurements WHERE id = $1 AND user_id = $2")
         .bind(uuid)

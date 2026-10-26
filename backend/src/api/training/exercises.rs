@@ -74,11 +74,9 @@ pub async fn get_exercise(
     Extension(pool): Extension<Arc<PgPool>>,
     Path(id): Path<String>,
 ) -> impl IntoResponse {
-    let uuid = match Uuid::parse_str(&id) {
+    let uuid = match crate::api::training::shared::parse_uuid(&id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
-        }
+        Err(e) => return e,
     };
 
     let exercise = sqlx::query(
