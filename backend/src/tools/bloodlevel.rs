@@ -964,6 +964,12 @@ mod tests {
         assert_eq!(absorption_rate_from_tmax(1.0, -0.1), f64::INFINITY);
         assert_eq!(absorption_rate_from_tmax(1.0, 0.0), f64::INFINITY);
         assert_eq!(absorption_rate_from_tmax(1.0, f64::NAN), f64::INFINITY);
+        assert_eq!(absorption_rate_from_tmax(1.0, f64::INFINITY), f64::INFINITY);
+        assert_eq!(absorption_rate_from_tmax(f64::INFINITY, f64::INFINITY), f64::INFINITY);
+
+        let inf_tmax_result = absorption_rate_from_tmax(f64::INFINITY, 0.1);
+        assert!(inf_tmax_result.is_finite());
+        assert!(inf_tmax_result > 0.1 && inf_tmax_result < 0.11);
 
         // Near-equal paths
         // When ka and ke are near equal, tmax_for uses 1.0 / ke.
