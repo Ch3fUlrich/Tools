@@ -16,6 +16,14 @@ pub struct StatsFilterParams {
     pub exercise_id: Option<String>,
 }
 
+use axum::{
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
+use serde_json::json;
+use uuid::Uuid;
+
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
 pub struct ExerciseFilterParams {
@@ -24,4 +32,11 @@ pub struct ExerciseFilterParams {
     pub pattern: Option<String>,
     pub difficulty: Option<String>,
     pub search: Option<String>,
+}
+
+#[allow(clippy::result_large_err)]
+pub fn parse_uuid(id: &str) -> Result<Uuid, Response> {
+    Uuid::parse_str(id).map_err(|_| {
+        (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
+    })
 }
