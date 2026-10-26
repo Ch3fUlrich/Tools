@@ -342,9 +342,15 @@ mod tests {
         assert!((masses.head_neck - weight * SegmentMassFractions::HEAD_NECK).abs() < f64::EPSILON);
         assert!((masses.trunk - weight * SegmentMassFractions::TRUNK).abs() < f64::EPSILON);
         assert!((masses.upper_arm - weight * SegmentMassFractions::UPPER_ARM).abs() < f64::EPSILON);
-        assert!((masses.lower_arm_hand - weight * SegmentMassFractions::LOWER_ARM_HAND).abs() < f64::EPSILON);
+        assert!(
+            (masses.lower_arm_hand - weight * SegmentMassFractions::LOWER_ARM_HAND).abs()
+                < f64::EPSILON
+        );
         assert!((masses.upper_leg - weight * SegmentMassFractions::UPPER_LEG).abs() < f64::EPSILON);
-        assert!((masses.lower_leg_foot - weight * SegmentMassFractions::LOWER_LEG_FOOT).abs() < f64::EPSILON);
+        assert!(
+            (masses.lower_leg_foot - weight * SegmentMassFractions::LOWER_LEG_FOOT).abs()
+                < f64::EPSILON
+        );
         assert!((masses.total - weight).abs() < f64::EPSILON);
     }
 
