@@ -434,7 +434,10 @@ pub async fn callback(
 
     let uid = match provision_oidc_user(&pool, &issuer, &identity).await {
         Ok(uid) => uid,
-        Err(e) => return error_response(StatusCode::INTERNAL_SERVER_ERROR, e),
+        Err(e) => {
+            tracing::error!("OIDC user provisioning failed: {e}");
+            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Failed to provision user");
+        }
     };
 
     validate_nonce_and_create_session(store, q.state.clone(), stored_nonce, claims, uid).await
