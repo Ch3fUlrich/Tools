@@ -4,7 +4,7 @@ import { render, screen, act, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import OIDCPage from '@/app/auth/oidc/callback/page';
 
-const push = vi.fn();
+const { push } = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }), usePathname: () => '/' }));
 
 vi.mock('@/components/auth/AuthContext', () => ({
