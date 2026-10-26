@@ -35,6 +35,8 @@ describe('OIDC callback error fallback', () => {
     vi.restoreAllMocks();
     // @ts-ignore
     global.window.location = originalLocation;
+    // @ts-ignore
+    vi.unstubAllGlobals();
   });
 
   test('handles unexpected error without error.message gracefully', async () => {
@@ -61,8 +63,5 @@ describe('OIDC callback error fallback', () => {
     });
 
     expect(push).toHaveBeenCalledWith('/auth');
-
-    // @ts-ignore
-    vi.unstubAllGlobals();
   });
 });
