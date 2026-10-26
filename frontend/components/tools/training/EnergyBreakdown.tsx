@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 
 interface EnergyBreakdownProps {
   totalKcal: number | null;

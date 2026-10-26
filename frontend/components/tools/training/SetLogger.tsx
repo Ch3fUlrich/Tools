@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import NumberInput from '@/components/ui/NumberInput';
 import Button from '@/components/ui/Button';
 

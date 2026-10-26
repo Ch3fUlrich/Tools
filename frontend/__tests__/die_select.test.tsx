@@ -1,5 +1,4 @@
 /// <reference types="vitest" />
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import DieSelect from '@/components/ui/DieSelect';
 import { TestWrapper } from '@/lib/test-utils';
