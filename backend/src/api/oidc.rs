@@ -77,7 +77,7 @@ async fn provision_oidc_user(
     .bind(&identity.subject)
     .fetch_optional(pool)
     .await
-    .map_err(|e| format!("DB error looking up linked account: {e}"))?;
+    .map_err(|_| "Database error".to_string())?;
 
     if let Some(rec) = linked {
         let id: sqlx::types::Uuid =
@@ -92,7 +92,7 @@ async fn provision_oidc_user(
                 .bind(em)
                 .fetch_optional(pool)
                 .await
-                .map_err(|e| format!("DB error looking up user by email: {e}"))?
+                .map_err(|_| "Database error".to_string())?
         }
         _ => None,
     };
@@ -113,7 +113,7 @@ async fn provision_oidc_user(
         .bind(identity.display_name.as_deref())
         .fetch_one(pool)
         .await
-        .map_err(|e| format!("DB error creating user: {e}"))?;
+        .map_err(|_| "Database error".to_string())?;
 
         rec.try_get("id").map_err(|e| format!("DB returned malformed id: {e}"))?
     };
@@ -129,7 +129,7 @@ async fn provision_oidc_user(
     .bind(serde_json::json!({"email": identity.email, "name": identity.display_name}))
     .execute(pool)
     .await
-    .map_err(|e| format!("DB error linking account: {e}"))?;
+    .map_err(|_| "Database error".to_string())?;
 
     Ok(user_id)
 }
@@ -150,7 +150,7 @@ async fn refresh_profile(
     .bind(identity.display_name.as_deref())
     .execute(pool)
     .await
-    .map_err(|e| format!("DB error refreshing profile: {e}"))?;
+    .map_err(|_| "Database error".to_string())?;
     Ok(())
 }
 
