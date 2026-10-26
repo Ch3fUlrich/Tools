@@ -1,6 +1,5 @@
 "use client";
 
-import React from 'react';
 import StepperUpIcon from '@/components/icons/StepperUpIcon';
 import StepperDownIcon from '@/components/icons/StepperDownIcon';
 
