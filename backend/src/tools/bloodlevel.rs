@@ -290,7 +290,6 @@ pub fn simulate_saturating(
     let steps = ((horizon / step_hours).ceil() as i64).max(1);
 
     let mut gut = vec![0.0_f64; doses.len()];
-    let mut released = vec![false; doses.len()];
     let mut body = 0.0_f64;
 
     let rate = |amount: f64| -> f64 {
@@ -308,14 +307,19 @@ pub fn simulate_saturating(
     let mut out = vec![0.0_f64; sample_hours.len()];
     let mut next = 0usize;
 
+    let mut dose_order: Vec<usize> = (0..doses.len()).collect();
+    dose_order.sort_by(|&a, &b| {
+        doses[a].hours_from_start.partial_cmp(&doses[b].hours_from_start).unwrap_or(std::cmp::Ordering::Equal)
+    });
+    let mut next_dose = 0usize;
+
     for step in 0..=steps {
         let t = step as f64 * step_hours;
 
-        for (i, dose) in doses.iter().enumerate() {
-            if !released[i] && dose.hours_from_start <= t + 1e-12 {
-                gut[i] += dose.bioavailable_dose;
-                released[i] = true;
-            }
+        while next_dose < dose_order.len() && doses[dose_order[next_dose]].hours_from_start <= t + 1e-12 {
+            let i = dose_order[next_dose];
+            gut[i] += doses[i].bioavailable_dose;
+            next_dose += 1;
         }
 
         while next < order.len() && sample_hours[order[next]] <= t + 1e-12 {
