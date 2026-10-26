@@ -2,6 +2,7 @@
 import React from 'react';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import OIDCPage from '@/app/auth/oidc/callback/page';
 
 const push = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }), usePathname: () => '/' }));
@@ -21,8 +22,6 @@ function setSearch(search: string) {
   // @ts-ignore
   global.window.location = { search } as Location;
 }
-
-import OIDCPage from '@/app/auth/oidc/callback/page';
 
 describe('OIDC callback error fallback', () => {
   beforeEach(() => {
