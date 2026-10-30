@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.3",
-    "autoprefixer": "^10.6.1",
+    "autoprefixer": "^10.6.2",
     "next": "^16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0"
