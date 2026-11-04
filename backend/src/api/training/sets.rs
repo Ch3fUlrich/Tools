@@ -34,19 +34,13 @@ pub async fn log_set(
     Path(session_id): Path<String>,
     Json(req): Json<LogSetRequest>,
 ) -> impl IntoResponse {
-    let session_uuid = match Uuid::parse_str(&session_id) {
+    let session_uuid = match crate::api::training::shared::parse_uuid(&session_id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid session_id"})))
-                .into_response()
-        }
+        Err(e) => return e,
     };
-    let exercise_uuid = match Uuid::parse_str(&req.exercise_id) {
+    let exercise_uuid = match crate::api::training::shared::parse_uuid(&req.exercise_id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid exercise_id"})))
-                .into_response()
-        }
+        Err(e) => return e,
     };
 
     // Verify session belongs to user and is in_progress
@@ -237,19 +231,13 @@ pub async fn delete_set(
     Extension(pool): Extension<Arc<PgPool>>,
     Path((session_id, set_id)): Path<(String, String)>,
 ) -> impl IntoResponse {
-    let session_uuid = match Uuid::parse_str(&session_id) {
+    let session_uuid = match crate::api::training::shared::parse_uuid(&session_id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid session_id"})))
-                .into_response()
-        }
+        Err(e) => return e,
     };
-    let set_uuid = match Uuid::parse_str(&set_id) {
+    let set_uuid = match crate::api::training::shared::parse_uuid(&set_id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid set_id"})))
-                .into_response()
-        }
+        Err(e) => return e,
     };
 
     // Verify ownership

@@ -80,11 +80,9 @@ pub async fn get_plan(
     Extension(pool): Extension<Arc<PgPool>>,
     Path(id): Path<String>,
 ) -> impl IntoResponse {
-    let uuid = match Uuid::parse_str(&id) {
+    let uuid = match crate::api::training::shared::parse_uuid(&id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
-        }
+        Err(e) => return e,
     };
 
     let plan = sqlx::query(
@@ -153,11 +151,9 @@ pub async fn update_plan(
     Path(id): Path<String>,
     Json(req): Json<CreatePlanRequest>,
 ) -> impl IntoResponse {
-    let uuid = match Uuid::parse_str(&id) {
+    let uuid = match crate::api::training::shared::parse_uuid(&id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
-        }
+        Err(e) => return e,
     };
     match sqlx::query(
         "UPDATE training_plans SET name = $1, description = $2, plan_type = COALESCE($3, plan_type), updated_at = now()
@@ -190,11 +186,9 @@ pub async fn delete_plan(
     Extension(pool): Extension<Arc<PgPool>>,
     Path(id): Path<String>,
 ) -> impl IntoResponse {
-    let uuid = match Uuid::parse_str(&id) {
+    let uuid = match crate::api::training::shared::parse_uuid(&id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
-        }
+        Err(e) => return e,
     };
     match sqlx::query("DELETE FROM training_plans WHERE id = $1 AND user_id = $2")
         .bind(uuid)
@@ -236,19 +230,13 @@ pub async fn add_plan_exercise(
     Path(plan_id): Path<String>,
     Json(req): Json<AddPlanExerciseRequest>,
 ) -> impl IntoResponse {
-    let plan_uuid = match Uuid::parse_str(&plan_id) {
+    let plan_uuid = match crate::api::training::shared::parse_uuid(&plan_id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid plan_id"})))
-                .into_response()
-        }
+        Err(e) => return e,
     };
-    let exercise_uuid = match Uuid::parse_str(&req.exercise_id) {
+    let exercise_uuid = match crate::api::training::shared::parse_uuid(&req.exercise_id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid exercise_id"})))
-                .into_response()
-        }
+        Err(e) => return e,
     };
 
     // Verify plan belongs to user
@@ -294,18 +282,13 @@ pub async fn delete_plan_exercise(
     Extension(pool): Extension<Arc<PgPool>>,
     Path((plan_id, exercise_id)): Path<(String, String)>,
 ) -> impl IntoResponse {
-    let plan_uuid = match Uuid::parse_str(&plan_id) {
+    let plan_uuid = match crate::api::training::shared::parse_uuid(&plan_id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid plan_id"})))
-                .into_response()
-        }
+        Err(e) => return e,
     };
-    let pe_uuid = match Uuid::parse_str(&exercise_id) {
+    let pe_uuid = match crate::api::training::shared::parse_uuid(&exercise_id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
-        }
+        Err(e) => return e,
     };
 
     // Verify ownership

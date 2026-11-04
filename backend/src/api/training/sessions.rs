@@ -113,11 +113,9 @@ pub async fn get_session(
     Extension(pool): Extension<Arc<PgPool>>,
     Path(id): Path<String>,
 ) -> impl IntoResponse {
-    let uuid = match Uuid::parse_str(&id) {
+    let uuid = match crate::api::training::shared::parse_uuid(&id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
-        }
+        Err(e) => return e,
     };
 
     let session = sqlx::query(
@@ -206,11 +204,9 @@ pub async fn update_session(
     Path(id): Path<String>,
     Json(req): Json<UpdateSessionRequest>,
 ) -> impl IntoResponse {
-    let uuid = match Uuid::parse_str(&id) {
+    let uuid = match crate::api::training::shared::parse_uuid(&id) {
         Ok(u) => u,
-        Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "invalid id"}))).into_response()
-        }
+        Err(e) => return e,
     };
 
     let completed_at =
