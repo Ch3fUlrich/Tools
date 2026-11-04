@@ -35,10 +35,10 @@ pub async fn roll(
     // Attempt to deserialize into RollPayload
     let payload_parsed: RollPayload = match serde_json::from_value(payload) {
         Ok(r) => r,
-        Err(e) => {
+        Err(_) => {
             return (
                 axum::http::StatusCode::BAD_REQUEST,
-                axum::Json(serde_json::json!({"error": format!("invalid request: {}", e)})),
+                axum::Json(serde_json::json!({"error": "invalid request format"})),
             )
                 .into_response()
         }
