@@ -191,6 +191,7 @@ mod tests {
             ("   ", RegistrationError::EmailMissing),
             ("nobody", RegistrationError::EmailMalformed),
             ("no@domain", RegistrationError::EmailMalformed),
+            ("user@", RegistrationError::EmailMalformed),
             ("@example.com", RegistrationError::EmailMalformed),
             ("two@at@example.com", RegistrationError::EmailMalformed),
             ("space in@example.com", RegistrationError::EmailMalformed),
@@ -338,6 +339,7 @@ mod tests {
         let malformed_cases = [
             "nodomain",
             "no@domain",
+            "user@",
             "@example.com",
             "two@at@example.com",
             "space in@example.com",
