@@ -261,7 +261,10 @@ fn test_env_cleanup_on_panic() {
     let result = std::panic::catch_unwind(|| {
         temp_env::with_var("ALLOWED_ORIGINS", Some("test-value"), || {
             // Verify the value is set
-            assert_eq!(std::env::var("ALLOWED_ORIGINS").unwrap(), "test-value");
+            match std::env::var("ALLOWED_ORIGINS") {
+                Ok(val) => assert_eq!(val, "test-value"),
+                Err(_) => panic!("ALLOWED_ORIGINS should be set"),
+            }
             // Simulate a panic
             panic!("Intentional panic for testing");
         });
@@ -303,28 +306,28 @@ fn test_configure_cors_with_multiple_valid_origins() {
                 let res1 = server.get("/")
                     .add_header(axum::http::header::ORIGIN, "http://localhost:3000")
                     .await;
-                assert_eq!(
-                    res1.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
-                    "http://localhost:3000"
-                );
+                match res1.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN) {
+                    Some(val) => assert_eq!(val, "http://localhost:3000"),
+                    None => panic!("Missing ACCESS_CONTROL_ALLOW_ORIGIN header for first origin"),
+                }
 
                 // Test second origin
                 let res2 = server.get("/")
                     .add_header(axum::http::header::ORIGIN, "https://example.com")
                     .await;
-                assert_eq!(
-                    res2.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
-                    "https://example.com"
-                );
+                match res2.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN) {
+                    Some(val) => assert_eq!(val, "https://example.com"),
+                    None => panic!("Missing ACCESS_CONTROL_ALLOW_ORIGIN header for second origin"),
+                }
 
                 // Test third origin
                 let res3 = server.get("/")
                     .add_header(axum::http::header::ORIGIN, "https://app.example.com")
                     .await;
-                assert_eq!(
-                    res3.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN).unwrap(),
-                    "https://app.example.com"
-                );
+                match res3.headers().get(axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN) {
+                    Some(val) => assert_eq!(val, "https://app.example.com"),
+                    None => panic!("Missing ACCESS_CONTROL_ALLOW_ORIGIN header for third origin"),
+                }
 
                 // Test invalid origin
                 let res4 = server.get("/")
