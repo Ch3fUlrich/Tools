@@ -3874,18 +3874,18 @@
   }
 
   function renderTemplateStageZone(position, stageCount, colorOffset) {
-    const cells = Array.from({ length: stageCount }, (_, index) => `
-      <span
-        class="template-card-stage-cell"
-        style="background:${TEMPLATE_STAGE_COLORS[(colorOffset + index) % TEMPLATE_STAGE_COLORS.length]}"
-      ></span>
-    `).join("");
+    const zone = document.createElement("span");
+    zone.className = `template-card-stage-zone template-card-stage-zone-${position}`;
+    zone.style.setProperty("--template-stage-count", stageCount);
 
-    return `
-      <span class="template-card-stage-zone template-card-stage-zone-${position}" style="--template-stage-count:${stageCount}">
-        ${cells}
-      </span>
-    `;
+    for (let index = 0; index < stageCount; index++) {
+      const cell = document.createElement("span");
+      cell.className = "template-card-stage-cell";
+      cell.style.background = TEMPLATE_STAGE_COLORS[(colorOffset + index) % TEMPLATE_STAGE_COLORS.length];
+      zone.appendChild(cell);
+    }
+
+    return zone;
   }
 
   function createTemplatePreview(layout, stageCount) {
@@ -3894,32 +3894,67 @@
     card.className = `template-card template-card-${layout}`;
     const title = getTemplatePreviewTitle(layout);
     const stageLabel = `${stageCount} stage${stageCount === 1 ? "" : "s"}`;
-    const previewZones = [];
+
+    const heading = document.createElement("span");
+    heading.className = "template-card-heading";
+    const titleSpan = document.createElement("span");
+    titleSpan.className = "template-card-title";
+    titleSpan.textContent = title;
+    const metaSpan = document.createElement("span");
+    metaSpan.className = "template-card-meta";
+    metaSpan.textContent = stageLabel;
+    heading.appendChild(titleSpan);
+    heading.appendChild(metaSpan);
+    card.appendChild(heading);
+
+    const preview = document.createElement("span");
+    preview.className = `template-card-preview template-card-preview-${layout}`;
 
     if (layout !== "lower") {
-      previewZones.push(renderTemplateStageZone("upper", stageCount, 0));
+      preview.appendChild(renderTemplateStageZone("upper", stageCount, 0));
     }
 
     if (layout !== "upper") {
-      previewZones.push(renderTemplateStageZone("lower", stageCount, layout === "dual" ? stageCount : 0));
+      preview.appendChild(renderTemplateStageZone("lower", stageCount, layout === "dual" ? stageCount : 0));
     }
 
-    card.innerHTML = `
-      <span class="template-card-heading">
-        <span class="template-card-title">${escapeHtml(title)}</span>
-        <span class="template-card-meta">${escapeHtml(stageLabel)}</span>
-      </span>
-      <span class="template-card-preview template-card-preview-${layout}">
-        ${previewZones.join("")}
-        <span class="template-card-axis"></span>
-        ${layout !== "lower" ? '<span class="template-card-block template-card-block-upper"></span><span class="template-card-arrow template-card-arrow-upper"></span>' : ""}
-        ${layout !== "upper" ? '<span class="template-card-block template-card-block-lower"></span><span class="template-card-arrow template-card-arrow-lower"></span>' : ""}
-      </span>
-      <span class="template-card-footer">
-        <span class="template-card-count">${layout === "dual" ? stageCount * 2 : stageCount} colors</span>
-        <span class="template-card-label">Create preset</span>
-      </span>
-    `;
+    const axis = document.createElement("span");
+    axis.className = "template-card-axis";
+    preview.appendChild(axis);
+
+    if (layout !== "lower") {
+      const block = document.createElement("span");
+      block.className = "template-card-block template-card-block-upper";
+      preview.appendChild(block);
+      const arrow = document.createElement("span");
+      arrow.className = "template-card-arrow template-card-arrow-upper";
+      preview.appendChild(arrow);
+    }
+
+    if (layout !== "upper") {
+      const block = document.createElement("span");
+      block.className = "template-card-block template-card-block-lower";
+      preview.appendChild(block);
+      const arrow = document.createElement("span");
+      arrow.className = "template-card-arrow template-card-arrow-lower";
+      preview.appendChild(arrow);
+    }
+
+    card.appendChild(preview);
+
+    const footer = document.createElement("span");
+    footer.className = "template-card-footer";
+    const countSpan = document.createElement("span");
+    countSpan.className = "template-card-count";
+    countSpan.textContent = `${layout === "dual" ? stageCount * 2 : stageCount} colors`;
+    const labelSpan = document.createElement("span");
+    labelSpan.className = "template-card-label";
+    labelSpan.textContent = "Create preset";
+    footer.appendChild(countSpan);
+    footer.appendChild(labelSpan);
+
+    card.appendChild(footer);
+
     return card;
   }
 
