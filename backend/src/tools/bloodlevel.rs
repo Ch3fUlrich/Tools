@@ -768,8 +768,11 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
         get_substances().into_iter().map(Some).collect();
 
     // Build O(1) lookup map
-    let mut substances_map: std::collections::HashMap<String, usize> =
-        std::collections::HashMap::with_capacity(owned_substances.len() * 2);
+    let mut substances_map: rustc_hash::FxHashMap<String, usize> =
+        rustc_hash::FxHashMap::with_capacity_and_hasher(
+            owned_substances.len() * 2,
+            Default::default(),
+        );
     for (idx, sub) in owned_substances.iter().enumerate() {
         if let Some(s) = sub {
             substances_map.insert(s.id.to_ascii_lowercase(), idx);
@@ -778,8 +781,8 @@ pub fn calculate_blood_levels(request: ToleranceRequest) -> Result<ToleranceResp
     }
 
     // Group intakes by substance
-    let mut substance_intakes: std::collections::HashMap<usize, Vec<&SubstanceIntake>> =
-        std::collections::HashMap::new();
+    let mut substance_intakes: rustc_hash::FxHashMap<usize, Vec<&SubstanceIntake>> =
+        rustc_hash::FxHashMap::default();
 
     for intake in &request.intakes {
         let substance_name = &intake.substance;
