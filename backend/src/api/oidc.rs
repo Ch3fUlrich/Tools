@@ -470,12 +470,13 @@ async fn validate_nonce_and_create_session(
         let mut guard = store_arc.lock().await;
         if let Some(_state) = state {
             if let Some(stored_nonce) = stored_nonce {
-                if let Some(c) = &claims {
-                    if let Some(token_nonce) = c.nonce() {
-                        if token_nonce.secret() != stored_nonce.as_str() {
-                            return error_response(StatusCode::BAD_REQUEST, "nonce mismatch");
-                        }
-                    }
+                let is_mismatch = claims
+                    .as_ref()
+                    .and_then(|c| c.nonce())
+                    .is_some_and(|token_nonce| token_nonce.secret() != stored_nonce.as_str());
+
+                if is_mismatch {
+                    return error_response(StatusCode::BAD_REQUEST, "nonce mismatch");
                 }
             } else {
                 tracing::warn!(
