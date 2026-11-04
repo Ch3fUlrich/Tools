@@ -223,4 +223,43 @@ describe('api client full coverage', () => {
       calculateTolerance({ intakes: [], time_points: [] })
     ).rejects.toThrow(/Failed to calculate tolerance/);
   });
+
+  it('handles error response without text() but with json()', async () => {
+    (globalThis as any).fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      text: async () => { throw new Error('No text'); },
+      json: async () => ({ error: 'Fallback JSON error' })
+    });
+
+    await expect(calculateFatLoss({ kcal_deficit: 0, weight_loss_kg: 0 })).rejects.toThrow(
+      'Failed to calculate fat loss (500): Fallback JSON error'
+    );
+  });
+
+  it('handles error response without text() or json() gracefully', async () => {
+    (globalThis as any).fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      text: async () => { throw new Error('No text'); },
+      json: async () => { throw new Error('No json'); }
+    });
+
+    await expect(calculateFatLoss({ kcal_deficit: 0, weight_loss_kg: 0 })).rejects.toThrow(
+      'Failed to calculate fat loss (500)'
+    );
+  });
+
+  it('handles error response JSON format gracefully without throwing', async () => {
+    (globalThis as any).fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      text: async () => { throw new Error('No text'); },
+      json: async () => ({ otherField: 'some info' })
+    });
+
+    await expect(calculateFatLoss({ kcal_deficit: 0, weight_loss_kg: 0 })).rejects.toThrow(
+      'Failed to calculate fat loss (500)'
+    );
+  });
 });
