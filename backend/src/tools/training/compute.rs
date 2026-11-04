@@ -334,6 +334,39 @@ pub fn compute_volume(sets: &[(f64, u32)]) -> f64 {
 mod tests {
     use super::*;
 
+    #[test]
+    fn test_compute_segment_masses_standard() {
+        let weight = 80.0;
+        let masses = compute_segment_masses(weight);
+
+        assert!((masses.head_neck - weight * SegmentMassFractions::HEAD_NECK).abs() < f64::EPSILON);
+        assert!((masses.trunk - weight * SegmentMassFractions::TRUNK).abs() < f64::EPSILON);
+        assert!((masses.upper_arm - weight * SegmentMassFractions::UPPER_ARM).abs() < f64::EPSILON);
+        assert!(
+            (masses.lower_arm_hand - weight * SegmentMassFractions::LOWER_ARM_HAND).abs()
+                < f64::EPSILON
+        );
+        assert!((masses.upper_leg - weight * SegmentMassFractions::UPPER_LEG).abs() < f64::EPSILON);
+        assert!(
+            (masses.lower_leg_foot - weight * SegmentMassFractions::LOWER_LEG_FOOT).abs()
+                < f64::EPSILON
+        );
+        assert!((masses.total - weight).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_compute_segment_masses_zero() {
+        let masses = compute_segment_masses(0.0);
+
+        assert_eq!(masses.head_neck, 0.0);
+        assert_eq!(masses.trunk, 0.0);
+        assert_eq!(masses.upper_arm, 0.0);
+        assert_eq!(masses.lower_arm_hand, 0.0);
+        assert_eq!(masses.upper_leg, 0.0);
+        assert_eq!(masses.lower_leg_foot, 0.0);
+        assert_eq!(masses.total, 0.0);
+    }
+
     fn dummy_measurements() -> BodyMeasurements {
         BodyMeasurements {
             body_weight_kg: 80.0,
