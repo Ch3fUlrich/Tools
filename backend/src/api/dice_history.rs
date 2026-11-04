@@ -61,11 +61,14 @@ pub async fn save(
                 let id: String = rec.try_get("id").unwrap_or_else(|_| String::new());
                 (StatusCode::CREATED, axum::Json(serde_json::json!({"id": id}))).into_response()
             }
-            Err(e) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                axum::Json(serde_json::json!({"error": format!("DB error: {}", e)})),
-            )
-                .into_response(),
+            Err(e) => {
+                tracing::error!("DB error: {}", e);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    axum::Json(serde_json::json!({"error": "Database error occurred"})),
+                )
+                    .into_response()
+            }
         };
     }
 
@@ -90,11 +93,14 @@ pub async fn save(
                 axum::Json(serde_json::json!({"note": "stored in session history"})),
             )
                 .into_response(),
-            Err(e) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                axum::Json(serde_json::json!({"error": format!("redis error: {}", e)})),
-            )
-                .into_response(),
+            Err(e) => {
+                tracing::error!("redis error: {}", e);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    axum::Json(serde_json::json!({"error": "Redis error occurred"})),
+                )
+                    .into_response()
+            }
         };
     }
 
@@ -115,11 +121,14 @@ pub async fn save(
             )
                 .into_response()
         }
-        Err(e) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            axum::Json(serde_json::json!({"error": format!("DB error: {}", e)})),
-        )
-            .into_response(),
+        Err(e) => {
+            tracing::error!("DB error: {}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(serde_json::json!({"error": "Database error occurred"})),
+            )
+                .into_response()
+        }
     }
 }
 
@@ -149,11 +158,14 @@ pub async fn history(
                 }
                 (StatusCode::OK, axum::Json(out)).into_response()
             }
-            Err(e) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                axum::Json(serde_json::json!({"error": format!("DB error: {}", e)})),
-            )
-                .into_response(),
+            Err(e) => {
+                tracing::error!("DB error: {}", e);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    axum::Json(serde_json::json!({"error": "Database error occurred"})),
+                )
+                    .into_response()
+            }
         };
     }
 
@@ -179,11 +191,14 @@ pub async fn history(
                 }
                 (StatusCode::OK, axum::Json(out)).into_response()
             }
-            Err(e) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                axum::Json(serde_json::json!({"error": format!("redis error: {}", e)})),
-            )
-                .into_response(),
+            Err(e) => {
+                tracing::error!("redis error: {}", e);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    axum::Json(serde_json::json!({"error": "Redis error occurred"})),
+                )
+                    .into_response()
+            }
         };
     }
 
