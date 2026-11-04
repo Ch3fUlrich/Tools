@@ -26,6 +26,98 @@ enum RollPayload {
     Batch(Vec<dice_logic::DiceRequest>),
 }
 
+async fn check_rate_limit(
+    store: &Option<Arc<AsyncMutex<SessionStore>>>,
+    headers: &axum::http::HeaderMap,
+) -> Result<(), axum::response::Response> {
+    let mut limited = false;
+    if let Some(store_arc) = store {
+        // try to parse sid from cookie
+        let cookie_header =
+            headers.get(axum::http::header::COOKIE).and_then(|v| v.to_str().ok()).unwrap_or("");
+        if let Some(sid) = SessionStore::parse_sid_from_cookie(cookie_header) {
+            let mut guard = store_arc.lock().await;
+            let key = format!("{}:lim:roll:{}", guard.namespace, sid);
+            match guard.allow_sliding_window(&key, 60, 20).await {
+                Ok(true) => {}
+                Ok(false) => {
+                    return Err((
+                        axum::http::StatusCode::TOO_MANY_REQUESTS,
+                        axum::Json(serde_json::json!({"error":"rate limit exceeded"})),
+                    )
+                        .into_response());
+                }
+                Err(_) => {
+                    // fallthrough to global limiter
+                }
+            }
+            limited = true;
+        } else {
+            // global per-app limiter in redis
+            let mut guard = store_arc.lock().await;
+            let key = format!("{}:lim:global:rolls", guard.namespace);
+            if let Ok(ok) = guard.allow_sliding_window(&key, 60, 500).await {
+                if !ok {
+                    return Err((
+                        axum::http::StatusCode::TOO_MANY_REQUESTS,
+                        axum::Json(serde_json::json!({"error":"rate limit exceeded"})),
+                    )
+                        .into_response());
+                }
+            }
+            limited = true;
+        }
+    }
+    if !limited {
+        // fallback in-memory limiter
+        let ip = "unknown".to_string();
+        {
+            let mut map = RATE_LIMIT.lock().unwrap_or_else(|e| e.into_inner());
+            let entry = map.entry(ip).or_insert((0, std::time::Instant::now()));
+            let elapsed = entry.1.elapsed();
+            if elapsed.as_secs() > 60 {
+                *entry = (0, std::time::Instant::now());
+            }
+            if entry.0 > 20 {
+                return Err((
+                    axum::http::StatusCode::TOO_MANY_REQUESTS,
+                    axum::Json(serde_json::json!({"error":"rate limit exceeded"})),
+                )
+                    .into_response());
+            }
+            entry.0 += 1;
+        }
+    }
+    Ok(())
+}
+
+async fn handle_batch(reqs: Vec<dice_logic::DiceRequest>) -> axum::response::Response {
+    let futures: Vec<_> = reqs.into_iter().map(dice_logic::handle_roll).collect();
+    let results = futures::future::join_all(futures).await;
+
+    let mut all_rolls = Vec::new();
+    let mut total_requested = 0;
+
+    for res in results {
+        let mut resp = match res {
+            Ok(r) => r,
+            Err(e) => return (axum::http::StatusCode::BAD_REQUEST, axum::Json(e)).into_response(),
+        };
+
+        all_rolls.append(&mut resp.rolls);
+
+        if let Some(count) = resp.summary.get("totalRollsRequested").and_then(|v| v.as_u64()) {
+            total_requested += count;
+        }
+    }
+
+    let combined_resp = dice_logic::DiceResponse {
+        rolls: all_rolls,
+        summary: serde_json::json!({ "totalRollsRequested": total_requested }),
+    };
+    (axum::http::StatusCode::OK, axum::Json(combined_resp)).into_response()
+}
+
 #[debug_handler]
 pub async fn roll(
     Extension(store): Extension<Option<Arc<AsyncMutex<SessionStore>>>>,
@@ -43,64 +135,9 @@ pub async fn roll(
                 .into_response()
         }
     };
-    // Prefer Redis-backed limiter if available (per-session id). Fallback to in-memory limiter keyed by "unknown".
-    let mut limited = false;
-    if let Some(store_arc) = store {
-        // try to parse sid from cookie
-        let cookie_header =
-            headers.get(axum::http::header::COOKIE).and_then(|v| v.to_str().ok()).unwrap_or("");
-        if let Some(sid) = SessionStore::parse_sid_from_cookie(cookie_header) {
-            let mut guard = store_arc.lock().await;
-            let key = format!("{}:lim:roll:{}", guard.namespace, sid);
-            match guard.allow_sliding_window(&key, 60, 20).await {
-                Ok(true) => {}
-                Ok(false) => {
-                    return (
-                        axum::http::StatusCode::TOO_MANY_REQUESTS,
-                        axum::Json(serde_json::json!({"error":"rate limit exceeded"})),
-                    )
-                        .into_response()
-                }
-                Err(_) => {
-                    // fallthrough to global limiter
-                }
-            }
-            limited = true;
-        } else {
-            // global per-app limiter in redis
-            let mut guard = store_arc.lock().await;
-            let key = format!("{}:lim:global:rolls", guard.namespace);
-            if let Ok(ok) = guard.allow_sliding_window(&key, 60, 500).await {
-                if !ok {
-                    return (
-                        axum::http::StatusCode::TOO_MANY_REQUESTS,
-                        axum::Json(serde_json::json!({"error":"rate limit exceeded"})),
-                    )
-                        .into_response();
-                }
-            }
-            limited = true;
-        }
-    }
-    if !limited {
-        // fallback in-memory limiter
-        let ip = "unknown".to_string();
-        {
-            let mut map = RATE_LIMIT.lock().unwrap_or_else(|e| e.into_inner());
-            let entry = map.entry(ip).or_insert((0, std::time::Instant::now()));
-            let elapsed = entry.1.elapsed();
-            if elapsed.as_secs() > 60 {
-                *entry = (0, std::time::Instant::now());
-            }
-            if entry.0 > 20 {
-                return (
-                    axum::http::StatusCode::TOO_MANY_REQUESTS,
-                    axum::Json(serde_json::json!({"error":"rate limit exceeded"})),
-                )
-                    .into_response();
-            }
-            entry.0 += 1;
-        }
+
+    if let Err(response) = check_rate_limit(&store, &headers).await {
+        return response;
     }
 
     match payload_parsed {
@@ -108,35 +145,6 @@ pub async fn roll(
             Ok(resp) => (axum::http::StatusCode::OK, axum::Json(resp)).into_response(),
             Err(e) => (axum::http::StatusCode::BAD_REQUEST, axum::Json(e)).into_response(),
         },
-        RollPayload::Batch(reqs) => {
-            let futures: Vec<_> = reqs.into_iter().map(dice_logic::handle_roll).collect();
-            let results = futures::future::join_all(futures).await;
-
-            let mut all_rolls = Vec::new();
-            let mut total_requested = 0;
-
-            for res in results {
-                let mut resp = match res {
-                    Ok(r) => r,
-                    Err(e) => {
-                        return (axum::http::StatusCode::BAD_REQUEST, axum::Json(e)).into_response()
-                    }
-                };
-
-                all_rolls.append(&mut resp.rolls);
-
-                if let Some(count) =
-                    resp.summary.get("totalRollsRequested").and_then(|v| v.as_u64())
-                {
-                    total_requested += count;
-                }
-            }
-
-            let combined_resp = dice_logic::DiceResponse {
-                rolls: all_rolls,
-                summary: serde_json::json!({ "totalRollsRequested": total_requested }),
-            };
-            (axum::http::StatusCode::OK, axum::Json(combined_resp)).into_response()
-        }
+        RollPayload::Batch(reqs) => handle_batch(reqs).await,
     }
 }
