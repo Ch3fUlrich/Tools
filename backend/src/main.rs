@@ -295,7 +295,10 @@ fn test_configure_cors_with_multiple_valid_origins() {
                 .layer(cors_layer);
 
             // Use a local tokio runtime to run async test server
-            let rt = tokio::runtime::Runtime::new().unwrap();
+            let rt = match tokio::runtime::Runtime::new() {
+                Ok(rt) => rt,
+                Err(e) => panic!("Failed to create local tokio runtime: {}", e),
+            };
             rt.block_on(async {
                 let server = axum_test::TestServer::new(app.into_make_service());
 
