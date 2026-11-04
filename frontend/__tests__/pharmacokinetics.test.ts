@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { amountFirstOrder } from '@/lib/local/pharmacokinetics';
+import { amountFirstOrder, eliminationRate } from '@/lib/local/pharmacokinetics';
 
 describe('pharmacokinetics - amountFirstOrder', () => {
   it('returns 0 for negative time', () => {
@@ -70,5 +70,22 @@ describe('pharmacokinetics - amountFirstOrder', () => {
   it('clips small negative values to 0 due to float inaccuracies', () => {
     const result = amountFirstOrder(100, 1, 0.5, 1000);
     expect(result).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('pharmacokinetics - eliminationRate', () => {
+  it('calculates the correct elimination rate for a positive half-life', () => {
+    // LN2 / 10
+    expect(eliminationRate(10)).toBeCloseTo(Math.LN2 / 10);
+    // LN2 / 2.5
+    expect(eliminationRate(2.5)).toBeCloseTo(Math.LN2 / 2.5);
+  });
+
+  it('returns 0 for a half-life of 0', () => {
+    expect(eliminationRate(0)).toBe(0);
+  });
+
+  it('returns 0 for a negative half-life', () => {
+    expect(eliminationRate(-5)).toBe(0);
   });
 });
