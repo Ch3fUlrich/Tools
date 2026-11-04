@@ -148,83 +148,83 @@ const valueOr = (value: string, example: string) => (value.trim() === '' ? examp
 
 export const ElterngeldOptimizer: React.FC = () => {
   const { t } = useTranslation();
-  const [filing, setFiling] = useState<FilingStatus>('married');
-  const [profitDeltaKind, setProfitDeltaKind] = useState<ProfitDeltaKind>('timing');
-  const [baseYear, setBaseYear] = useState<TaxYear>(2026);
-  const [leaveYear, setLeaveYear] = useState<TaxYear>(2026);
+  const [snapshot, setSnapshot] = useState<ElterngeldSnapshot>({
+    filing: 'married',
+    profitDeltaKind: 'timing',
+    baseYear: 2026,
+    leaveYear: 2026,
+    profitLow: '',
+    profitHigh: '',
+    employmentGross: '',
+    relief: '',
+    prepaidBase: '',
+    prepaidLeave: '',
+    partnerBase: '',
+    partnerLeave: '',
+    ownLeave: '',
+    pflichtKV: false,
+    pflichtRV: true,
+    pflichtAV: false,
+    childless: false,
+    children: '',
+    maternityEnabled: false,
+    weeksBefore: '',
+    weeksAfter: '',
+    extraContribution: '',
+    basisMonths: '',
+    plusMonths: '',
+    duringLeave: '',
+    multiples: '',
+    siblingBonus: false,
+  });
 
-  const [profitLow, setProfitLow] = useState('');
-  const [profitHigh, setProfitHigh] = useState('');
-  const [employmentGross, setEmploymentGross] = useState('');
-  const [relief, setRelief] = useState('');
-
-  const [prepaidBase, setPrepaidBase] = useState('');
-  const [prepaidLeave, setPrepaidLeave] = useState('');
-
-  const [partnerBase, setPartnerBase] = useState('');
-  const [partnerLeave, setPartnerLeave] = useState('');
-  const [ownLeave, setOwnLeave] = useState('');
-
-  const [pflichtKV, setPflichtKV] = useState(false);
-  const [pflichtRV, setPflichtRV] = useState(true);
-  const [pflichtAV, setPflichtAV] = useState(false);
-  const [childless, setChildless] = useState(false);
-
-  const [children, setChildren] = useState('');
-  const [maternityEnabled, setMaternityEnabled] = useState(false);
-  const [weeksBefore, setWeeksBefore] = useState('');
-  const [weeksAfter, setWeeksAfter] = useState('');
-  const [extraContribution, setExtraContribution] = useState('');
-
-  const [basisMonths, setBasisMonths] = useState('');
-  const [plusMonths, setPlusMonths] = useState('');
-  const [duringLeave, setDuringLeave] = useState('');
-  const [multiples, setMultiples] = useState('');
-  const [siblingBonus, setSiblingBonus] = useState(false);
-
-  const loadExample = () => {
-    setProfitLow(EXAMPLE.profitLow);
-    setProfitHigh(EXAMPLE.profitHigh);
-    setEmploymentGross(EXAMPLE.employmentGross);
-    setRelief(EXAMPLE.relief);
-    setFiling('single');
-    setProfitDeltaKind('timing');
-    setPflichtKV(false);
-    setPflichtRV(true);
-    setPflichtAV(false);
-    setBasisMonths('12');
-    setPlusMonths('0');
+  const updateField = <K extends keyof ElterngeldSnapshot>(field: K, value: ElterngeldSnapshot[K]) => {
+    setSnapshot((prev) => ({ ...prev, [field]: value }));
   };
 
-  /** The form as it stands, in the shape {@link SavedScenarios} persists. */
-  const snapshot: ElterngeldSnapshot = {
-    filing,
-    profitDeltaKind,
-    baseYear,
-    leaveYear,
-    profitLow,
-    profitHigh,
-    employmentGross,
-    relief,
-    prepaidBase,
-    prepaidLeave,
-    partnerBase,
-    partnerLeave,
-    ownLeave,
-    pflichtKV,
-    pflichtRV,
-    pflichtAV,
-    childless,
-    children,
-    maternityEnabled,
-    weeksBefore,
-    weeksAfter,
-    extraContribution,
-    basisMonths,
-    plusMonths,
-    duringLeave,
-    multiples,
-    siblingBonus,
+  const setFiling = (v: FilingStatus) => updateField('filing', v);
+  const setProfitDeltaKind = (v: ProfitDeltaKind) => updateField('profitDeltaKind', v);
+  const setBaseYear = (v: TaxYear) => updateField('baseYear', v);
+  const setLeaveYear = (v: TaxYear) => updateField('leaveYear', v);
+  const setProfitLow = (v: string) => updateField('profitLow', v);
+  const setProfitHigh = (v: string) => updateField('profitHigh', v);
+  const setEmploymentGross = (v: string) => updateField('employmentGross', v);
+  const setRelief = (v: string) => updateField('relief', v);
+  const setPrepaidBase = (v: string) => updateField('prepaidBase', v);
+  const setPrepaidLeave = (v: string) => updateField('prepaidLeave', v);
+  const setPartnerBase = (v: string) => updateField('partnerBase', v);
+  const setPartnerLeave = (v: string) => updateField('partnerLeave', v);
+  const setOwnLeave = (v: string) => updateField('ownLeave', v);
+  const setPflichtKV = (v: boolean) => updateField('pflichtKV', v);
+  const setPflichtRV = (v: boolean) => updateField('pflichtRV', v);
+  const setPflichtAV = (v: boolean) => updateField('pflichtAV', v);
+  const setChildless = (v: boolean) => updateField('childless', v);
+  const setChildren = (v: string) => updateField('children', v);
+  const setMaternityEnabled = (v: boolean) => updateField('maternityEnabled', v);
+  const setWeeksBefore = (v: string) => updateField('weeksBefore', v);
+  const setWeeksAfter = (v: string) => updateField('weeksAfter', v);
+  const setExtraContribution = (v: string) => updateField('extraContribution', v);
+  const setBasisMonths = (v: string) => updateField('basisMonths', v);
+  const setPlusMonths = (v: string) => updateField('plusMonths', v);
+  const setDuringLeave = (v: string) => updateField('duringLeave', v);
+  const setMultiples = (v: string) => updateField('multiples', v);
+  const setSiblingBonus = (v: boolean) => updateField('siblingBonus', v);
+
+  const loadExample = () => {
+    setSnapshot((prev) => ({
+      ...prev,
+      profitLow: EXAMPLE.profitLow,
+      profitHigh: EXAMPLE.profitHigh,
+      employmentGross: EXAMPLE.employmentGross,
+      relief: EXAMPLE.relief,
+      filing: 'single',
+      profitDeltaKind: 'timing',
+      pflichtKV: false,
+      pflichtRV: true,
+      pflichtAV: false,
+      basisMonths: '12',
+      plusMonths: '0',
+    }));
   };
 
   /**
@@ -233,34 +233,15 @@ export const ElterngeldOptimizer: React.FC = () => {
    * blanking it.
    */
   const applySnapshot = (fields: Partial<ElterngeldSnapshot>) => {
-    if (fields.filing !== undefined) setFiling(fields.filing);
-    if (fields.profitDeltaKind !== undefined) setProfitDeltaKind(fields.profitDeltaKind);
-    if (fields.baseYear !== undefined) setBaseYear(fields.baseYear);
-    if (fields.leaveYear !== undefined) setLeaveYear(fields.leaveYear);
-    if (fields.profitLow !== undefined) setProfitLow(fields.profitLow);
-    if (fields.profitHigh !== undefined) setProfitHigh(fields.profitHigh);
-    if (fields.employmentGross !== undefined) setEmploymentGross(fields.employmentGross);
-    if (fields.relief !== undefined) setRelief(fields.relief);
-    if (fields.prepaidBase !== undefined) setPrepaidBase(fields.prepaidBase);
-    if (fields.prepaidLeave !== undefined) setPrepaidLeave(fields.prepaidLeave);
-    if (fields.partnerBase !== undefined) setPartnerBase(fields.partnerBase);
-    if (fields.partnerLeave !== undefined) setPartnerLeave(fields.partnerLeave);
-    if (fields.ownLeave !== undefined) setOwnLeave(fields.ownLeave);
-    if (fields.pflichtKV !== undefined) setPflichtKV(fields.pflichtKV);
-    if (fields.pflichtRV !== undefined) setPflichtRV(fields.pflichtRV);
-    if (fields.pflichtAV !== undefined) setPflichtAV(fields.pflichtAV);
-    if (fields.childless !== undefined) setChildless(fields.childless);
-    if (fields.children !== undefined) setChildren(fields.children);
-    if (fields.maternityEnabled !== undefined) setMaternityEnabled(fields.maternityEnabled);
-    if (fields.weeksBefore !== undefined) setWeeksBefore(fields.weeksBefore);
-    if (fields.weeksAfter !== undefined) setWeeksAfter(fields.weeksAfter);
-    if (fields.extraContribution !== undefined) setExtraContribution(fields.extraContribution);
-    if (fields.basisMonths !== undefined) setBasisMonths(fields.basisMonths);
-    if (fields.plusMonths !== undefined) setPlusMonths(fields.plusMonths);
-    if (fields.duringLeave !== undefined) setDuringLeave(fields.duringLeave);
-    if (fields.multiples !== undefined) setMultiples(fields.multiples);
-    if (fields.siblingBonus !== undefined) setSiblingBonus(fields.siblingBonus);
+    setSnapshot((prev) => ({ ...prev, ...fields }));
   };
+
+  const {
+    filing, profitDeltaKind, baseYear, leaveYear, profitLow, profitHigh, employmentGross,
+    relief, prepaidBase, prepaidLeave, partnerBase, partnerLeave, ownLeave, pflichtKV,
+    pflichtRV, pflichtAV, childless, children, maternityEnabled, weeksBefore, weeksAfter,
+    extraContribution, basisMonths, plusMonths, duringLeave, multiples, siblingBonus
+  } = snapshot;
 
   const model = useMemo(() => {
     const a = parseAmount(valueOr(profitLow, EXAMPLE.profitLow));
