@@ -1,7 +1,9 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useAuth, AuthProvider } from '../AuthContext';
+import { getUserProfile } from '@/lib/api/client';
+
 
 // Mock the API client as required by project guidelines
 vi.mock('@/lib/api/client', () => ({
@@ -18,6 +20,16 @@ vi.mock('@/lib/api/backendStatus', () => ({
 }));
 
 describe('useAuth', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    sessionStorage.clear();
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('throws an error when used outside of AuthProvider', () => {
     // Suppress console.error for the expected React error boundary throw
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -53,5 +65,33 @@ describe('useAuth', () => {
     // Initial state checks
     expect(result.current.user).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it('handles backend 401/error and leaves local user in case of offline but does not throw', async () => {
+    const mockUser = {
+      id: 'stored-1',
+      email: 'stored@example.com',
+      created_at: '2023-01-01T00:00:00Z',
+    };
+    sessionStorage.setItem('auth_user', JSON.stringify(mockUser));
+
+    // Simulate backend throwing an error (e.g., unreachable or 401 if we want to catch the specific branch logic)
+    // The current code has a generic catch {} block that just ignores it.
+    (getUserProfile as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Backend rejected session'));
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <AuthProvider>{children}</AuthProvider>
+    );
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
+    // It should keep the user because the try/catch around getUserProfile swallows the error
+    // (the comment says "Backend unreachable or session invalid — keep showing stored user")
+    expect(result.current.user).toEqual(mockUser);
+    expect(result.current.isAuthenticated).toBe(true);
   });
 });
