@@ -42,3 +42,12 @@ harness = false
 [[bench]]
 name = "bloodlevel_bench"
 harness = false
+
+[[bench]]
+name = "saturating_bench"
+harness = false
+
+
+[[bench]]
+name = "saturating_bench_many_doses"
+harness = false

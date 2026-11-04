@@ -290,8 +290,19 @@ pub fn simulate_saturating(
     let steps = ((horizon / step_hours).ceil() as i64).max(1);
 
     let mut gut = vec![0.0_f64; doses.len()];
-    let mut released = vec![false; doses.len()];
     let mut body = 0.0_f64;
+
+    // We must process doses in chronological order to use `next_unreleased`.
+    let mut dose_order: Vec<usize> = (0..doses.len()).collect();
+    dose_order.sort_by(|&a, &b| {
+        doses[a]
+            .hours_from_start
+            .partial_cmp(&doses[b].hours_from_start)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    let mut next_unreleased = 0usize;
+    let mut active_indices = Vec::with_capacity(doses.len());
 
     let rate = |amount: f64| -> f64 {
         if amount > 0.0 {
@@ -311,11 +322,13 @@ pub fn simulate_saturating(
     for step in 0..=steps {
         let t = step as f64 * step_hours;
 
-        for (i, dose) in doses.iter().enumerate() {
-            if !released[i] && dose.hours_from_start <= t + 1e-12 {
-                gut[i] += dose.bioavailable_dose;
-                released[i] = true;
-            }
+        while next_unreleased < dose_order.len()
+            && doses[dose_order[next_unreleased]].hours_from_start <= t + 1e-12
+        {
+            let idx = dose_order[next_unreleased];
+            gut[idx] += doses[idx].bioavailable_dose;
+            active_indices.push(idx);
+            next_unreleased += 1;
         }
 
         while next < order.len() && sample_hours[order[next]] <= t + 1e-12 {
@@ -328,14 +341,19 @@ pub fn simulate_saturating(
         }
 
         let mut absorbed = 0.0;
-        for (i, dose) in doses.iter().enumerate() {
-            if gut[i] <= 0.0 {
+        let mut i = 0;
+        while i < active_indices.len() {
+            let idx = active_indices[i];
+            if gut[idx] <= 1e-12 {
+                active_indices.swap_remove(i);
                 continue;
             }
+            let dose = &doses[idx];
             let remaining =
-                if dose.ka.is_finite() { gut[i] * (-dose.ka * step_hours).exp() } else { 0.0 };
-            absorbed += gut[i] - remaining;
-            gut[i] = remaining;
+                if dose.ka.is_finite() { gut[idx] * (-dose.ka * step_hours).exp() } else { 0.0 };
+            absorbed += gut[idx] - remaining;
+            gut[idx] = remaining;
+            i += 1;
         }
 
         let half_body = body + absorbed / 2.0 - rate(body) * step_hours / 2.0;
