@@ -6,12 +6,12 @@
  */
 (function () {
   const params = new URLSearchParams(window.location.search);
-  const panel = params.get("panel");
-  if (panel !== "timeline" && panel !== "settings") return;
-  if (typeof BroadcastChannel !== "function") return;
+  const panel = params.get('panel');
+  if (panel !== 'timeline' && panel !== 'settings') return;
+  if (typeof BroadcastChannel !== 'function') return;
 
-  const instanceId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const channel = new BroadcastChannel("tools-timeline-builder");
+  const instanceId = crypto.randomUUID();
+  const channel = new BroadcastChannel('tools-timeline-builder');
   let applyingRemoteConfig = false;
 
   function cloneConfig(config) {
@@ -23,22 +23,26 @@
     }
   }
 
-  document.addEventListener("timeline:rendered", (event) => {
+  document.addEventListener('timeline:rendered', (event) => {
     if (applyingRemoteConfig) return;
 
     const config = cloneConfig(event.detail?.config || window.TIMELINE_CONFIG);
     if (!config) return;
 
     channel.postMessage({
-      type: "timeline-config-updated",
+      type: 'timeline-config-updated',
       source: instanceId,
       config,
     });
   });
 
-  channel.addEventListener("message", (event) => {
+  channel.addEventListener('message', (event) => {
     const message = event.data || {};
-    if (message.type !== "timeline-config-updated" || message.source === instanceId) return;
+    if (
+      message.type !== 'timeline-config-updated' ||
+      message.source === instanceId
+    )
+      return;
 
     const config = cloneConfig(message.config);
     if (!config) return;
@@ -46,7 +50,7 @@
     applyingRemoteConfig = true;
     window.TIMELINE_CONFIG = config;
 
-    if (typeof window.initializeTimeline === "function") {
+    if (typeof window.initializeTimeline === 'function') {
       window.initializeTimeline();
     }
 
