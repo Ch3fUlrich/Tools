@@ -5,4 +5,5 @@ pub mod elterngeld;
 pub mod fat_loss;
 pub mod n26_analyzer;
 pub mod session;
+pub mod substances;
 pub mod training;
