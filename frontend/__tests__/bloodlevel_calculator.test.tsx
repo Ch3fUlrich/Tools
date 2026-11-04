@@ -1,6 +1,5 @@
 // Consolidated tests for BloodLevelCalculator (formerly ToleranceCalculator)
 // Combines the key coverage from the previous tolerancecalculator_* tests
-import React from 'react';
 import { render, fireEvent, waitFor, within } from '@testing-library/react';
 import { act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';

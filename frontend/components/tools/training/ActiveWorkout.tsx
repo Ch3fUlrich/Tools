@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import CardSection from '@/components/ui/CardSection';
 import ErrorAlert from '@/components/ui/ErrorAlert';
 import Button from '@/components/ui/Button';

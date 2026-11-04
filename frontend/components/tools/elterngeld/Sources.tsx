@@ -1,6 +1,5 @@
 "use client";
 
-import React from 'react';
 import { useTranslation } from '@/components/i18n/LanguageProvider';
 
 interface Source {

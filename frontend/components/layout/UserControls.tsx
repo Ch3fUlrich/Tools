@@ -1,6 +1,5 @@
 "use client";
 
-import React from 'react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import LanguageToggle from '@/components/layout/LanguageToggle';

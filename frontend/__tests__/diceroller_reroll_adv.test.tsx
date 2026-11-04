@@ -1,5 +1,4 @@
 /// <reference types="vitest" />
-import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import DiceRoller from '@/components/tools/DiceRoller';
 import { vi } from 'vitest';

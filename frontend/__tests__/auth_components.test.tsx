@@ -3,7 +3,6 @@ const push = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push }), usePathname: () => '/'}));
 
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { UserProfile } from '@/components/auth/UserProfile';
