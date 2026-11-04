@@ -112,6 +112,30 @@ describe('checkBackend and useBackendStatus', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('should use offline TTL when cached status is offline', async () => {
+    // Set to offline first
+    fetchSpy.mockResolvedValueOnce({ ok: false } as any);
+    await checkBackend();
+    fetchSpy.mockClear();
+
+    // Now status is offline, OFFLINE_RECHECK_MS is 15s.
+    // Move time forward by 10s, which is < 15s, so it should use cache.
+    vi.setSystemTime(Date.now() + 10_000);
+
+    // Inflight is null, force is false, status is 'offline', ttl is 15000
+    // Date.now() - lastProbeAt is 10000, so it returns Promise.resolve(false)
+    const result = await checkBackend();
+    expect(result).toBe(false);
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    // Now move time past 15s
+    vi.setSystemTime(Date.now() + 6_000); // 16s total
+    fetchSpy.mockResolvedValueOnce({ ok: true } as any);
+    const result2 = await checkBackend();
+    expect(result2).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('should ignore cache and probe again when forced', async () => {
     await checkBackend();
     fetchSpy.mockClear();
@@ -143,6 +167,23 @@ describe('checkBackend and useBackendStatus', () => {
     expect(getBackendStatus()).toBe('offline');
   });
 
+  it('should return false if error is thrown (simulate offline/catch block execution)', async () => {
+    // Specifically test the catch block by verifying what happens when it throws anything
+    resetBackendStatusForTests();
+    fetchSpy.mockClear();
+
+    // We reject with something that isn't a standard error to cover edge cases
+    // or just generally hit the catch block as fetch does on network failure
+    fetchSpy.mockImplementationOnce(() => {
+        throw new TypeError('Failed to fetch');
+    });
+
+    const result = await checkBackend();
+    expect(result).toBe(false);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(getBackendStatus()).toBe('offline');
+  });
+
   it('should share inflight probe for concurrent requests', async () => {
     resetBackendStatusForTests(); // Reset state
     fetchSpy.mockClear(); // Clear spy history
@@ -157,6 +198,21 @@ describe('checkBackend and useBackendStatus', () => {
     expect(result1).toBe(true);
     expect(result2).toBe(true);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('useBackendStatus returns unknown when hydrated on server (getServerSnapshot)', async () => {
+    // dynamic import of react-dom/server
+    const ReactDOMServer = await import('react-dom/server');
+    const React = await import('react');
+
+    function TestComponent() {
+      const status = useBackendStatus();
+      return React.createElement('div', null, status);
+    }
+
+    // This calls the server snapshot function (line 108)
+    const html = ReactDOMServer.renderToString(React.createElement(TestComponent));
+    expect(html).toContain('unknown');
   });
 
   it('useBackendStatus hook should return current status and update when it changes', () => {
