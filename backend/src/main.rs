@@ -261,7 +261,7 @@ fn test_env_cleanup_on_panic() {
     let result = std::panic::catch_unwind(|| {
         temp_env::with_var("ALLOWED_ORIGINS", Some("test-value"), || {
             // Verify the value is set
-            assert_eq!(std::env::var("ALLOWED_ORIGINS").unwrap(), "test-value");
+            assert_eq!(std::env::var("ALLOWED_ORIGINS").unwrap_or_default(), "test-value");
             // Simulate a panic
             panic!("Intentional panic for testing");
         });
