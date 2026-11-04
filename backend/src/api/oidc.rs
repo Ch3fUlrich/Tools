@@ -486,14 +486,7 @@ async fn validate_nonce_and_create_session(
 
         match guard.create_session(uid, 60 * 60 * 24).await {
             Ok(sid) => {
-                let secure_flag = match std::env::var("ALLOWED_ORIGINS") {
-                    Ok(origins)
-                        if origins.contains("localhost") || origins.contains("127.0.0.1") =>
-                    {
-                        ""
-                    }
-                    _ => "; Secure",
-                };
+                let secure_flag = crate::api::auth::secure_cookie_flag();
                 let cookie = format!("sid={sid}; HttpOnly; Path=/; SameSite=Lax{secure_flag}");
                 let frontend = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "/".to_string());
                 return axum::http::Response::builder()

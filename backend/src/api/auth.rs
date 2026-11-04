@@ -19,7 +19,7 @@ use std::sync::Arc;
 /// so a deployment that allows both its production domain and a local dev origin shipped
 /// session cookies unprotected in production. It now only relaxes when every configured
 /// origin is local, and defaults to Secure when nothing is configured at all.
-fn secure_cookie_flag() -> &'static str {
+pub(crate) fn secure_cookie_flag() -> &'static str {
     match std::env::var("ALLOWED_ORIGINS") {
         Ok(origins) if !origins.trim().is_empty() => {
             let all_local = origins.split(',').map(str::trim).filter(|o| !o.is_empty()).all(|o| {
